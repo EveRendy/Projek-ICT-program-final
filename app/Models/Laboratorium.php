@@ -16,8 +16,20 @@ class Laboratorium extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'no_lab',
         'level',
         'jumlah_pc',
     ];
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Relasi balik: Satu ruang Laboratorium bisa menerima banyak data Pengajuan
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'laboratorium_id');
+    }
 }

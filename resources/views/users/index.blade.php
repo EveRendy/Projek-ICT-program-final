@@ -51,6 +51,22 @@
                             </td>
                         </tr>
                         @endforeach
+                        <td>
+                        <td>
+                            @if($user->role == 'supervisor')
+                                <span class="badge bg-dark">Supervisor</span>
+                            @elseif($user->role == 'dosen')
+                                <span class="badge bg-primary">Dosen</span>
+                            @else
+                                <span class="badge bg-info text-dark">Admin</span>
+                                @if($user->laboratoriums->count() > 0)
+                                    <br><small class="text-muted">Tugas: <strong>{{ $user->laboratoriums->pluck('no_lab')->implode(', ') }}</strong></small>
+                                @else
+                                    <br><small class="text-danger"><em>Belum ada lab</em></small>
+                                @endif
+                            @endif
+                        </td>
+                        </td>
                     </tbody>
                 </table>
             </div>

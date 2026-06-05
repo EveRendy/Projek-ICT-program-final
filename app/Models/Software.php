@@ -25,4 +25,10 @@ class Software extends Model
     protected $casts = [
         'versi' => 'array',
     ];
+
+    // Relasi balik: Satu jenis Software bisa tercatat di banyak data Pengajuan
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'software_id');
+    }
 }

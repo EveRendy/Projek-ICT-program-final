@@ -42,10 +42,10 @@
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <div class="card border-start border-success border-4 shadow-sm p-3">
-                        <h5>Laporan Global</h5>
-                        <p class="text-muted small">Melihat seluruh statistik request instalasi software di lab.</p>
-                        <a href="#" class="btn btn-success btn-sm w-100">Lihat Laporan</a>
+                    <div class="card border-start border-primary border-4 shadow-sm p-3">
+                        <h5>Persetujuan Pengajuan</h5>
+                        <p class="text-muted small">Periksa pengajuan software dari dosen dan delegasikan penugasan admin.</p>
+                        <a href="{{ route('supervisor.pengajuan.index') }}" class="btn btn-primary btn-sm w-100">Buka Menu Approval</a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -87,12 +87,10 @@
                 </div>
 
             @elseif($role == 'dosen')
-                <div class="col-md-6 mb-3">
-                    <div class="card border-start border-danger border-4 shadow-sm p-3">
-                        <h5>Buat Pengajuan Baru</h5>
-                        <p class="text-muted small">Butuh software tertentu untuk perkuliahan? Ajukan permohonan di sini.</p>
-                        <a href="#" class="btn btn-danger btn-sm w-100">Form Request Software</a>
-                    </div>
+                <div class="card border-start border-primary border-4 shadow-sm p-3">
+                    <h5>Pengajuan Instalasi</h5>
+                    <p class="text-muted small">Ajukan software perkuliahan baru ke laboratorium komputer terkait.</p>
+                    <a href="{{ route('pengajuan.index') }}" class="btn btn-primary btn-sm w-100">Buka Pengajuan</a>
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="card border-start border-dark border-4 shadow-sm p-3">

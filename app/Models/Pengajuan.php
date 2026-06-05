@@ -30,6 +30,11 @@ class Pengajuan extends Model
         'catatan_admin',
     ];
 
+    /**Supaya tanggal otomatis dibaca sebagai object date */
+    protected $casts = [
+        'tgl_pengajuan' => 'date',
+        'tgl_penugasan' => 'date',
+    ];
     /**
      * ==========================================
      * RELASI ANTAR MODEL / TABEL

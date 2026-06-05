@@ -9,7 +9,7 @@ class Laboratorium extends Model
 {
     use HasFactory;
 
-    protected $table = "Laboratoriums";
+    protected $table = "laboratoriums";
     /**
      * Atribut yang dapat diisi secara massal.
      *

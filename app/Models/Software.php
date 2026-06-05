@@ -12,6 +12,11 @@ class Software extends Model
     // Mengunci nama tabel agar tidak otomatis dibaca sebagai 'softwares'
     protected $table = 'software';
 
+     /**
+     * Atribut yang dapat diisi secara massal.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'id_software',
         'nama_software',

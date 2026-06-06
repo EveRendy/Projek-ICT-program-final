@@ -50,4 +50,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Relasi balik: Seorang Dosen bisa memiliki banyak data Pengajuan
+public function pengajuans()
+{
+    return $this->hasMany(Pengajuan::class, 'user_id');
+}
+
+// Relasi balik penugasan: Seorang Admin bisa memiliki banyak tugas Pengajuan
+public function tugasInstalasi()
+{
+    return $this->hasMany(Pengajuan::class, 'tugaskan_admin');
+}
+
+// Relasi penanggung jawab: Seorang Admin bisa mengelola beberapa ruang Laboratorium
+public function laboratoriums()
+{
+    return $this->hasMany(Laboratorium::class, 'user_id');
+}
 }

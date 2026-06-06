@@ -12,6 +12,11 @@ class Software extends Model
     // Mengunci nama tabel agar tidak otomatis dibaca sebagai 'softwares'
     protected $table = 'software';
 
+     /**
+     * Atribut yang dapat diisi secara massal.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'id_software',
         'nama_software',
@@ -25,4 +30,10 @@ class Software extends Model
     protected $casts = [
         'versi' => 'array',
     ];
+
+    // Relasi balik: Satu jenis Software bisa tercatat di banyak data Pengajuan
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'software_id');
+    }
 }

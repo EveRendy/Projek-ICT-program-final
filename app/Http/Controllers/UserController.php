@@ -3,94 +3,103 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Laboratorium;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    // 1. TAMPILKAN SEMUA USER (Read)
     public function index()
     {
-        $users = User::all();
+        $users = User::with('laboratoriums')->latest()->get();
         return view('users.index', compact('users'));
     }
 
-    // 2. TAMPILKAN FORM TAMBAH USER (Create)
     public function create()
     {
-        return view('users.create');
+        $laboratoriums = Laboratorium::all();
+        return view('users.create', compact('laboratoriums'));
     }
 
-    // 3. SIMPAN DATA USER BARU (Create - Proses)
     public function store(Request $request)
     {
         $request->validate([
-            'no_induk' => 'required|string|unique:users,no_induk',
-            'nama' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:6',
-            'no_hp' => 'nullable|string',
-            'role' => 'required|in:supervisor,admin,dosen',
+            'no_induk'        => 'required|string|max:50|unique:users,no_induk', 
+            'nama'            => 'required|string|max:255',
+            'email'           => 'required|email|max:255|unique:users,email',
+            'password'        => 'required|string|min:6',
+            'role'            => 'required|in:supervisor,admin,dosen',
+            'laboratorium_id' => 'nullable|exists:laboratoriums,id',
         ]);
 
-        User::create([
+        $user = User::create([
             'no_induk' => $request->no_induk,
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'password' => Hash::make($request->password), // Enkripsi password
-            'no_hp' => $request->no_hp,
-            'role' => $request->role,
+            'nama'     => $request->nama, // Menggunakan kolom 'nama' database
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => $request->role,
         ]);
+
+        if ($request->role === 'admin' && $request->laboratorium_id) {
+            Laboratorium::where('id', $request->laboratorium_id)->update(['user_id' => $user->id]);
+        }
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
     }
 
-    // 4. TAMPILKAN DETAIL USER (Opsional, kita lewati dulu)
-    public function show(User $user)
+    public function edit($id)
     {
-        //
+        $user = User::findOrFail($id);
+        $laboratoriums = Laboratorium::all();
+        $currentLabId = Laboratorium::where('user_id', $user->id)->first()?->id;
+
+        return view('users.edit', compact('user', 'laboratoriums', 'currentLabId'));
     }
 
-    // 5. TAMPILKAN FORM EDIT USER (Update)
-    public function edit(User $user)
+    public function update(Request $request, $id)
     {
-        return view('users.edit', compact('user'));
-    }
+        $user = User::findOrFail($id);
 
-    // 6. PROSES UPDATE DATA USER (Update - Proses)
-    public function update(Request $request, User $user)
-    {
         $request->validate([
-            'no_induk' => 'required|string|unique:users,no_induk,' . $user->id,
-            'nama' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6', // Password boleh kosong jika tidak diubah
-            'no_hp' => 'nullable|string',
-            'role' => 'required|in:supervisor,admin,dosen',
+            'no_induk'        => 'required|string|max:50|unique:users,no_induk,' . $user->id,
+            'nama'            => 'required|string|max:255',
+            'email'           => 'required|email|max:255|unique:users,email,' . $user->id,
+            'password'        => 'nullable|string|min:6',
+            'role'            => 'required|in:supervisor,admin,dosen',
+            'laboratorium_id' => 'nullable|exists:laboratoriums,id',
         ]);
 
         $data = [
             'no_induk' => $request->no_induk,
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'no_hp' => $request->no_hp,
-            'role' => $request->role,
+            'nama'     => $request->nama, // Menggunakan kolom 'nama' database
+            'email'    => $request->email,
+            'role'     => $request->role,
         ];
 
-        // Jika password diisi, enkripsi dan masukkan ke data update
-        if ($request->filled('password')) {
+        if ($request->password) {
             $data['password'] = Hash::make($request->password);
         }
 
         $user->update($data);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui!');
+        if ($request->role === 'admin') {
+            Laboratorium::where('user_id', $user->id)->update(['user_id' => null]);
+            if ($request->laboratorium_id) {
+                Laboratorium::where('id', $request->laboratorium_id)->update(['user_id' => $user->id]);
+            }
+        } else {
+            Laboratorium::where('user_id', $user->id)->update(['user_id' => null]);
+        }
+
+        return redirect()->route('users.index')->with('success', 'Data user berhasil diperbarui!');
     }
 
-    // 7. HAPUS DATA USER (Delete)
-    public function destroy(User $user)
+    public function destroy($id)
     {
+        $user = User::findOrFail($id);
+        Laboratorium::where('user_id', $user->id)->update(['user_id' => null]);
         $user->delete();
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
+
+        return redirect()->route('users.index')->with('success', 'User berhasil deleted!');
     }
 }

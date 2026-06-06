@@ -40,6 +40,44 @@
                         <option value="supervisor" {{ $user->role == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Role Akses</label>
+                    <select name="role" id="role_select" class="form-select" onchange="toggleLabDropdown()" required>
+                        <option value="supervisor" {{ $user->role == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                        <option value="dosen" {{ $user->role == 'dosen' ? 'selected' : '' }}>Dosen</option>
+                        <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin Lab (Teknisi)</option>
+                    </select>
+                </div>
+
+                <!-- DROPDOWN LAB EDIT -->
+                <div class="mb-3 d-none" id="lab_assignment_container">
+                    <label class="form-label text-primary"><strong>Tugaskan di Laboratorium (Khusus Admin)</strong></label>
+                    <select name="laboratorium_id" class="form-select">
+                        <option value="">-- Pilih Ruang Lab Tanggung Jawab --</option>
+                        @foreach($laboratoriums as $lab)
+                            <option value="{{ $lab->id }}" {{ (isset($currentLabId) && $currentLabId == $lab->id) ? 'selected' : '' }}>
+                                {{ $lab->no_lab }} (Level {{ $lab->level }})
+                                @if($lab->user_id && $lab->user_id != $user->id)
+                                    - (Akan merebut tugas dari: {{ $lab->admin->name }})
+                                @endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <script>
+                    function toggleLabDropdown() {
+                        const roleSelect = document.getElementById('role_select');
+                        const labContainer = document.getElementById('lab_assignment_container');
+
+                        if (roleSelect.value === 'admin') {
+                            labContainer.classList.remove('d-none');
+                        } else {
+                            labContainer.classList.add('d-none');
+                        }
+                    }
+                    window.onload = toggleLabDropdown;
+                </script>
                 <div class="mt-4">
                     <button type="submit" class="btn btn-warning">Perbarui User</button>
                     <a href="{{ route('users.index') }}" class="btn btn-secondary">Batal</a>

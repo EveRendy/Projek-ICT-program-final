@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('no_induk')->unique();
             $table->string('nama')->nullable();
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->string('no_hp')->nullable();
             $table->enum('role', ['supervisor', 'admin', 'dosen']);

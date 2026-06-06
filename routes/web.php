@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LaboratoriumController;
 use App\Http\Controllers\SoftwareController;
+use App\Http\Controllers\PengajuanController;
 
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
@@ -49,3 +50,21 @@ Route::middleware(['auth'])->group(function () {
     // Tambahkan route resource software di bawah ini
     Route::resource('softwares', SoftwareController::class);
 });
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('users', UserController::class);
+    Route::resource('labs', LaboratoriumController::class);
+    Route::resource('softwares', SoftwareController::class);
+
+    // Route untuk fitur pengajuan dosen
+    Route::get('/pengajuan', [PengajuanController::class, 'index'])->name('pengajuan.index');
+    Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
+    Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
+});
+
+// Route Khusus Pengelolaan Supervisor
+Route::get('/supervisor/pengajuan', [PengajuanController::class, 'indexSupervisor'])->name('supervisor.pengajuan.index');
+Route::patch('/supervisor/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
+Route::patch('/supervisor/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');

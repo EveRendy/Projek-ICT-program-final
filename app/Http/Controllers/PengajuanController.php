@@ -127,5 +127,55 @@ class PengajuanController extends Controller
         ->where('status_persetujuan', 'disetujui')
         ->latest()
         ->get();
+        return response()->json($pengajuans);
+    }
+    
+    public function updateProgress(Request $request, $id)
+    {
+        $request->validate([
+            'status_progress' =>
+                'required|in:progress,terinstal,gagal_terinstal',
+
+            'catatan_admin' =>
+                'nullable|string'
+        ]);
+
+        $pengajuan = Pengajuan::findOrFail($id);
+
+        $pengajuan->update([
+            'status_progress' => $request->status_progress,
+            'catatan_admin' => $request->catatan_admin
+        ]);
+
+        return response()->json([
+            'message' => 'Progress berhasil diperbarui'
+        ]);
+    }
+
+    public function uploadDokumentasi(Request $request, $id)
+    {
+        $request->validate([
+            'dokumentasi' =>
+                'required|image|max:2048'
+        ]);
+
+        $pengajuan = Pengajuan::findOrFail($id);
+
+        $path = $request
+            ->file('dokumentasi')
+            ->store(
+                'dokumentasi_instalasi',
+                'public'
+            );
+
+        $pengajuan->update([
+            'dokumentasi' => $path,
+            'status_progress' => 'terinstal'
+        ]);
+
+        return response()->json([
+            'message' =>
+                'Dokumentasi berhasil diupload'
+        ]);
     }
 }

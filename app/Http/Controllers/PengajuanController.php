@@ -151,4 +151,22 @@ class PengajuanController extends Controller
             'message' => 'Progress berhasil diperbarui'
         ]);
     }
+    public function uploadDokumentasi(Request $request, $id)
+    {
+        $request->validate([
+            'dokumentasi' => 'required|url'
+        ]);
+
+        $pengajuan = Pengajuan::findOrFail($id);
+
+        $pengajuan->update([
+            'dokumentasi' => $request->dokumentasi,
+            'status_progress' => 'terinstal'
+        ]);
+
+        return back()->with(
+            'success',
+            'Dokumentasi berhasil disimpan'
+        );
+    }
 }

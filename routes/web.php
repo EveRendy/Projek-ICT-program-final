@@ -62,6 +62,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pengajuan', [PengajuanController::class, 'index'])->name('pengajuan.index');
     Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
+    
+    // Route Admin Instalasi
+    Route::get('/admin/tugas', [PengajuanController::class, 'tugasAdmin'])->name('admin.tugas');
+    Route::put('/admin/pengajuan/{id}/progress', [PengajuanController::class, 'updateProgress'])->name('admin.progress');
+    Route::post('/admin/pengajuan/{id}/dokumentasi', [PengajuanController::class, 'uploadDokumentasi'])->name('admin.dokumentasi');
 });
 
 // Route Khusus Pengelolaan Supervisor

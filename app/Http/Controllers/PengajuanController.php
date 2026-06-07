@@ -110,4 +110,21 @@ class PengajuanController extends Controller
 
         return back()->with('success', 'Pengajuan telah ditolak dengan alasan tertentu.');
     }
+    public function tugasAdmin()
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            abort(403);
+        }
+
+        $pengajuans = Pengajuan::with([
+            'dosen',
+            'laboratorium',
+            'software'
+        ])
+        ->where('tugaskan_admin', $user->id)
+        ->where('status_persetujuan', 'disetujui')
+        ->latest()
+        ->get();
 }

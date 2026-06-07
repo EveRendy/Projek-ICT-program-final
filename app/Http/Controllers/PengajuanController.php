@@ -129,7 +129,7 @@ class PengajuanController extends Controller
         ->get();
         return response()->json($pengajuans);
     }
-    
+
     public function updateProgress(Request $request, $id)
     {
         $request->validate([
@@ -149,33 +149,6 @@ class PengajuanController extends Controller
 
         return response()->json([
             'message' => 'Progress berhasil diperbarui'
-        ]);
-    }
-
-    public function uploadDokumentasi(Request $request, $id)
-    {
-        $request->validate([
-            'dokumentasi' =>
-                'required|image|max:2048'
-        ]);
-
-        $pengajuan = Pengajuan::findOrFail($id);
-
-        $path = $request
-            ->file('dokumentasi')
-            ->store(
-                'dokumentasi_instalasi',
-                'public'
-            );
-
-        $pengajuan->update([
-            'dokumentasi' => $path,
-            'status_progress' => 'terinstal'
-        ]);
-
-        return response()->json([
-            'message' =>
-                'Dokumentasi berhasil diupload'
         ]);
     }
 }

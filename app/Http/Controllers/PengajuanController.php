@@ -127,4 +127,5 @@ class PengajuanController extends Controller
         ->where('status_persetujuan', 'disetujui')
         ->latest()
         ->get();
+    }
 }

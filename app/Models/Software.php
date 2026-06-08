@@ -36,4 +36,9 @@ class Software extends Model
     {
         return $this->hasMany(Pengajuan::class, 'software_id');
     }
+
+    public function instalasis()
+    {
+        return $this->hasMany(Instalasi::class, 'id_software', 'id_software');
+    }
 }

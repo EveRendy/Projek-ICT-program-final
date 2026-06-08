@@ -64,4 +64,7 @@ class Pengajuan extends Model
     {
         return $this->belongsTo(User::class, 'tugaskan_admin');
     }
+
+
+    
 }

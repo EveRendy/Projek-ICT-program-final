@@ -52,20 +52,26 @@ class User extends Authenticatable
     }
 
     // Relasi balik: Seorang Dosen bisa memiliki banyak data Pengajuan
-public function pengajuans()
-{
-    return $this->hasMany(Pengajuan::class, 'user_id');
-}
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'user_id');
+    }
 
-// Relasi balik penugasan: Seorang Admin bisa memiliki banyak tugas Pengajuan
-public function tugasInstalasi()
-{
-    return $this->hasMany(Pengajuan::class, 'tugaskan_admin');
-}
+    // Relasi balik penugasan: Seorang Admin bisa memiliki banyak tugas Pengajuan
+    public function tugasInstalasi()
+    {
+        return $this->hasMany(Pengajuan::class, 'tugaskan_admin');
+    }
 
-// Relasi penanggung jawab: Seorang Admin bisa mengelola beberapa ruang Laboratorium
-public function laboratoriums()
-{
-    return $this->hasMany(Laboratorium::class, 'user_id');
-}
+    // Relasi penanggung jawab: Seorang Admin bisa mengelola beberapa ruang Laboratorium
+    public function laboratoriums()
+    {
+        return $this->hasMany(Laboratorium::class, 'user_id');
+    }
+
+    // Untuk melacak riwayat instalasi apa saja yang pernah dikerjakan oleh admin ini
+    public function riwayatInstalasi()
+    {
+        return $this->hasMany(Instalasi::class, 'diinstal_oleh', 'no_induk');
+    }
 }

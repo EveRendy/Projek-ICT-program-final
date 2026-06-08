@@ -13,6 +13,8 @@ class PengajuanController extends Controller
     // 1. Menampilkan Riwayat Pengajuan Dosen
     public function index()
     {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
         // Menggunakan relasi balik yang baru saja kita buat
         $pengajuans = Auth::user()->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
         return view('pengajuan.index', compact('pengajuans'));
@@ -110,63 +112,20 @@ class PengajuanController extends Controller
 
         return back()->with('success', 'Pengajuan telah ditolak dengan alasan tertentu.');
     }
-    public function tugasAdmin()
+
+    // 7. Menampilkan Daftar Tugas Instalasi Khusus Admin yang Sedang Login
+    public function indexAdmin()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user->role !== 'admin') {
-            abort(403);
-        }
+        // Mengambil data pengajuan yang ditugaskan ke ID Admin ini dan statusnya sudah disetujui oleh SPV
+        $tugas = Pengajuan::where('tugaskan_admin', $user->id)
+            ->where('status_persetujuan', 'disetujui')
+            ->with(['dosen', 'laboratorium', 'software'])
+            ->latest()
+            ->get();
 
-        $pengajuans = Pengajuan::with([
-            'dosen',
-            'laboratorium',
-            'software'
-        ])
-        ->where('tugaskan_admin', $user->id)
-        ->where('status_persetujuan', 'disetujui')
-        ->latest()
-        ->get();
-        return response()->json($pengajuans);
-    }
-
-    public function updateProgress(Request $request, $id)
-    {
-        $request->validate([
-            'status_progress' =>
-                'required|in:progress,terinstal,gagal_terinstal',
-
-            'catatan_admin' =>
-                'nullable|string'
-        ]);
-
-        $pengajuan = Pengajuan::findOrFail($id);
-
-        $pengajuan->update([
-            'status_progress' => $request->status_progress,
-            'catatan_admin' => $request->catatan_admin
-        ]);
-
-        return response()->json([
-            'message' => 'Progress berhasil diperbarui'
-        ]);
-    }
-    public function uploadDokumentasi(Request $request, $id)
-    {
-        $request->validate([
-            'dokumentasi' => 'required|url'
-        ]);
-
-        $pengajuan = Pengajuan::findOrFail($id);
-
-        $pengajuan->update([
-            'dokumentasi' => $request->dokumentasi,
-            'status_progress' => 'terinstal'
-        ]);
-
-        return back()->with(
-            'success',
-            'Dokumentasi berhasil disimpan'
-        );
+        return view('admin.tugas', compact('tugas'));
     }
 }

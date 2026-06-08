@@ -32,4 +32,9 @@ class Laboratorium extends Model
     {
         return $this->hasMany(Pengajuan::class, 'laboratorium_id');
     }
+
+    public function instalasis()
+    {
+        return $this->hasMany(Instalasi::class, 'no_lab', 'no_lab');
+    }
 }

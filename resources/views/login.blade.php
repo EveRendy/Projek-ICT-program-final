@@ -24,9 +24,9 @@
             height:100vh;
         }
 
-        /* ==========================
-           BAGIAN KIRI
-        ========================== */
+        /* =========================
+           PANEL KIRI
+        ========================= */
 
         .left-side{
             background:#dceef5;
@@ -36,15 +36,42 @@
         }
 
         .left-header{
-            height:40%;
-            padding:30px 40px;
+            height:42%;
+            padding:35px 45px;
             display:flex;
             flex-direction:column;
         }
 
+        .lab-brand{
+            display:flex;
+            align-items:center;
+            gap:15px;
+        }
+
         .lab-logo{
-            width:250px;
-            height:auto;
+            width:80px;
+            height:80px;
+            object-fit:contain;
+        }
+
+        .lab-text h5{
+            margin:0;
+            font-size:16px;
+            font-weight:500;
+            color:#444;
+        }
+
+        .lab-text h3{
+            margin:0;
+            font-size:26px;
+            font-weight:700;
+            color:#1d2f3a;
+        }
+
+        .lab-text p{
+            margin:0;
+            font-size:12px;
+            color:#666;
         }
 
         .title-login{
@@ -61,12 +88,12 @@
             font-size:3rem;
             font-weight:700;
             color:#1d2f3a;
-            text-shadow:0px 4px 8px rgba(0,0,0,0.25);
-            line-height:1.2;
+            line-height:1.15;
+            text-shadow:0 4px 8px rgba(0,0,0,0.15);
         }
 
         .left-image{
-            height:60%;
+            height:58%;
         }
 
         .left-image img{
@@ -75,9 +102,9 @@
             object-fit:cover;
         }
 
-        /* ==========================
-           BAGIAN KANAN
-        ========================== */
+        /* =========================
+           PANEL KANAN
+        ========================= */
 
         .right-side{
             background:#f5f5f5;
@@ -93,28 +120,28 @@
         }
 
         .ubl-logo{
-            width:320px;
+            width:260px;
             display:block;
-            margin:0 auto 30px auto;
+            margin:0 auto 25px auto;
         }
 
         .login-title{
             text-align:center;
-            font-size:4rem;
+            font-size:3.5rem;
             font-weight:500;
-            margin-bottom:50px;
             color:#333;
+            margin-bottom:50px;
         }
 
         .form-label{
-            font-size:15px;
             color:#666;
+            font-size:15px;
             margin-bottom:8px;
         }
 
         .form-control{
             height:55px;
-            border-radius:15px;
+            border-radius:14px;
             font-size:16px;
         }
 
@@ -122,11 +149,11 @@
             width:100%;
             height:55px;
             border:none;
-            border-radius:35px;
-            background:black;
-            color:white;
+            border-radius:30px;
+            background:#000;
+            color:#fff;
             font-size:18px;
-            margin-top:25px;
+            margin-top:20px;
             transition:0.3s;
         }
 
@@ -134,9 +161,9 @@
             background:#222;
         }
 
-        /* ==========================
+        /* =========================
            RESPONSIVE
-        ========================== */
+        ========================= */
 
         @media(max-width:992px){
 
@@ -168,10 +195,20 @@
 
             <div class="left-header">
 
-                <img
-                    src="{{ asset('images/image.png') }}"
-                    alt="Logo Lab"
-                    class="lab-logo">
+                <div class="lab-brand">
+
+                    <img
+                        src="{{ asset('images/image.png') }}"
+                        alt="Logo ICT"
+                        class="lab-logo">
+
+                    <div class="lab-text">
+                        <h5>Laboratorium</h5>
+                        <h3>ICT TERPADU</h3>
+                        <p>Universitas Budi Luhur</p>
+                    </div>
+
+                </div>
 
                 <div class="title-login">
                     <h1>REQUEST INSTALASI</h1>

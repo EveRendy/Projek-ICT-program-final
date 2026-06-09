@@ -43,5 +43,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/admin/tugas', [PengajuanController::class, 'indexAdmin'])->name('admin.tugas.index');
 
-    
+// 1. Route untuk menampilkan halaman daftar tugas (Sesuai dengan tombol di dashboard)
+Route::get('/admin/penyelesaian', [PengajuanController::class, 'indexAdmin'])->name('admin.penyelesaian.index');
+
+// 2. Route untuk memproses (submit) penyelesaian tugas oleh admin
+Route::put('/admin/pengajuan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
 });
+
+
+

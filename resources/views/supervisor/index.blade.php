@@ -120,7 +120,7 @@
                                             <p class="small text-muted">Berikan alasan penolakan agar dosen pengaju mengetahui kendalanya.</p>
                                             <div class="mb-3">
                                                 <label class="form-label">Catatan Penolakan</label>
-                                                <textarea nama="catatan_spv" class="form-control" rows="3" placeholder="Contoh: Maaf, laboratorium penuh digunakan praktikum s.d akhir semester." required></textarea>
+                                                <textarea name="catatan_spv" class="form-control" rows="3" placeholder="Contoh: Maaf, laboratorium penuh digunakan praktikum s.d akhir semester." required></textarea>
                                             </div>
                                         </div>
                                         <div class="modal-footer">

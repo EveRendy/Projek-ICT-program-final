@@ -13,6 +13,8 @@ class PengajuanController extends Controller
     // 1. Menampilkan Riwayat Pengajuan Dosen
     public function index()
     {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
         // Menggunakan relasi balik yang baru saja kita buat
         $pengajuans = Auth::user()->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
         return view('pengajuan.index', compact('pengajuans'));
@@ -109,5 +111,21 @@ class PengajuanController extends Controller
         ]);
 
         return back()->with('success', 'Pengajuan telah ditolak dengan alasan tertentu.');
+    }
+
+    // 7. Menampilkan Daftar Tugas Instalasi Khusus Admin yang Sedang Login
+    public function indexAdmin()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Mengambil data pengajuan yang ditugaskan ke ID Admin ini dan statusnya sudah disetujui oleh SPV
+        $tugas = Pengajuan::where('tugaskan_admin', $user->id)
+            ->where('status_persetujuan', 'disetujui')
+            ->with(['dosen', 'laboratorium', 'software'])
+            ->latest()
+            ->get();
+
+        return view('admin.tugas', compact('tugas'));
     }
 }

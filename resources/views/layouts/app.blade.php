@@ -31,7 +31,7 @@
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             ['label' => 'Pengajuan', 'route' => 'supervisor.pengajuan.*', 'href' => route('supervisor.pengajuan.index'), 'icon' => 'request'],
             ['label' => 'Update Pengerjaan', 'route' => 'admin.tugas.*', 'href' => route('admin.tugas.index'), 'icon' => 'refresh'],
-            ['label' => 'Riwayat', 'route' => null, 'href' => '#', 'icon' => 'history'],
+            ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
             ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
             ['label' => 'User Manager', 'route' => 'users.*', 'href' => route('users.index'), 'icon' => 'users'],
             ['label' => 'Manajemen Lab', 'route' => 'labs.*', 'href' => route('labs.index'), 'icon' => 'building'],
@@ -39,7 +39,7 @@
     } elseif ($role === 'admin') {
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
-            ['label' => 'Riwayat', 'route' => null, 'href' => '#', 'icon' => 'history'],
+            ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
             ['label' => 'Update Instalasi', 'route' => 'admin.penyelesaian.*', 'href' => route('admin.penyelesaian.index'), 'icon' => 'refresh'],
             ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
         ]);
@@ -48,7 +48,7 @@
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.index'), 'icon' => 'request'],
             ['label' => 'Status Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.index'), 'icon' => 'status'],
-            ['label' => 'Riwayat', 'route' => null, 'href' => '#', 'icon' => 'history'],
+            ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
         ]);
     }
 @endphp
@@ -63,7 +63,7 @@
             'refresh' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg>',
             'history' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v5l3 2M3 12a9 9 0 109-9M3 4v5h5"></path></svg>',
             'shield' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 4v5c0 5-3.4 8.7-8 9-4.6-.3-8-4-8-9V7l8-4zM9 12l2 2 4-4"></path></svg>',
-            'users' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11a4 4 0 10-8 0M4 21a8 8 0 0116 0M19 8a3 3 0 11-2-2.83"></path></svg>',
+            'users' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20a8 8 0 0116 0"></path></svg>',
             'building' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 7h1M9 11h1M9 15h1M14 7h1M14 11h1M14 15h1M3 21h18"></path></svg>',
             'status' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7M4 4h16v16H4z"></path></svg>',
             default => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>',
@@ -100,8 +100,10 @@
             <div class="border-t border-slate-100 p-4">
                 <details class="relative">
                     <summary class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-sm font-bold uppercase text-white">
-                            {{ substr($role, 0, 1) }}
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20a8 8 0 0116 0"></path>
+                            </svg>
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="truncate text-sm font-bold capitalize text-slate-950">{{ $user->nama ?? $role }}</p>
@@ -111,9 +113,11 @@
                     </summary>
                     <div class="mt-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                         <p class="truncate px-3 py-2 text-xs text-slate-500">{{ $user->email }}</p>
-                        <form action="{{ route('logout') }}" method="POST">
+                        <form action="{{ route('logout') }}" method="POST" class="px-1 pb-1">
                             @csrf
-                            <button type="submit" class="flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50">Logout</button>
+                            <button type="submit" class="flex w-full items-center justify-center rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-rose-700">
+                                Logout
+                            </button>
                         </form>
                     </div>
                 </details>
@@ -148,27 +152,28 @@
                 </div>
 
                 <div class="ml-auto flex items-center gap-2">
-                    <button type="button" class="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20" aria-label="Notifikasi">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5M9 17a3 3 0 006 0"></path></svg>
-                        <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-                    </button>
-
                     <details class="relative">
                         <summary class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:bg-slate-50">
                             <div class="hidden text-right sm:block">
                                 <p class="max-w-32 truncate text-sm font-bold text-slate-950">{{ $user->nama ?? $role }}</p>
                                 <p class="text-xs font-medium capitalize text-slate-500">{{ $role }}</p>
                             </div>
-                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-950 text-xs font-black uppercase text-white">{{ substr($role, 0, 1) }}</div>
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-950 text-white shadow-sm">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20a8 8 0 0116 0"></path>
+                                </svg>
+                            </div>
                         </summary>
                         <div class="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
                             <div class="px-3 py-2">
                                 <p class="truncate text-sm font-bold text-slate-950">{{ $user->nama ?? $role }}</p>
                                 <p class="truncate text-xs text-slate-500">{{ $user->email }}</p>
                             </div>
-                            <form action="{{ route('logout') }}" method="POST">
+                            <form action="{{ route('logout') }}" method="POST" class="px-1 pb-1">
                                 @csrf
-                                <button type="submit" class="mt-1 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50">Logout</button>
+                                <button type="submit" class="flex w-full items-center justify-center rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-rose-700">
+                                    Logout
+                                </button>
                             </form>
                         </div>
                     </details>

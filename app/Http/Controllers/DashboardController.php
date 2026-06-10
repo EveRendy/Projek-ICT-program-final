@@ -33,6 +33,10 @@ class DashboardController extends Controller
 
         $pengajuanDisetujui = Pengajuan::where('status_persetujuan', 'disetujui')->count();
         $pengajuanDitolak = Pengajuan::where('status_persetujuan', 'ditolak')->count();
+        $pengajuanDitolakDetail = Pengajuan::where('status_persetujuan', 'ditolak')
+            ->with(['dosen', 'laboratorium', 'software'])
+            ->latest()
+            ->get();
         $totalSoftware = Software::count();
         $totalLaboratorium = Laboratorium::count();
         $totalUser = User::count();
@@ -79,6 +83,7 @@ class DashboardController extends Controller
             'pengajuanHariIni',
             'pengajuanDisetujui',
             'pengajuanDitolak',
+            'pengajuanDitolakDetail',
             'totalSoftware',
             'totalLaboratorium',
             'totalUser',

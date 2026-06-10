@@ -35,16 +35,42 @@
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
         
-        <div class="relative max-w-full">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+        <form action="{{ route('instalasi.index') }}" method="GET">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div class="relative md:col-span-2">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchLicense" name="search" value="{{ request('search') }}"
+                           class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" 
+                           placeholder="Cari software atau nomor laboratorium ">
+                </div>
+
+                <div class="flex gap-2">
+                    <select name="lab" onchange="this.form.submit()" 
+                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
+                        <option value="">-- Semua Laboratorium --</option>
+                        @foreach($laboratoriums as $lab)
+                            <option value="{{ $lab->no_lab }}" {{ request('lab') == $lab->no_lab ? 'selected' : '' }}>
+                                {{ $lab->nama_lab }} ({{ $lab->no_lab }})
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @if(request('lab') || request('search'))
+                        <a href="{{ route('instalasi.index') }}" 
+                           class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 shadow-sm"
+                           title="Reset Filter">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+
             </div>
-            <input type="text" id="searchLicense" 
-                   class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" 
-                   placeholder="Cari software atau nomor laboratorium...">
-        </div>
+        </form>
 
         <div class="overflow-x-auto rounded-xl border border-slate-100">
             <table class="w-full text-left border-collapse whitespace-nowrap">
@@ -126,6 +152,7 @@
             </table>
         </div>
     </div> 
+
     <div class="flex items-start gap-3.5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm">
         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -215,6 +242,7 @@
         document.getElementById('modalTambahLisensi').classList.add('hidden');
     }
 
+    // Fungsi live search lokal (tetap dipertahankan untuk pencarian instan pada text)
     document.getElementById('searchLicense').addEventListener('keyup', function() {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');

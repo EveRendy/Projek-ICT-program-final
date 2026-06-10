@@ -13,8 +13,9 @@ class PengajuanController extends Controller
     // 1. Menampilkan Riwayat Pengajuan Dosen
     public function index()
     {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Menggunakan relasi balik yang baru saja kita buat
         $pengajuans = Auth::user()->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
         return view('pengajuan.index', compact('pengajuans'));
@@ -49,15 +50,15 @@ class PengajuanController extends Controller
 
         // Simpan ke database pengajuan
         Pengajuan::create([
-            'tgl_pengajuan'    => now()->toDateString(),
-            'mata_kuliah'      => $request->mata_kuliah,
-            'kelompok_matkul'  => $request->kelompok_matkul,
-            'user_id'          => Auth::id(), // ID Dosen yang sedang login
-            'laboratorium_id'  => $request->laboratorium_id,
-            'software_id'      => $request->software_id,
-            'versi_requested'  => $request->versi_requested,
-            'software_lain'    => $request->software_lain,
-            'versi_lain'       => $request->versi_lain,
+            'tgl_pengajuan'     => now()->toDateString(),
+            'mata_kuliah'       => $request->mata_kuliah,
+            'kelompok_matkul'   => $request->kelompok_matkul,
+            'user_id'           => Auth::id(), // ID Dosen yang sedang login
+            'laboratorium_id'   => $request->laboratorium_id,
+            'software_id'       => $request->software_id,
+            'versi_requested'   => $request->versi_requested,
+            'software_lain'     => $request->software_lain,
+            'versi_lain'        => $request->versi_lain,
             'status_persetujuan'=> 'pending',
         ]);
 
@@ -126,6 +127,36 @@ class PengajuanController extends Controller
             ->latest()
             ->get();
 
-        return view('admin.tugas', compact('tugas'));
+        return view('admin.penyelesaian', compact('tugas'));
+    }
+
+    // Fungsi untuk memperbarui progress tugas oleh Admin (SUDAH DIPERBAIKI)
+    public function updateProgressTugas(Request $request, $id)
+    {
+        // Validasi input dari admin disesuaikan dengan Enum Database & Form Blade Anda
+        $request->validate([
+            'status_progress' => 'required|in:progress,terinstal,gagal_terinstal', // DIPERBAIKI DISINI
+            'dokumentasi'     => 'required|url|max:255', // Harus berupa link drive yang valid
+            'catatan_admin'   => 'nullable|string|max:500', 
+        ], [
+            'status_progress.in' => 'Status yang dipilih tidak valid.',
+            'dokumentasi.url'    => 'Dokumentasi harus berupa tautan/URL yang valid (contoh: https://...).',
+        ]);
+
+        $pengajuan = Pengajuan::findOrFail($id);
+
+        // KEAMANAN: Pastikan yang mengubah adalah benar-benar admin yang ditugaskan
+        if ($pengajuan->tugaskan_admin !== Auth::id()) {
+            abort(403, 'Akses ditolak! Anda tidak ditugaskan untuk pengajuan ini.');
+        }
+
+        // Update data pengajuan berdasarkan input form
+        $pengajuan->update([
+            'status_progress' => $request->status_progress,
+            'dokumentasi'     => $request->dokumentasi, 
+            'catatan_admin'   => $request->catatan_admin,
+        ]);
+
+        return back()->with('success', 'Progress tugas berhasil diperbarui!');
     }
 }

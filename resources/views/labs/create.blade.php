@@ -1,49 +1,62 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Tambah Laboratorium</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container my-5" style="max-width: 500px;">
-        <div class="card shadow border-0 p-4">
-            <h4 class="mb-4">Tambah Ruang Lab</h4>
+@extends('layouts.app')
 
-            @if ($errors->any())
-                <div class="alert alert-danger py-2 mb-3">
-                    <ul class="mb-0 small">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('labs.store') }}" method="POST">
-                @csrf
-                <div class="mb-3">
-                    <label class="form-label">Nomor / Nama Lab</label>
-                    <input type="text" name="no_lab" class="form-control" placeholder="Contoh: LAB01" value="{{ old('no_lab') }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Level Spesifikasi Komputer</label>
-                    <select name="level" class="form-select" required>
-                        <option value="1">Level 1 (Spesifikasi Standar / Rendah)</option>
-                        <option value="2">Level 2 (Spesifikasi Menengah)</option>
-                        <option value="3">Level 3 (Spesifikasi Tinggi / Multimedia)</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Jumlah PC</label>
-                    <input type="number" name="jumlah_pc" class="form-control" placeholder="Contoh: 30" value="{{ old('jumlah_pc') }}" required>
-                </div>
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary w-100 mb-2">Simpan Ruang Lab</button>
-                    <a href="{{ route('labs.index') }}" class="btn btn-secondary w-100 btn-sm">Batal</a>
-                </div>
-            </form>
+@section('content')
+<div class="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
+    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-slate-950 uppercase">Tambah Ruang Lab</h2>
+            <p class="text-sm font-medium text-slate-500">Masukkan data laboratorium baru untuk dikelola pada sistem.</p>
         </div>
     </div>
-</body>
-</html>
+
+    @if ($errors->any())
+        <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 shadow-sm">
+            <div class="mb-2 font-bold">Terdapat beberapa masalah:</div>
+            <ul class="list-disc space-y-1 pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form action="{{ route('labs.store') }}" method="POST" class="space-y-5">
+            @csrf
+
+            <div>
+                <label for="no_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nomor / Nama Lab</label>
+                <input type="text" id="no_lab" name="no_lab" value="{{ old('no_lab') }}" required
+                       class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                       placeholder="Contoh: LAB01">
+            </div>
+
+            <div>
+                <label for="level" class="mb-2 block text-sm font-semibold text-slate-700">Level Spesifikasi Komputer</label>
+                <select id="level" name="level" required
+                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
+                    <option value="1">Level 1 (Spesifikasi Standar / Rendah)</option>
+                    <option value="2">Level 2 (Spesifikasi Menengah)</option>
+                    <option value="3">Level 3 (Spesifikasi Tinggi / Multimedia)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="jumlah_pc" class="mb-2 block text-sm font-semibold text-slate-700">Jumlah PC</label>
+                <input type="number" id="jumlah_pc" name="jumlah_pc" value="{{ old('jumlah_pc') }}" required
+                       class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                       placeholder="Contoh: 30">
+            </div>
+
+            <div class="flex flex-col gap-3 pt-2 sm:flex-row">
+                <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-xl bg-blue-950 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
+                    Simpan Ruang Lab
+                </button>
+                <a href="{{ route('labs.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-500/10">
+                    Batal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

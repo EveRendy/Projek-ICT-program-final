@@ -1,51 +1,62 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Buat Pengajuan Instalasi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container my-5" style="max-width: 700px;">
-        <div class="card shadow border-0 p-4">
-            <h4 class="mb-4">Form Pengajuan Instalasi Software</h4>
+@extends('layouts.app')
 
-            @if($errors->has('software_error'))
-                <div class="alert alert-danger py-2 small">{{ $errors->first('software_error') }}</div>
-            @endif
+@section('content')
+<div class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Form Pengajuan</p>
+            <h2 class="text-2xl font-black text-slate-950">Tambah Pengajuan Instalasi Software</h2>
+            <p class="text-sm text-slate-500">Isi data kebutuhan software, laboratorium tujuan, dan versi yang diinginkan.</p>
+        </div>
 
-            <form action="{{ route('pengajuan.store') }}" method="POST">
-                @csrf
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Nama Mata Kuliah</label>
-                        <input type="text" name="mata_kuliah" class="form-control" required placeholder="Contoh: Web Programming">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Kelompok / Kelas</label>
-                        <input type="text" name="kelompok_matkul" class="form-control" required placeholder="Contoh: LAB-A">
-                    </div>
+        @if($errors->has('software_error'))
+            <div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
+                {{ $errors->first('software_error') }}
+            </div>
+        @endif
+
+        <form action="{{ route('pengajuan.store') }}" method="POST" class="space-y-6">
+            @csrf
+
+            <div class="grid gap-5 md:grid-cols-2">
+                <label class="block">
+                    <span class="mb-1.5 block text-sm font-bold text-slate-700">Nama Mata Kuliah</span>
+                    <input type="text" name="mata_kuliah" required
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        placeholder="Contoh: Web Programming">
+                </label>
+
+                <label class="block">
+                    <span class="mb-1.5 block text-sm font-bold text-slate-700">Kelompok / Kelas</span>
+                    <input type="text" name="kelompok_matkul" required
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        placeholder="Contoh: LAB-A">
+                </label>
+            </div>
+
+            <label class="block">
+                <span class="mb-1.5 block text-sm font-bold text-slate-700">Pilih Laboratorium Tujuan</span>
+                <select name="laboratorium_id" id="laboratorium_id" required onchange="cekKompatibilitas()"
+                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <option value="">-- Pilih Ruang Lab --</option>
+                    @foreach($laboratoriums as $lab)
+                        <option value="{{ $lab->id }}" data-level="{{ $lab->level }}">
+                            {{ $lab->no_lab }} (Spesifikasi Level {{ $lab->level }})
+                        </option>
+                    @endforeach
+                </select>
+            </label>
+
+            <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
+                <div class="mb-4 flex items-center gap-2">
+                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700">A</span>
+                    <h3 class="text-base font-black text-slate-950">Pilih dari Daftar Software Master</h3>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Pilih Laboratorium Tujuan</label>
-                    <select name="laboratorium_id" id="laboratorium_id" class="form-select" required onchange="cekKompatibilitas()">
-                        <option value="">-- Pilih Ruang Lab --</option>
-                        @foreach($laboratoriums as $lab)
-                            <option value="{{ $lab->id }}" data-level="{{ $lab->level }}">
-                                {{ $lab->no_lab }} (Spesifikasi Level {{ $lab->level }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <hr class="text-muted my-4">
-
-                <div class="card bg-white p-3 border mb-3">
-                    <h6 class="text-primary mb-3">Opsi A: Pilih dari Daftar Software Master</h6>
-                    <div class="mb-3">
-                        <label class="form-label">Software</label>
-                        <select name="software_id" id="software_id" class="form-select" onchange="updateVersiDanCek()">
+                <div class="grid gap-5 md:grid-cols-2">
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-bold text-slate-700">Software</span>
+                        <select name="software_id" id="software_id" onchange="updateVersiDanCek()"
+                            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                             <option value="">-- Pilih Software Terdaftar --</option>
                             @foreach($softwares as $soft)
                                 <option value="{{ $soft->id }}" data-level="{{ $soft->keterangan }}" data-versi="{{ json_encode($soft->versi) }}">
@@ -53,83 +64,92 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Versi Software</label>
-                        <select name="versi_requested" id="versi_requested" class="form-select">
+                    </label>
+
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-bold text-slate-700">Versi Software</span>
+                        <select name="versi_requested" id="versi_requested"
+                            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                             <option value="">-- Pilih Versi --</option>
                         </select>
-                    </div>
+                    </label>
                 </div>
+            </div>
 
-                <div class="card bg-white p-3 border mb-3">
-                    <h6 class="text-warning mb-3">Opsi B: Pengajuan Khusus (Jika tidak ada di daftar atas)</h6>
-                    <div class="mb-3">
-                        <label class="form-label">Nama Software Lain</label>
-                        <input type="text" name="software_lain" class="form-control" placeholder="Contoh: CorelDraw X8">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Versi Software Lain</label>
-                        <input type="text" name="versi_lain" class="form-control" placeholder="Contoh: v24.0">
-                    </div>
+            <div class="rounded-3xl border border-amber-200 bg-amber-50/80 p-5">
+                <div class="mb-4 flex items-center gap-2">
+                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">B</span>
+                    <h3 class="text-base font-black text-slate-950">Pengajuan Khusus (Jika tidak ada di daftar atas)</h3>
                 </div>
+                <div class="grid gap-5 md:grid-cols-2">
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-bold text-slate-700">Nama Software Lain</span>
+                        <input type="text" name="software_lain"
+                            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            placeholder="Contoh: CorelDraw X8">
+                    </label>
 
-                <div id="compatibility-warning" class="alert alert-warning py-2 d-none small">
-                    ⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium tujuan (Level <span id="lab-lvl"></span>) lebih rendah dibandingkan level beban software (Level <span id="soft-lvl"></span>). Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-bold text-slate-700">Versi Software Lain</span>
+                        <input type="text" name="versi_lain"
+                            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            placeholder="Contoh: v24.0">
+                    </label>
                 </div>
+            </div>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary w-100 mb-2">Kirim Pengajuan</button>
-                    <a href="{{ route('pengajuan.index') }}" class="btn btn-secondary w-100 btn-sm">Batal</a>
-                </div>
-            </form>
-        </div>
+            <div id="compatibility-warning" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                ⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium tujuan (Level <span id="lab-lvl"></span>) lebih rendah dibandingkan level beban software (Level <span id="soft-lvl"></span>). Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.
+            </div>
+
+            <div class="flex justify-end border-t border-slate-100 pt-5">
+                <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900">Kirim Pengajuan</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <script>
-        function updateVersiDanCek() {
-            const softSelect = document.getElementById('software_id');
-            const versiSelect = document.getElementById('versi_requested');
-            const selectedOption = softSelect.options[softSelect.selectedIndex];
+<script>
+    function updateVersiDanCek() {
+        const softSelect = document.getElementById('software_id');
+        const versiSelect = document.getElementById('versi_requested');
+        const selectedOption = softSelect.options[softSelect.selectedIndex];
 
-            // Reset dropdown versi
-            versiSelect.innerHTML = '<option value="">-- Pilih Versi --</option>';
+        versiSelect.innerHTML = '<option value="">-- Pilih Versi --</option>';
 
-            if (selectedOption.value !== "") {
-                // Ambil data versi JSON dari attribute option
-                const daftarVersi = JSON.parse(selectedOption.getAttribute('data-versi'));
-                daftarVersi.forEach(versi => {
-                    let opt = document.createElement('option');
-                    opt.value = versi;
-                    opt.innerHTML = versi;
-                    versiSelect.appendChild(opt);
-                });
-            }
-            cekKompatibilitas();
+        if (selectedOption.value !== "") {
+            const daftarVersi = JSON.parse(selectedOption.getAttribute('data-versi'));
+            daftarVersi.forEach(versi => {
+                const opt = document.createElement('option');
+                opt.value = versi;
+                opt.textContent = versi;
+                versiSelect.appendChild(opt);
+            });
         }
 
-        function cekKompatibilitas() {
-            const labSelect = document.getElementById('laboratorium_id');
-            const softSelect = document.getElementById('software_id');
-            const warningBox = document.getElementById('compatibility-warning');
+        cekKompatibilitas();
+    }
 
-            if (labSelect.value === "" || softSelect.value === "") {
-                warningBox.classList.add('d-none');
-                return;
-            }
+    function cekKompatibilitas() {
+        const labSelect = document.getElementById('laboratorium_id');
+        const softSelect = document.getElementById('software_id');
+        const warningBox = document.getElementById('compatibility-warning');
 
-            const labLevel = parseInt(labSelect.options[labSelect.selectedIndex].getAttribute('data-level'));
-            const softLevel = parseInt(softSelect.options[softSelect.selectedIndex].getAttribute('data-level'));
-
-            // Aturan Bisnis 4: Jika level software lebih tinggi dari level lab, munculkan warning
-            if (softLevel > labLevel) {
-                document.getElementById('lab-lvl').innerText = labLevel;
-                document.getElementById('soft-lvl').innerText = softLevel;
-                warningBox.classList.remove('d-none');
-            } else {
-                warningBox.classList.add('d-none');
-            }
+        if (labSelect.value === "" || softSelect.value === "") {
+            warningBox.classList.add('hidden');
+            return;
         }
-    </script>
-</body>
-</html>
+
+        const labLevel = parseInt(labSelect.options[labSelect.selectedIndex].getAttribute('data-level'));
+        const softLevel = parseInt(softSelect.options[softSelect.selectedIndex].getAttribute('data-level'));
+
+        if (softLevel > labLevel) {
+            document.getElementById('lab-lvl').textContent = labLevel;
+            document.getElementById('soft-lvl').textContent = softLevel;
+            warningBox.classList.remove('hidden');
+        } else {
+            warningBox.classList.add('hidden');
+        }
+    }
+</script>
+@endsection

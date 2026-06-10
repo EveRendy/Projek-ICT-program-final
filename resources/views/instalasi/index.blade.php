@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
     
     @if(session('success'))
         <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 shadow-sm">
@@ -12,17 +12,26 @@
         </div>
     @endif
 
-    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-black tracking-tight text-slate-950 uppercase">License Tracker</h2>
-            <p class="text-sm font-medium text-slate-500">Kelola data lisensi software di laboratorium.</p>
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">License Tracker</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">License Tracker</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Kelola data lisensi software di laboratorium.
+                </p>
+            </div>
+            <div>
+                <button type="button" onclick="openModal()" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
+                    Tambah Lisensi Baru
+                </button>
+            </div>
         </div>
-        <div>
-            <button type="button" onclick="openModal()" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
-                Tambah Lisensi Baru
-            </button>
-        </div>
-    </div>
+    </section>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
         

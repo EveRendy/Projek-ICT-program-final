@@ -1,74 +1,160 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Manajemen Software</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container my-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Daftar Master Software</h2>
+@extends('layouts.app')
+
+@section('content')
+@php
+    $user = Auth::user();
+    $isSupervisor = $user && $user->role === 'supervisor';
+    $levelMeta = function ($level) {
+        return match ((int) $level) {
+            1 => ['label' => 'Level 1', 'desc' => 'Low Spec', 'class' => 'bg-red-50 text-red-700 ring-red-100'],
+            2 => ['label' => 'Level 2', 'desc' => 'Medium Spec', 'class' => 'bg-amber-50 text-amber-700 ring-amber-100'],
+            default => ['label' => 'Level 3', 'desc' => 'High Spec', 'class' => 'bg-emerald-50 text-emerald-700 ring-emerald-100'],
+        };
+    };
+@endphp
+
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <a href="{{ route('dashboard') }}" class="btn btn-secondary me-2">Dashboard</a>
-                <a href="{{ route('softwares.create') }}" class="btn btn-primary">Tambah Software Baru</a>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">List Software</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">List Software</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Daftar master software yang tersedia untuk kebutuhan instalasi laboratorium ICT.
+                </p>
+            </div>
+
+            @if($isSupervisor)
+                <a href="{{ route('softwares.create') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"></path></svg>
+                    Tambah Software
+                </a>
+            @endif
+        </div>
+    </section>
+
+    @if(session('success'))
+        <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 p-4 sm:p-5">
+            <div class="grid gap-3 lg:grid-cols-[1fr_180px_180px_160px_auto]">
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"></path></svg>
+                    <input type="search" placeholder="Cari software" disabled class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-500 outline-none">
+                </div>
+                <select disabled class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-500">
+                    <option>Semua Lab</option>
+                </select>
+                <select disabled class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-500">
+                    <option>Kategori</option>
+                </select>
+                <select disabled class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-500">
+                    <option>Sistem Operasi</option>
+                </select>
+                <button type="button" disabled class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-400">
+                    Reset
+                </button>
             </div>
         </div>
 
-        @if(session('success'))
-            <div class="alert alert-success py-2">{{ session('success') }}</div>
-        @endif
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Software</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Versi</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Laboratorium</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Kategori</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Sistem Operasi</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Status Lisensi</th>
+                        @if($isSupervisor)
+                            <th class="px-5 py-4 text-right text-xs font-black uppercase tracking-[0.14em] text-slate-500">Aksi</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                    @forelse($softwares as $item)
+                        @php $meta = $levelMeta($item->keterangan); @endphp
+                        <tr class="transition hover:bg-slate-50">
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-950 text-sm font-black text-white shadow-sm">
+                                        {{ substr($item->nama_software, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-950">{{ $item->nama_software }}</p>
+                                        <p class="mt-0.5 text-xs font-medium text-slate-500">{{ $item->id_software }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex max-w-xs flex-wrap gap-1.5">
+                                    @foreach($item->versi as $v)
+                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
+                                    @endforeach
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 text-sm font-medium text-slate-500">Semua lab</td>
+                            <td class="px-5 py-4">
+                                <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ $meta['class'] }}">{{ $meta['label'] }} · {{ $meta['desc'] }}</span>
+                            </td>
+                            <td class="px-5 py-4 text-sm font-medium text-slate-500">Belum tersedia</td>
+                            <td class="px-5 py-4">
+                                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">Master Data</span>
+                            </td>
+                            @if($isSupervisor)
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('softwares.edit', $item->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Edit {{ $item->nama_software }}">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
+                                        </a>
+                                        <form action="{{ route('softwares.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus software ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30" aria-label="Hapus {{ $item->nama_software }}">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7v13h8V7"></path></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            @endif
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ $isSupervisor ? 7 : 6 }}" class="px-5 py-16">
+                                <div class="mx-auto max-w-sm text-center">
+                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                                        <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+                                    </div>
+                                    <h3 class="mt-4 text-lg font-black text-slate-950">Belum ada software</h3>
+                                    <p class="mt-2 text-sm leading-6 text-slate-500">Data master software akan muncul di sini setelah ditambahkan.</p>
+                                    @if($isSupervisor)
+                                        <a href="{{ route('softwares.create') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900">Tambah Software</a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th class="ps-3">ID Software</th>
-                            <th>Nama Software</th>
-                            <th>Daftar Versi Tersedia</th>
-                            <th>Min. Spek Lab</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($softwares as $item)
-                        <tr>
-                            <td class="ps-3"><strong>{{ $item->id_software }}</strong></td>
-                            <td>{{ $item->nama_software }}</td>
-                            <td>
-                                @foreach($item->versi as $v)
-                                    <span class="badge bg-info text-dark me-1">{{ $v }}</span>
-                                @endforeach
-                            </td>
-                            <td>
-                                @if($item->keterangan == 1)
-                                    <span class="badge bg-danger">Level 1 (Low)</span>
-                                @elseif($item->keterangan == 2)
-                                    <span class="badge bg-warning text-dark">Level 2 (Medium)</span>
-                                @else
-                                    <span class="badge bg-success">Level 3 (High)</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                <a href="{{ route('softwares.edit', $item->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                
-                                <form action="{{ route('softwares.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus software ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data software yang terdaftar.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>Menampilkan {{ $softwares->count() }} software</p>
+            <div class="flex items-center gap-1">
+                <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400">Sebelumnya</button>
+                <button type="button" class="rounded-lg bg-blue-950 px-3 py-1.5 font-bold text-white">1</button>
+                <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400">Berikutnya</button>
             </div>
         </div>
-    </div>
-</body>
-</html>
+    </section>
+</div>
+@endsection

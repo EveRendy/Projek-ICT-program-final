@@ -1,17 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-    
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Persetujuan Pengajuan Instalasi (Supervisor)</h2>
-            <p class="text-sm font-medium text-slate-500">Tinjau, setujui, atau tolak pengajuan instalasi software baru dari dosen.</p>
-        </div>
-        <a href="{{ route('pengajuan.create') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900">
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">Pengajuan</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Persetujuan Pengajuan Instalasi (Supervisor)</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Tinjau, setujui, atau tolak pengajuan instalasi software baru dari dosen.
+                </p>
+            </div>
+            <a href="{{ route('pengajuan.create') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900">
             + Tambah Pengajuan Baru
-        </a>
-    </div>
+            </a>
+        </div>
+    </section>
 
     @if(session('success'))
         <div class="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold text-emerald-950 shadow-sm animate-fadeIn">

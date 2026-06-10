@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6 p-4 sm:p-6 lg:p-8">
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
     
     @if(session('success'))
         <div class="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-medium text-emerald-800 shadow-sm">
@@ -14,18 +14,27 @@
         </div>
     @endif
     
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-black tracking-tight text-slate-950">Manajemen User</h1>
-            <p class="text-sm font-medium text-slate-500">Kelola hak akses, data induk, dan informasi akun pengguna aplikasi.</p>
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">User Manager</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Manajemen User</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Kelola hak akses, data induk, dan informasi akun pengguna aplikasi.
+                </p>
+            </div>
+            <div>
+                <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                    Tambah User Baru
+                </a>
+            </div>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
-                Tambah User Baru
-            </a>
-        </div>
-    </div>
+    </section>
 
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

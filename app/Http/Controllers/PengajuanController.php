@@ -17,7 +17,7 @@ class PengajuanController extends Controller
     {
         $user = Auth::user();
         
-        // Khusus Dosen/User Biasa: Hanya menampilkan riwayat pengajuan miliknya sendiri
+        // Hanya menampilkan riwayat pengajuan miliknya sendiri
         $pengajuans = $user->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
         return view('pengajuan.index', compact('pengajuans'));
     }
@@ -29,22 +29,30 @@ class PengajuanController extends Controller
     {
         $query = Pengajuan::with(['dosen', 'laboratorium.admin', 'software']);
 
-        // Summary khusus untuk dashboard pemantauan Supervisor
+        // OPTIMASI: Menggunakan 1 query agregasi database menggantikan 5 query clone
+        $summaryTotals = (clone $query)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
+            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'progress' THEN 1 ELSE 0 END) as progress,
+            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'terinstal' THEN 1 ELSE 0 END) as selesai,
+            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'gagal_terinstal' THEN 1 ELSE 0 END) as terkendala
+        ")->first();
+
         $summary = [
-            'total'      => (clone $query)->count(),
-            'menunggu'   => (clone $query)->where('status_persetujuan', 'pending')->count(),
-            'progress'   => (clone $query)->where('status_persetujuan', 'disetujui')->where('status_progress', 'progress')->count(),
-            'selesai'    => (clone $query)->where('status_persetujuan', 'disetujui')->where('status_progress', 'terinstal')->count(),
-            'terkendala' => (clone $query)->where('status_persetujuan', 'disetujui')->where('status_progress', 'gagal_terinstal')->count(),
+            'total'      => $summaryTotals->total ?? 0,
+            'menunggu'   => $summaryTotals->menunggu ?? 0,
+            'progress'   => $summaryTotals->progress ?? 0,
+            'selesai'    => $summaryTotals->selesai ?? 0,
+            'terkendala' => $summaryTotals->terkendala ?? 0,
         ];
 
-        // KUNCI UTAMA: Supervisor di halaman ini fokus memproses data yang status_persetujuan-nya 'pending'
+        // Supervisor di halaman ini fokus memproses data yang status_persetujuan-nya 'pending'
         $tugas = $query->where('status_persetujuan', 'pending')->latest()->get();
         
         return view('supervisor.index', compact('tugas', 'summary'));
     }
 
-// =========================================================================
+    // =========================================================================
     // 3. MENU UPDATE PENGERJAAN: Digunakan oleh Supervisor (Approve/Reject) 
     //    dan Admin/Teknisi (Update Progress Instalasi)
     // =========================================================================
@@ -55,11 +63,10 @@ class PengajuanController extends Controller
 
         // --- ALUR LOGIKA JIKA YANG LOGIN ADALAH SUPERVISOR ---
         if ($role === 'supervisor') {
-            // Ambil semua pengajuan yang status persetujuannya masih 'pending'
-            $query = Pengajuan::where('status_persetujuan', 'pending')
-                ->with(['dosen', 'laboratorium', 'software']);
-            
-            $tugas = $query->latest()->get();
+            $tugas = Pengajuan::where('status_persetujuan', 'pending')
+                ->with(['dosen', 'laboratorium', 'software'])
+                ->latest()
+                ->get();
 
             $summary = [
                 'total'      => $tugas->count(),
@@ -73,17 +80,16 @@ class PengajuanController extends Controller
         }
 
         // --- ALUR LOGIKA JIKA YANG LOGIN ADALAH ADMIN / TEKNISI BIASA ---
-        $query = Pengajuan::where('tugaskan_admin', $user->id)
+        $tugas = Pengajuan::where('tugaskan_admin', $user->id)
             ->where('status_persetujuan', 'disetujui')
-            ->with(['dosen', 'laboratorium', 'software']);
+            ->with(['dosen', 'laboratorium', 'software'])
+            ->latest()
+            ->get();
 
-        $tugas = $query->latest()->get();
-
+        // Menggunakan method collection bawaan (tanpa hit database lagi)
         $summary = [
             'total'      => $tugas->count(),
-            'menunggu'   => $tugas->where(function ($item) {
-                return is_null($item->status_progress) || $item->status_progress === 'menunggu';
-            })->count(),
+            'menunggu'   => $tugas->whereIn('status_progress', [null, 'menunggu'])->count(),
             'progress'   => $tugas->where('status_progress', 'progress')->count(),
             'selesai'    => $tugas->where('status_progress', 'terinstal')->count(),
             'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
@@ -107,19 +113,19 @@ class PengajuanController extends Controller
     // =========================================================================
     public function store(Request $request)
     {
+        // OPTIMASI: Menggunakan required_without untuk memastikan salah satu wajib diisi
         $request->validate([
             'mata_kuliah'     => 'required|string|max:255',
             'kelompok_matkul' => 'required|string|max:50',
             'laboratorium_id' => 'required|exists:laboratoriums,id',
-            'software_id'     => 'nullable|exists:software,id',
+            'software_id'     => 'required_without:software_lain|nullable|exists:software,id',
             'versi_requested' => 'nullable|string',
-            'software_lain'   => 'nullable|string|max:255',
+            'software_lain'   => 'required_without:software_id|nullable|string|max:255',
             'versi_lain'      => 'nullable|string|max:255',
+        ], [
+            'software_id.required_without'   => 'Kamu harus memilih software yang terdaftar atau mengisi nama software lain!',
+            'software_lain.required_without' => 'Kamu harus memilih software yang terdaftar atau mengisi nama software lain!',
         ]);
-
-        if (!$request->software_id && !$request->software_lain) {
-            return back()->withErrors(['software_error' => 'Kamu harus memilih software yang terdaftar atau mengisi nama software lain!'])->withInput();
-        }
 
         Pengajuan::create([
             'tgl_pengajuan'      => now()->toDateString(),
@@ -131,7 +137,7 @@ class PengajuanController extends Controller
             'versi_requested'    => $request->versi_requested,
             'software_lain'      => $request->software_lain,
             'versi_lain'         => $request->versi_lain,
-            'status_persetujuan' => 'pending', // Default masuk ke supervisor dulu
+            'status_persetujuan' => 'pending', 
         ]);
 
         return redirect()->route('pengajuan.index')->with('success', 'Pengajuan instalasi berhasil dikirim!');
@@ -140,20 +146,20 @@ class PengajuanController extends Controller
     // =========================================================================
     // 6. Proses Menyetujui Pengajuan (Aksi Supervisor) -> Teruskan ke Admin
     // =========================================================================
-    public function setujui($id)
+    // OPTIMASI: Route Model Binding (Langsung menyuntikkan Model Pengajuan)
+    public function setujui(Pengajuan $pengajuan)
     {
-        $pengajuan = Pengajuan::findOrFail($id);
         $lab = $pengajuan->laboratorium;
 
-        if (!$lab->user_id) {
-            return back()->with('error', 'Gagal menyetujui! Laboratorium ' . $lab->no_lab . ' belum memiliki Admin penanggung jawab.');
+        if (!$lab || !$lab->user_id) {
+            return back()->with('error', 'Gagal menyetujui! Laboratorium ' . ($lab->no_lab ?? '') . ' belum memiliki Admin penanggung jawab.');
         }
 
         $pengajuan->update([
             'status_persetujuan' => 'disetujui',
-            'tugaskan_admin'     => $lab->user_id, // Mengisi kolom admin otomatis
+            'tugaskan_admin'     => $lab->user_id, 
             'tgl_penugasan'      => now()->toDateString(),
-            'status_progress'    => 'progress', // Langsung set status awal pengerjaan untuk Admin
+            'status_progress'    => 'progress', 
         ]);
 
         return back()->with('success', 'Pengajuan berhasil disetujui! Tugas otomatis diteruskan ke Admin ' . $lab->admin->name);
@@ -162,13 +168,11 @@ class PengajuanController extends Controller
     // =========================================================================
     // 7. Proses Menolak Pengajuan (Aksi Supervisor)
     // =========================================================================
-    public function tolak(Request $request, $id)
+    public function tolak(Request $request, Pengajuan $pengajuan)
     {
         $request->validate([
             'catatan_spv' => 'required|string|max:500',
         ]);
-
-        $pengajuan = Pengajuan::findOrFail($id);
         
         $pengajuan->update([
             'status_persetujuan' => 'ditolak',
@@ -182,15 +186,13 @@ class PengajuanController extends Controller
     // =========================================================================
     // 8. Proses Update Progress / Kelayakan Instalasi (Aksi Admin)
     // =========================================================================
-    public function updateProgressTugas(Request $request, $id)
+    public function updateProgressTugas(Request $request, Pengajuan $pengajuan)
     {
         $request->validate([
             'status_progress' => 'required|in:progress,terinstal,gagal_terinstal',
             'dokumentasi'     => 'required|url|max:255',
             'catatan_admin'   => 'nullable|string|max:500', 
         ]);
-
-        $pengajuan = Pengajuan::findOrFail($id);
 
         $pengajuan->update([
             'status_progress' => $request->status_progress,
@@ -215,12 +217,21 @@ class PengajuanController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        // OPTIMASI: Menggunakan 1 query agregasi database menggantikan 5 query clone
+        $summaryTotals = (clone $query)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
+            SUM(CASE WHEN status_progress = 'progress' THEN 1 ELSE 0 END) as progress,
+            SUM(CASE WHEN status_progress = 'terinstal' THEN 1 ELSE 0 END) as selesai,
+            SUM(CASE WHEN status_progress = 'gagal_terinstal' THEN 1 ELSE 0 END) as terkendala
+        ")->first();
+
         $summary = [
-            'total'      => (clone $query)->count(),
-            'menunggu'   => (clone $query)->where('status_persetujuan', 'pending')->count(),
-            'progress'   => (clone $query)->where('status_progress', 'progress')->count(),
-            'selesai'    => (clone $query)->where('status_progress', 'terinstal')->count(),
-            'terkendala' => (clone $query)->where('status_progress', 'gagal_terinstal')->count(),
+            'total'      => $summaryTotals->total ?? 0,
+            'menunggu'   => $summaryTotals->menunggu ?? 0,
+            'progress'   => $summaryTotals->progress ?? 0,
+            'selesai'    => $summaryTotals->selesai ?? 0,
+            'terkendala' => $summaryTotals->terkendala ?? 0,
         ];
 
         $pengajuans = $query->latest()->paginate(10);

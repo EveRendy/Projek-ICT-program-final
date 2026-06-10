@@ -10,16 +10,29 @@ use Illuminate\Support\Facades\Auth;
 
 class InstalasiController extends Controller
 {
-    public function index()
+    public function index(Request $request) // Tambahkan Request $request di sini
     {
-        // Mengambil data instalasi beserta relasinya
-        $instalasis = Instalasi::with(['software', 'laboratorium', 'teknisi'])->latest()->get();
-        return view('instalasi.index', compact('instalasis'));
+        // 1. Ambil data master untuk modal popup tambah data & dropdown filter
+        $softwares = Software::all();
+        $laboratoriums = Laboratorium::all();
+        
+        // 2. Gunakan query builder dengan Eager Loading relasi
+        $query = Instalasi::with(['software', 'laboratorium', 'teknisi']);
+
+        // 3. Tambahan Fitur: Filter Berdasarkan Laboratorium
+        if ($request->has('lab') && $request->lab != '') {
+            $query->where('no_lab', $request->lab);
+        }
+
+        // 4. Ambil data final (diurutkan dari yang terbaru)
+        $instalasis = $query->latest()->get();
+        
+        // 5. Return ke view dengan menyertakan semua data yang dibutuhkan
+        return view('instalasi.index', compact('instalasis', 'softwares', 'laboratoriums'));
     }
 
     public function create()
     {
-        // Mengirim master data untuk dropdown pilihan di form
         $softwares = Software::all();
         $laboratoriums = Laboratorium::all();
         return view('instalasi.create', compact('softwares', 'laboratoriums'));
@@ -28,11 +41,13 @@ class InstalasiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_software'    => 'required|exists:softwares,id_software',
+            'id_software'    => 'required|exists:software,id_software', 
             'no_lab'         => 'required|exists:laboratoriums,no_lab',
             'status_lisensi' => 'required|in:free_license,license_active,license_expired',
             'tgl_aktif'      => 'nullable|date',
             'tgl_expired'    => 'nullable|date|after_or_equal:tgl_aktif',
+        ], [
+            'tgl_expired.after_or_equal' => 'Tanggal expired tidak boleh lebih awal dari tanggal aktif.',
         ]);
 
         Instalasi::create([
@@ -41,12 +56,58 @@ class InstalasiController extends Controller
             'status_lisensi' => $request->status_lisensi,
             'tgl_aktif'      => $request->tgl_aktif,
             'tgl_expired'    => $request->tgl_expired,
-            // Otomatis mengambil no_induk milik teknisi yang sedang login
             'diinstal_oleh'  => Auth::user()->no_induk, 
         ]);
 
         return redirect()->route('instalasi.index')->with('success', 'Data instalasi dan lisensi berhasil dicatat!');
     }
 
-    // Fungsi edit, update, dan destroy bisa ditambahkan secara identik dengan CRUD sebelumnya
+    // --- TAMBAHAN BARU: FUNGSI EDIT ---
+    public function edit(string $id)
+    {
+        // Cari data instalasi berdasarkan ID
+        $instalasi = Instalasi::findOrFail($id); 
+        
+        // Ambil data master untuk pilihan dropdown di form edit
+        $softwares = Software::all();
+        $laboratoriums = Laboratorium::all();
+        
+        // Arahkan ke halaman edit
+        return view('instalasi.edit', compact('instalasi', 'softwares', 'laboratoriums'));
+    }
+
+    // --- TAMBAHAN BARU: FUNGSI UPDATE ---
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
+            'id_software'    => 'required|exists:software,id_software', 
+            'no_lab'         => 'required|exists:laboratoriums,no_lab',
+            'status_lisensi' => 'required|in:free_license,license_active,license_expired',
+            'tgl_aktif'      => 'nullable|date',
+            'tgl_expired'    => 'nullable|date|after_or_equal:tgl_aktif',
+        ], [
+            'tgl_expired.after_or_equal' => 'Tanggal expired tidak boleh lebih awal dari tanggal aktif.',
+        ]);
+
+        $instalasi = Instalasi::findOrFail($id);
+
+        $instalasi->update([
+            'id_software'    => $request->id_software,
+            'no_lab'         => $request->no_lab,
+            'status_lisensi' => $request->status_lisensi,
+            'tgl_aktif'      => $request->tgl_aktif,
+            'tgl_expired'    => $request->tgl_expired,
+        ]);
+
+        return redirect()->route('instalasi.index')->with('success', 'Data instalasi dan lisensi berhasil diperbarui!');
+    }
+
+    // --- TAMBAHAN BARU: FUNGSI DESTROY (HAPUS) ---
+    public function destroy(string $id)
+    {
+        $instalasi = Instalasi::findOrFail($id);
+        $instalasi->delete();
+
+        return redirect()->route('instalasi.index')->with('success', 'Data instalasi berhasil dihapus!');
+    }
 }

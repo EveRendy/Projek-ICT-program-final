@@ -13,16 +13,16 @@
 @endphp
 
 <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
-                    Log Aktivitas
-                </div>
-                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-                    Riwayat Pengajuan & Pengerjaan
-                </h2>
-                <p class="mt-2 text-sm leading-6 text-slate-600">
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">Riwayat</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Riwayat Pengajuan & Pengerjaan</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                     Menampilkan seluruh data log rekam jejak instalasi sistem laboratorium berdasarkan hak akses akun Anda.
                 </p>
             </div>

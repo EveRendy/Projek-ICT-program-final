@@ -8,6 +8,7 @@ use App\Http\Controllers\LaboratoriumController;
 use App\Http\Controllers\SoftwareController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\InstalasiController;
+use App\Http\Controllers\RiwayatController; // <-- INI YANG BARU DITAMBAHKAN
 
 // =========================================================================
 // 1. Route Publik & Autentikasi
@@ -73,5 +74,6 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // MENU: RIWAYAT / LICENSE TRACKER
     // -------------------------------------------------------------------------
-    Route::get('/riwayat', [PengajuanController::class, 'licenseTracker'])->name('riwayat.index');
+    // INI YANG DIPERBAIKI: Sekarang sudah mengarah ke RiwayatController yang kita edit tadi
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 });

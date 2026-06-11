@@ -3,15 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Software;
+use App\Models\Laboratorium; // Tambahan Model Laboratorium
 use Illuminate\Http\Request;
 
 class SoftwareController extends Controller
 {
-    // 1. DAFTAR SOFTWARE (Read)
-    public function index()
+    // 1. DAFTAR SOFTWARE (Read) dengan Search, Filter, dan Paginasi
+    public function index(Request $request)
     {
-        $softwares = Software::all();
-        return view('softwares.index', compact('softwares'));
+        // Ambil data laboratorium untuk dropdown filter
+        $laboratoriums = Laboratorium::all();
+
+        $query = Software::query();
+
+        // Logika Pencarian berdasarkan Nama atau ID Software
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_software', 'like', "%{$search}%")
+                  ->orWhere('id_software', 'like', "%{$search}%");
+            });
+        }
+
+        // Logika Filter Kategori (Keterangan: 1, 2, 3)
+        if ($request->filled('kategori')) {
+            $query->where('keterangan', $request->kategori);
+        }
+
+        // Logika Filter Laboratorium
+        // CATATAN: Buka comment di bawah ini JIKA tabel software memiliki kolom 'laboratorium_id'
+        // atau gunakan whereHas() jika menggunakan relasi many-to-many.
+        /*
+        if ($request->filled('laboratorium')) {
+            $query->where('laboratorium_id', $request->laboratorium);
+        }
+        */
+
+        // Paginasi 10 data per halaman & withQueryString agar filter tidak hilang saat ganti halaman
+        $softwares = $query->latest()->paginate(10)->withQueryString();
+
+        return view('softwares.index', compact('softwares', 'laboratoriums'));
     }
 
     // 2. FORM TAMBAH (Create)

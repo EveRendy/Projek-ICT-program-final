@@ -16,20 +16,18 @@ class PengajuanController extends Controller
     public function indexPengajuan()
     {
         $user = Auth::user();
-        
-        // Hanya menampilkan riwayat pengajuan miliknya sendiri
         $pengajuans = $user->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
+        
         return view('pengajuan.index', compact('pengajuans'));
     }
 
     // =========================================================================
-    // 2. MENU SUPERVISOR: Menampilkan Pengajuan yang Masih PENDING untuk Disetujui
+    // 2. MENU SUPERVISOR: Menampilkan Pengajuan PENDING untuk Approval
     // =========================================================================
     public function indexSupervisor()
     {
         $query = Pengajuan::with(['dosen', 'laboratorium.admin', 'software']);
 
-        // OPTIMASI: Menggunakan 1 query agregasi database menggantikan 5 query clone
         $summaryTotals = (clone $query)->selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
@@ -46,65 +44,59 @@ class PengajuanController extends Controller
             'terkendala' => $summaryTotals->terkendala ?? 0,
         ];
 
-        // Supervisor di halaman ini fokus memproses data yang status_persetujuan-nya 'pending'
         $tugas = $query->where('status_persetujuan', 'pending')->latest()->get();
         
         return view('supervisor.index', compact('tugas', 'summary'));
     }
 
     // =========================================================================
-    // 3. MENU UPDATE PENGERJAAN: Digunakan oleh Supervisor (Approve/Reject) 
-    //    dan Admin/Teknisi (Update Progress Instalasi)
+    // 3. MENU UPDATE PENGERJAAN: Digunakan oleh Supervisor & Admin/Teknisi
     // =========================================================================
-    public function indexAdmin()
+    public function indexAdmin(Request $request)
     {
         $user = Auth::user();
         $role = $user->role ?? 'user';
+        
+        // Mengambil filter lab_id dari request dropdown
+        $labId = $request->get('lab_id');
+        $laboratoriums = Laboratorium::all();
 
-        // --- ALUR LOGIKA JIKA YANG LOGIN ADALAH SUPERVISOR ---
-        if ($role === 'supervisor') {
-            $tugas = Pengajuan::where('status_persetujuan', 'pending')
-                ->with(['dosen', 'laboratorium', 'software'])
-                ->latest()
-                ->get();
+        // Base Query tugas yang sudah di-approve
+        $query = Pengajuan::where('status_persetujuan', 'disetujui')
+            ->with(['dosen', 'laboratorium', 'software']);
 
-            $summary = [
-                'total'      => $tugas->count(),
-                'menunggu'   => $tugas->count(),
-                'progress'   => 0,
-                'selesai'    => 0,
-                'terkendala' => 0,
-            ];
-
-            return view('admin.penyelesaian', compact('tugas', 'summary', 'role'));
+        // Jika bukan supervisor, batasi hanya tugas milik admin yang sedang login
+        if ($role !== 'supervisor') {
+            $query->where('tugaskan_admin', $user->id);
         }
 
-        // --- ALUR LOGIKA JIKA YANG LOGIN ADALAH ADMIN / TEKNISI BIASA ---
-        $tugas = Pengajuan::where('tugaskan_admin', $user->id)
-            ->where('status_persetujuan', 'disetujui')
-            ->with(['dosen', 'laboratorium', 'software'])
-            ->latest()
-            ->get();
+        // Terapkan filter laboratorium jika dipilih
+        if ($labId) {
+            $query->where('laboratorium_id', $labId);
+        }
 
-        // Menggunakan method collection bawaan (tanpa hit database lagi)
+        $tugas = $query->latest()->get();
+
+        // Kalkulasi Card Statistik berdasarkan data yang terfilter
         $summary = [
             'total'      => $tugas->count(),
-            'menunggu'   => $tugas->whereIn('status_progress', [null, 'menunggu'])->count(),
+            'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
             'progress'   => $tugas->where('status_progress', 'progress')->count(),
             'selesai'    => $tugas->where('status_progress', 'terinstal')->count(),
-            'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
         ];
 
-        return view('admin.penyelesaian', compact('tugas', 'summary', 'role'));
+        // PERBAIKAN DI SINI: Ubah 'admin.penyelesaian' menjadi 'admin.tugas'
+        return view('admin.tugas', compact('tugas', 'summary', 'role', 'laboratoriums'));
     }
 
     // =========================================================================
-    // 4. Menampilkan Form Buat Pengajuan Baru (Dosen)
+    // 4. Form Buat Pengajuan Baru (Dosen)
     // =========================================================================
     public function create()
     {
         $laboratoriums = Laboratorium::all();
         $softwares = Software::all();
+        
         return view('pengajuan.create', compact('laboratoriums', 'softwares'));
     }
 
@@ -113,7 +105,6 @@ class PengajuanController extends Controller
     // =========================================================================
     public function store(Request $request)
     {
-        // OPTIMASI: Menggunakan required_without untuk memastikan salah satu wajib diisi
         $request->validate([
             'mata_kuliah'     => 'required|string|max:255',
             'kelompok_matkul' => 'required|string|max:50',
@@ -122,9 +113,6 @@ class PengajuanController extends Controller
             'versi_requested' => 'nullable|string',
             'software_lain'   => 'required_without:software_id|nullable|string|max:255',
             'versi_lain'      => 'nullable|string|max:255',
-        ], [
-            'software_id.required_without'   => 'Kamu harus memilih software yang terdaftar atau mengisi nama software lain!',
-            'software_lain.required_without' => 'Kamu harus memilih software yang terdaftar atau mengisi nama software lain!',
         ]);
 
         Pengajuan::create([
@@ -144,15 +132,14 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 6. Proses Menyetujui Pengajuan (Aksi Supervisor) -> Teruskan ke Admin
+    // 6. Proses Menyetujui Pengajuan (Aksi Supervisor)
     // =========================================================================
-    // OPTIMASI: Route Model Binding (Langsung menyuntikkan Model Pengajuan)
     public function setujui(Pengajuan $pengajuan)
     {
         $lab = $pengajuan->laboratorium;
 
         if (!$lab || !$lab->user_id) {
-            return back()->with('error', 'Gagal menyetujui! Laboratorium ' . ($lab->no_lab ?? '') . ' belum memiliki Admin penanggung jawab.');
+            return back()->with('error', 'Gagal menyetujui! Laboratorium belum memiliki Admin penanggung jawab.');
         }
 
         $pengajuan->update([
@@ -162,7 +149,7 @@ class PengajuanController extends Controller
             'status_progress'    => 'progress', 
         ]);
 
-        return back()->with('success', 'Pengajuan berhasil disetujui! Tugas otomatis diteruskan ke Admin ' . $lab->admin->name);
+        return back()->with('success', 'Pengajuan berhasil disetujui!');
     }
 
     // =========================================================================
@@ -170,9 +157,7 @@ class PengajuanController extends Controller
     // =========================================================================
     public function tolak(Request $request, Pengajuan $pengajuan)
     {
-        $request->validate([
-            'catatan_spv' => 'required|string|max:500',
-        ]);
+        $request->validate(['catatan_spv' => 'required|string|max:500']);
         
         $pengajuan->update([
             'status_persetujuan' => 'ditolak',
@@ -184,7 +169,7 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 8. Proses Update Progress / Kelayakan Instalasi (Aksi Admin)
+    // 8. Proses Update Progress Pengerjaan (Aksi Admin)
     // =========================================================================
     public function updateProgressTugas(Request $request, Pengajuan $pengajuan)
     {
@@ -200,11 +185,11 @@ class PengajuanController extends Controller
             'catatan_admin'   => $request->catatan_admin,
         ]);
 
-        return back()->with('success', 'Status instalasi berhasil diperbarui oleh Admin!');
+        return back()->with('success', 'Status pengerjaan berhasil diperbarui!');
     }
 
     // =========================================================================
-    // 9. HALAMAN RIWAYAT / LICENSE TRACKER
+    // 9. License Tracker Page
     // =========================================================================
     public function licenseTracker()
     {
@@ -217,25 +202,8 @@ class PengajuanController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        // OPTIMASI: Menggunakan 1 query agregasi database menggantikan 5 query clone
-        $summaryTotals = (clone $query)->selectRaw("
-            COUNT(*) as total,
-            SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
-            SUM(CASE WHEN status_progress = 'progress' THEN 1 ELSE 0 END) as progress,
-            SUM(CASE WHEN status_progress = 'terinstal' THEN 1 ELSE 0 END) as selesai,
-            SUM(CASE WHEN status_progress = 'gagal_terinstal' THEN 1 ELSE 0 END) as terkendala
-        ")->first();
-
-        $summary = [
-            'total'      => $summaryTotals->total ?? 0,
-            'menunggu'   => $summaryTotals->menunggu ?? 0,
-            'progress'   => $summaryTotals->progress ?? 0,
-            'selesai'    => $summaryTotals->selesai ?? 0,
-            'terkendala' => $summaryTotals->terkendala ?? 0,
-        ];
-
         $pengajuans = $query->latest()->paginate(10);
-
-        return view('riwayat.index', compact('pengajuans', 'summary', 'role')); 
+        
+        return view('riwayat.index', compact('pengajuans', 'role')); 
     }
 }

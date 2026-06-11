@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         details > summary { list-style: none; }
@@ -51,9 +51,7 @@
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
         ]);
     }
-@endphp
 
-@php
     $renderIcon = function ($icon) {
         $class = 'h-5 w-5 shrink-0';
         return match ($icon) {
@@ -149,34 +147,6 @@
                 <div class="min-w-0">
                     <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Dashboard</p>
                     <h1 class="truncate text-lg font-black text-slate-950">Sistem Instalasi Software Lab</h1>
-                </div>
-
-                <div class="ml-auto flex items-center gap-2">
-                    <details class="relative">
-                        <summary class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:bg-slate-50">
-                            <div class="hidden text-right sm:block">
-                                <p class="max-w-32 truncate text-sm font-bold text-slate-950">{{ $user->nama ?? $role }}</p>
-                                <p class="text-xs font-medium capitalize text-slate-500">{{ $role }}</p>
-                            </div>
-                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-950 text-white shadow-sm">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20a8 8 0 0116 0"></path>
-                                </svg>
-                            </div>
-                        </summary>
-                        <div class="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
-                            <div class="px-3 py-2">
-                                <p class="truncate text-sm font-bold text-slate-950">{{ $user->nama ?? $role }}</p>
-                                <p class="truncate text-xs text-slate-500">{{ $user->email }}</p>
-                            </div>
-                            <form action="{{ route('logout') }}" method="POST" class="px-1 pb-1">
-                                @csrf
-                                <button type="submit" class="flex w-full items-center justify-center rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-rose-700">
-                                    Logout
-                                </button>
-                            </form>
-                        </div>
-                    </details>
                 </div>
             </div>
         </header>

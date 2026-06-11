@@ -46,7 +46,7 @@
             <p class="mt-2 text-2xl font-black text-slate-950">{{ $users->where('role', 'supervisor')->count() }}</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-xs font-bold uppercase tracking-wider text-purple-500">Admin</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-rose-600">Admin</p>
             <p class="mt-2 text-2xl font-black text-slate-950">{{ $users->where('role', 'admin')->count() }}</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -102,8 +102,8 @@
                                             Dosen
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-purple-100 bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700 shadow-sm">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-purple-600"></span>
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 shadow-sm">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-rose-600"></span>
                                             Admin
                                         </span>
                                         
@@ -126,10 +126,12 @@
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </a>
                                     
-                                    <form action="{{ route('users.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
+                                    {{-- Form Hapus dengan ID Unik --}}
+                                    <form id="delete-form-{{ $item->id }}" action="{{ route('users.destroy', $item->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 shadow-sm transition hover:bg-red-100 focus:outline-none" title="Hapus User">
+                                        {{-- Tombol Type Button yang memanggil Modal JS --}}
+                                        <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 shadow-sm transition hover:bg-red-100 focus:outline-none" title="Hapus User">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-16v1a1 1 0 001 1h4a1 1 0 001-1V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M10 11v6"></path></svg>
                                         </button>
                                     </form>
@@ -141,7 +143,7 @@
                             <td colspan="6" class="px-6 py-12 text-center">
                                 <div class="flex flex-col items-center justify-center gap-2">
                                     <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                    <p class="text-sm font-bold text-slate-900">Belum Ada Data User</p>
+                                    <p class="text-sm font-bold text-slate-900">Belum Anda Data User</p>
                                     <p class="text-xs text-slate-500">Silakan tambahkan data pengguna baru sistem terlebih dahulu.</p>
                                 </div>
                             </td>
@@ -152,4 +154,56 @@
         </div>
     </div>
 </div>
+
+<div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="deleteModalContent" class="w-full max-w-sm scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300">
+        <div class="flex flex-col items-center gap-4 text-center">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 border-[6px] border-red-50 text-red-500 mb-2">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900">Hapus User Ini?</h3>
+                <p class="mt-2 text-sm text-slate-500 leading-relaxed">Data pengguna yang sudah dihapus tidak dapat dikembalikan lagi. Pastikan keputusan Anda sudah benar.</p>
+            </div>
+            <div class="mt-4 flex w-full gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500/20">
+                    Batal
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentFormIdToSubmit = null;
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteModalContent = document.getElementById('deleteModalContent');
+
+    function openDeleteModal(formId) {
+        currentFormIdToSubmit = formId;
+        // Munculkan background overlay
+        deleteModal.classList.remove('opacity-0', 'pointer-events-none');
+        // Efek zoom in pop up
+        deleteModalContent.classList.remove('scale-95');
+    }
+
+    function closeDeleteModal() {
+        currentFormIdToSubmit = null;
+        // Sembunyikan background overlay
+        deleteModal.classList.add('opacity-0', 'pointer-events-none');
+        // Efek zoom out pop up
+        deleteModalContent.classList.add('scale-95');
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (currentFormIdToSubmit) {
+            document.getElementById(currentFormIdToSubmit).submit();
+        }
+    });
+</script>
 @endsection

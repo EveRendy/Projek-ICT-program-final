@@ -14,8 +14,8 @@
 
 <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
     <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex-1">
                 <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
                     <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
                     <span>/</span>
@@ -26,14 +26,15 @@
                     Menampilkan seluruh data log rekam jejak instalasi sistem laboratorium berdasarkan hak akses akun Anda.
                 </p>
             </div>
+            
+            <div class="shrink-0 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-4 text-center shadow-sm min-w-[180px]">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Pengerjaan</p>
+                <p class="mt-1 text-3xl font-black text-slate-900">{{ $summary['total'] ?? 0 }}</p>
+            </div>
         </div>
     </section>
 
     <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">Total Pengerjaan</p>
-            <p class="mt-2 text-3xl font-bold text-slate-900">{{ $summary['total'] ?? 0 }}</p>
-        </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-sm font-medium text-slate-500">Menunggu Instalasi</p>
             <p class="mt-2 text-3xl font-bold text-amber-600">{{ $summary['menunggu'] ?? 0 }}</p>
@@ -45,6 +46,10 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-sm font-medium text-slate-500">Selesai (Installed)</p>
             <p class="mt-2 text-3xl font-bold text-emerald-600">{{ $summary['selesai'] ?? 0 }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-slate-500">Gagal Terinstal</p>
+            <p class="mt-2 text-3xl font-bold text-red-600">{{ $summary['gagal'] ?? 0 }}</p>
         </div>
     </section>
 

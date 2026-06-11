@@ -45,24 +45,30 @@
 
     <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 p-4 sm:p-5">
-            <div class="grid gap-3 lg:grid-cols-[1fr_180px_180px_160px_auto]">
+            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_220px_auto]">
                 <div class="relative">
                     <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"></path></svg>
-                    <input type="search" placeholder="Cari software" disabled class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-500 outline-none">
+                    <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari software" class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-950 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                 </div>
-                <select disabled class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-500">
-                    <option>Semua Lab</option>
+
+                <select name="kategori" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
+                    <option value="">Semua Kategori</option>
+                    <option value="1" {{ request('kategori') == '1' ? 'selected' : '' }}>Level 1 (Low Spec)</option>
+                    <option value="2" {{ request('kategori') == '2' ? 'selected' : '' }}>Level 2 (Med Spec)</option>
+                    <option value="3" {{ request('kategori') == '3' ? 'selected' : '' }}>Level 3 (High Spec)</option>
                 </select>
-                <select disabled class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-500">
-                    <option>Kategori</option>
-                </select>
-                <select disabled class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-500">
-                    <option>Sistem Operasi</option>
-                </select>
-                <button type="button" disabled class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-400">
-                    Reset
-                </button>
-            </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900">
+                        Cari
+                    </button>
+                    @if(request('search') || request('kategori'))
+                        <a href="{{ route('softwares.index') }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-500 transition hover:bg-slate-50">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+            </form>
         </div>
 
         <div class="overflow-x-auto">
@@ -71,9 +77,7 @@
                     <tr>
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Software</th>
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Versi</th>
-                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Laboratorium</th>
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Kategori</th>
-                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Sistem Operasi</th>
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Status Lisensi</th>
                         @if($isSupervisor)
                             <th class="px-5 py-4 text-right text-xs font-black uppercase tracking-[0.14em] text-slate-500">Aksi</th>
@@ -102,11 +106,9 @@
                                     @endforeach
                                 </div>
                             </td>
-                            <td class="px-5 py-4 text-sm font-medium text-slate-500">Semua lab</td>
                             <td class="px-5 py-4">
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ $meta['class'] }}">{{ $meta['label'] }} · {{ $meta['desc'] }}</span>
                             </td>
-                            <td class="px-5 py-4 text-sm font-medium text-slate-500">Belum tersedia</td>
                             <td class="px-5 py-4">
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">Master Data</span>
                             </td>
@@ -129,13 +131,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $isSupervisor ? 7 : 6 }}" class="px-5 py-16">
+                            <td colspan="{{ $isSupervisor ? 5 : 4 }}" class="px-5 py-16">
                                 <div class="mx-auto max-w-sm text-center">
                                     <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
                                         <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
                                     </div>
-                                    <h3 class="mt-4 text-lg font-black text-slate-950">Belum ada software</h3>
-                                    <p class="mt-2 text-sm leading-6 text-slate-500">Data master software akan muncul di sini setelah ditambahkan.</p>
+                                    <h3 class="mt-4 text-lg font-black text-slate-950">Belum ada software / Tidak ditemukan</h3>
+                                    <p class="mt-2 text-sm leading-6 text-slate-500">Data master software kosong atau kata kunci pencarian tidak cocok.</p>
                                     @if($isSupervisor)
                                         <a href="{{ route('softwares.create') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900">Tambah Software</a>
                                     @endif
@@ -148,11 +150,24 @@
         </div>
 
         <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>Menampilkan {{ $softwares->count() }} software</p>
+            <p>Menampilkan {{ $softwares->firstItem() ?? 0 }} - {{ $softwares->lastItem() ?? 0 }} dari {{ $softwares->total() }} software</p>
             <div class="flex items-center gap-1">
-                <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400">Sebelumnya</button>
-                <button type="button" class="rounded-lg bg-blue-950 px-3 py-1.5 font-bold text-white">1</button>
-                <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400">Berikutnya</button>
+                {{-- Tombol Sebelumnya --}}
+                @if ($softwares->onFirstPage())
+                    <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400 bg-slate-50">Sebelumnya</button>
+                @else
+                    <a href="{{ $softwares->previousPageUrl() }}" class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-700 transition hover:bg-slate-50">Sebelumnya</a>
+                @endif
+
+                {{-- Halaman Saat Ini --}}
+                <span class="rounded-lg bg-blue-950 px-3 py-1.5 font-bold text-white">{{ $softwares->currentPage() }}</span>
+
+                {{-- Tombol Berikutnya --}}
+                @if ($softwares->hasMorePages())
+                    <a href="{{ $softwares->nextPageUrl() }}" class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-700 transition hover:bg-slate-50">Berikutnya</a>
+                @else
+                    <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400 bg-slate-50">Berikutnya</button>
+                @endif
             </div>
         </div>
     </section>

@@ -34,7 +34,7 @@
                     Selamat datang, {{ $user->nama ?? ucfirst($role) }}
                 </h2>
                 <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                    Kelola pengajuan instalasi software laboratorium dengan tampilan ringkas, jelas, dan mudah dipantau.
+                    Kelola pengajuan instalasi software laboratorium.
                 </p>
                 <div class="mt-5 flex flex-wrap gap-2">
                     <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">Role: {{ ucfirst($role) }}</span>
@@ -79,6 +79,11 @@
                 <p class="mt-3 text-3xl font-black text-blue-950">{{ $sedangDiinstal ?? 0 }}</p>
                 <p class="mt-3 text-sm text-blue-700">Pekerjaan berjalan</p>
             </article>
+            <button type="button" onclick="openRejectedModal()" class="rounded-2xl border border-red-100 bg-red-50 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100">
+                <p class="text-sm font-bold text-red-700">Ditolak</p>
+                <p class="mt-3 text-3xl font-black text-red-950">{{ $pengajuanDitolak ?? 0 }}</p>
+                <p class="mt-3 text-sm text-red-700">Klik untuk lihat alasan</p>
+            </button>
         </section>
 
         <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -254,6 +259,51 @@
                 </div>
             </div>
         </section>
+    @endif
+
+    @if($role === 'supervisor')
+        <div id="rejectedModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <div>
+                        <h3 class="text-lg font-black text-slate-950">Daftar Pengajuan Ditolak</h3>
+                        <p class="text-sm text-slate-500">Lihat alasan penolakan dari supervisor.</p>
+                    </div>
+                    <button type="button" onclick="closeRejectedModal()" class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="max-h-[70vh] space-y-3 overflow-y-auto p-6">
+                    @forelse($pengajuanDitolakDetail ?? collect() as $item)
+                        <article class="rounded-2xl border border-red-100 bg-red-50 p-4 shadow-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-black text-slate-950">{{ $item->mata_kuliah ?? 'Pengajuan' }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">{{ $item->dosen->nama ?? 'Dosen' }} • {{ $item->laboratorium->no_lab ?? 'Lab' }} • {{ $item->software->nama_software ?? $item->software_lain ?? 'Software' }}</p>
+                                </div>
+                                <span class="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-red-700">Ditolak</span>
+                            </div>
+                            <p class="mt-3 rounded-xl border border-red-100 bg-white p-3 text-sm text-slate-700">{{ $item->catatan_admin && trim($item->catatan_admin) !== '' ? $item->catatan_admin : 'Tidak ada alasan penolakan yang dicatat.' }}</p>
+                        </article>
+                    @empty
+                        <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Belum ada pengajuan yang ditolak.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openRejectedModal() {
+                document.getElementById('rejectedModal').classList.remove('hidden');
+                document.getElementById('rejectedModal').classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeRejectedModal() {
+                document.getElementById('rejectedModal').classList.add('hidden');
+                document.getElementById('rejectedModal').classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        </script>
     @endif
 </div>
 @endsection

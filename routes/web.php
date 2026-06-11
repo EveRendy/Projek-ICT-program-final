@@ -9,7 +9,9 @@ use App\Http\Controllers\SoftwareController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\InstalasiController;
 
-// 1. Route Publik & Autentikasi (Bisa diakses tanpa login)
+// =========================================================================
+// 1. Route Publik & Autentikasi
+// =========================================================================
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -19,36 +21,57 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
-// 2. Route Proteksi (Semua yang ada di dalam grup ini WAJIB login terlebih dahulu)
+// =========================================================================
+// 2. Route Proteksi (Wajib Login)
+// =========================================================================
 Route::middleware(['auth'])->group(function () {
     
-    // Halaman Dashboard Utama (Satu untuk semua role)
+    // Halaman Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Route CRUD Master Data (Resource)
     Route::resource('users', UserController::class);
     Route::resource('labs', LaboratoriumController::class);
     Route::resource('softwares', SoftwareController::class);
-    Route::resource('instalasi', InstalasiController::class); // Tracker Lisensi yang baru dibuat
+    Route::resource('instalasi', InstalasiController::class); 
 
-    // Fitur Transaksi Pengajuan (Sisi Dosen)
-    Route::get('/pengajuan', [PengajuanController::class, 'index'])->name('pengajuan.index');
+    // -------------------------------------------------------------------------
+    // MENU: PENGAJUAN (Khusus Dosen)
+    // -------------------------------------------------------------------------
+    Route::get('/pengajuan', [PengajuanController::class, 'indexPengajuan'])->name('pengajuan.index');
     Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
 
-    // Fitur Pengelolaan & Approval (Sisi Supervisor - Sekarang Sudah Aman di dalam Auth)
+
+    // -------------------------------------------------------------------------
+    // MENU: SUPERVISOR (Persetujuan Awal: Terima / Tolak)
+    // -------------------------------------------------------------------------
+    // Menampilkan daftar data pengajuan yang 'pending' ke halaman Supervisor
     Route::get('/supervisor/pengajuan', [PengajuanController::class, 'indexSupervisor'])->name('supervisor.pengajuan.index');
-    Route::patch('/supervisor/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
-    Route::patch('/supervisor/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');
 
+    // Tombol Aksi di halaman Supervisor
+    Route::patch('/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
+    Route::patch('/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');
+
+
+    // -------------------------------------------------------------------------
+    // MENU: ADMIN / TEKNISI (Hanya Update Status Instalasi jika Sudah Disetujui)
+    // -------------------------------------------------------------------------
+    // Halaman utama Admin untuk mengelola instalasi yang ditugaskan kepadanya
+    Route::get('/admin/instalasi', [PengajuanController::class, 'indexAdmin'])->name('admin.instalasi.index');
+    
+    // Fitur simpan data progress instalasi dari Admin (menggunakan fungsi updateProgressTugas)
+    Route::put('/admin/instalasi/{id}/update', [PengajuanController::class, 'updateProgressTugas'])->name('admin.instalasi.update');
+
+    // [ALIAS SECURITY] Pengaman rute lama agar link di view sidebar/dashboard lama tidak error 500
+    Route::get('/update-pengerjaan', [PengajuanController::class, 'indexAdmin'])->name('pengerjaan.index');
     Route::get('/admin/tugas', [PengajuanController::class, 'indexAdmin'])->name('admin.tugas.index');
+    Route::get('/admin/penyelesaian', [PengajuanController::class, 'indexAdmin'])->name('admin.penyelesaian.index');
+    Route::put('/update-pengerjaan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
 
-// 1. Route untuk menampilkan halaman daftar tugas (Sesuai dengan tombol di dashboard)
-Route::get('/admin/penyelesaian', [PengajuanController::class, 'indexAdmin'])->name('admin.penyelesaian.index');
 
-// 2. Route untuk memproses (submit) penyelesaian tugas oleh admin
-Route::put('/admin/pengajuan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
+    // -------------------------------------------------------------------------
+    // MENU: RIWAYAT / LICENSE TRACKER
+    // -------------------------------------------------------------------------
+    Route::get('/riwayat', [PengajuanController::class, 'licenseTracker'])->name('riwayat.index');
 });
-
-
-

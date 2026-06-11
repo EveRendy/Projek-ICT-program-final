@@ -10,15 +10,24 @@ use Illuminate\Support\Facades\Auth;
 
 class InstalasiController extends Controller
 {
-    public function index()
+    public function index(Request $request) // Tambahkan Request $request di sini
     {
-        // 1. Ambil data utama tracker beserta relasinya
-        $instalasis = Instalasi::with(['software', 'laboratorium', 'teknisi'])->latest()->get();
-        
-        // 2. Ambil data master untuk modal popup tambah data
+        // 1. Ambil data master untuk modal popup tambah data & dropdown filter
         $softwares = Software::all();
         $laboratoriums = Laboratorium::all();
         
+        // 2. Gunakan query builder dengan Eager Loading relasi
+        $query = Instalasi::with(['software', 'laboratorium', 'teknisi']);
+
+        // 3. Tambahan Fitur: Filter Berdasarkan Laboratorium
+        if ($request->has('lab') && $request->lab != '') {
+            $query->where('no_lab', $request->lab);
+        }
+
+        // 4. Ambil data final (diurutkan dari yang terbaru)
+        $instalasis = $query->latest()->get();
+        
+        // 5. Return ke view dengan menyertakan semua data yang dibutuhkan
         return view('instalasi.index', compact('instalasis', 'softwares', 'laboratoriums'));
     }
 
@@ -56,14 +65,14 @@ class InstalasiController extends Controller
     // --- TAMBAHAN BARU: FUNGSI EDIT ---
     public function edit(string $id)
     {
-        // Cari data instalasi berdasarkan ID (Ganti $id menjadi kolom Primary Key Anda jika bukan 'id', misal $id_instalasi)
+        // Cari data instalasi berdasarkan ID
         $instalasi = Instalasi::findOrFail($id); 
         
         // Ambil data master untuk pilihan dropdown di form edit
         $softwares = Software::all();
         $laboratoriums = Laboratorium::all();
         
-        // Arahkan ke halaman edit (Pastikan Anda punya file resources/views/instalasi/edit.blade.php)
+        // Arahkan ke halaman edit
         return view('instalasi.edit', compact('instalasi', 'softwares', 'laboratoriums'));
     }
 

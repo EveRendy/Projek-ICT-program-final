@@ -1,195 +1,401 @@
-<<<<<<< HEAD
-g@extends('layouts.app')
-=======
 @extends('layouts.app')
->>>>>>> fix/view-dashboard
 
 @section('content')
-<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+@php
+    // Mendefinisikan helper closure untuk warna badge agar tidak undefined
+    $statusBadge = function($status) {
+        return match($status) {
+            'menunggu', 'pending' => 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-600/10',
+            'progress' => 'bg-blue-50 text-blue-700 border-blue-200 ring-blue-600/10',
+            'terinstal' => 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-600/10',
+            'gagal_terinstal' => 'bg-rose-50 text-rose-700 border-rose-200 ring-rose-600/10',
+            default => 'bg-slate-50 text-slate-700 border-slate-200 ring-slate-600/10',
+        };
+    };
+
+    // Mendefinisikan helper closure untuk icon SVG berdasarkan status
+    $statusIcon = function($status) {
+        return match($status) {
+            'menunggu', 'pending' => '<svg class="mr-1.5 h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            'progress' => '<svg class="mr-1.5 h-4 w-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>',
+            'terinstal' => '<svg class="mr-1.5 h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+            'gagal_terinstal' => '<svg class="mr-1.5 h-4 w-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            default => '',
+        };
+    };
+@endphp
+
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">Update Instalasi</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Daftar Tugas Instalasi Saya</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Kelola status dan progress instalasi software laboratorium.
+                </p>
+            </div>
+        </div>
+    </section>
+    <div>
+
+    @if(session('success'))
+        <div class="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-emerald-700 text-sm font-bold">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="mb-4 rounded-xl bg-red-50 border border-red-200 p-4 text-red-700 text-sm font-bold">
+            {{ $errors->first() }}
+        </div>
+    @endif
     
-    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Daftar Tugas Instalasi Saya</h2>
-            <p class="text-sm font-medium text-slate-500">Kelola status dan progress instalasi software laboratorium.</p>
+    <div class="mb-8 w-full rounded-2xl bg-blue-950 py-4 text-center shadow-sm">
+        <h1 class="text-2xl font-black tracking-widest text-white uppercase">Update Pengerjaan Tugas</h1>
+    </div>
+
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="rounded-xl bg-slate-100 p-3 text-slate-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-slate-950">{{ $summary['total'] ?? 0 }}</p>
+                <p class="text-sm font-bold text-slate-950">Total Tugas Saya</p>
+                <p class="text-xs text-slate-500">Semua Laboratorium</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">
+            <div class="rounded-xl bg-rose-50 p-3 text-rose-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-rose-600">{{ $summary['terkendala'] ?? 0 }}</p>
+                <p class="text-sm font-bold text-slate-950">Gagal Terinstal</p>
+                <p class="text-xs text-slate-500">Terkendala saat instalasi</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+            <div class="rounded-xl bg-blue-50 p-3 text-blue-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-blue-600">{{ $summary['progress'] ?? 0 }}</p>
+                <p class="text-sm font-bold text-slate-950">Sedang Diproses</p>
+                <p class="text-xs text-slate-500">On Progress</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+            <div class="rounded-xl bg-emerald-50 p-3 text-emerald-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-emerald-600">{{ $summary['selesai'] ?? 0 }}</p>
+                <p class="text-sm font-bold text-slate-950">Selesai Terinstal</p>
+                <p class="text-xs text-slate-500">Instalasi Sukses</p>
+            </div>
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold text-emerald-950 shadow-sm animate-fadeIn">
-            <div class="flex items-center gap-2">
-                <svg class="h-5 w-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 transition">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+    @php
+        $taskList = $tugas ?? collect();
+    @endphp
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="hidden border-b border-slate-200 pb-3 sm:grid sm:grid-cols-12 sm:gap-4 px-4 text-sm font-bold text-slate-500">
+            <div class="col-span-1">No.</div>
+            <div class="col-span-3">Software</div>
+            <div class="col-span-2 text-center">Laboratorium</div>
+            <div class="col-span-2 text-center">Status Progress</div>
+            <div class="col-span-2 text-center">Tgl Penugasan</div>
+            <div class="col-span-2 text-right">Aksi</div>
         </div>
-    @endif
 
-    @if($errors->any())
-        <div class="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm font-semibold text-rose-950 shadow-sm">
-            <div class="flex items-start gap-2">
-                <svg class="h-5 w-5 text-rose-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <ul class="space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
+        <div class="mt-4 space-y-3">
+            @forelse($taskList as $index => $item)
+                @php
+                    $namaSoftware = $item->software?->nama_software ?? $item->software_lain ?? 'Unknown Software';
+                    $versiSoftware = $item->versi_requested ?? $item->versi_lain ?? '-';
+                    $status = $item->status_progress ?? 'menunggu';
+                    $labName = $item->laboratorium?->no_lab ?? 'Lab -';
 
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
-                <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
-                        <th class="px-6 py-4 text-center w-12">No</th>
-                        <th class="px-6 py-4">Dosen</th>
-                        <th class="px-6 py-4">Mata Kuliah</th>
-                        <th class="px-6 py-4">Laboratorium</th>
-                        <th class="px-6 py-4">Software Diminta</th>
-                        <th class="px-6 py-4">Status Progress</th>
-                        <th class="px-6 py-4 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                    @forelse($tugas as $index => $item)
-                        <tr class="hover:bg-slate-50/70 transition">
-                            <td class="px-6 py-4 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
-                            <td class="px-6 py-4 text-slate-900 font-semibold">{{ $item->dosen->name ?? 'N/A' }}</td>
-                            <td class="px-6 py-4">
-                                <div class="font-semibold text-slate-900">{{ $item->mata_kuliah }}</div>
-                                <div class="text-xs text-slate-400 font-normal mt-0.5">Kelompok: {{ $item->kelompok_matkul }}</div>
-                            </td>
-                            <td class="px-6 py-4 text-slate-600">
-                                {{ $item->laboratorium->nama_lab ?? 'Lab ' . ($item->laboratorium->no_lab ?? '-') }}
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($item->software_id)
-                                    <span class="text-slate-900 font-semibold">{{ $item->software->nama_software }}</span>
-                                    <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono ml-1">v{{ $item->versi_requested ?? 'Default' }}</span>
-                                @else
-                                    <span class="text-slate-900 font-semibold">{{ $item->software_lain }}</span>
-                                    <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono ml-1">v{{ $item->versi_lain ?? '-' }}</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($item->status_progress == 'terinstal')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/60 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Terinstal
-                                    </span>
-                                @elseif($item->status_progress == 'gagal_terinstal')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200/60 bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Gagal Terinstal
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200/60 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span> Progress
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button type="button" onclick="toggleModal('modalProgress{{ $item->id }}', true)" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                        Update Progress
-                                    </button>
-
-                                    @if($item->dokumentasi)
-                                        <a href="{{ $item->dokumentasi }}" target="_blank" class="inline-flex items-center justify-center rounded-xl border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                            Lihat Bukti
-                                        </a>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-
-                        <div id="modalProgress{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-                            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleModal('modalProgress{{ $item->id }}', false)"></div>
-                            
-                            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                                <div class="relative transform overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg animate-scaleIn">
-                                    
-                                    <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
-                                        <h3 class="text-base font-bold text-slate-950">Update Progress Instalasi</h3>
-                                        <button type="button" onclick="toggleModal('modalProgress{{ $item->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition">
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        </button>
-                                    </div>
-
-                                    <form action="{{ route('admin.updateProgressTugas', $item->id) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-
-                                        <div class="px-6 py-4 space-y-4">
-                                            <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-100 text-xs font-medium text-slate-600 space-y-1">
-                                                <p>Mata Kuliah: <strong class="text-slate-950">{{ $item->mata_kuliah }}</strong></p>
-                                                <p>Lokasi Ruang: <strong class="text-slate-950">{{ $item->laboratorium->nama_lab ?? 'Lab ' . ($item->laboratorium->no_lab ?? '-') }}</strong></p>
-                                            </div>
-
-                                            <div>
-                                                <label for="status_progress_{{ $item->id }}" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Status Progress <span class="text-rose-500">*</span></label>
-                                                <select name="status_progress" id="status_progress_{{ $item->id }}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                                                    <option value="progress" {{ old('status_progress', $item->status_progress) == 'progress' ? 'selected' : '' }}>Progress (Sedang Dikerjakan)</option>
-                                                    <option value="terinstal" {{ old('status_progress', $item->status_progress) == 'terinstal' ? 'selected' : '' }}>Terinstal (Selesai)</option>
-                                                    <option value="gagal_terinstal" {{ old('status_progress', $item->status_progress) == 'gagal_terinstal' ? 'selected' : '' }}>Gagal Terinstal</option>
-                                                </select>
-                                            </div>
-
-                                            <div>
-                                                <label for="dokumentasi_{{ $item->id }}" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Link Google Drive Dokumentasi <span class="text-rose-500">*</span></label>
-                                                <input type="url" name="dokumentasi" id="dokumentasi_{{ $item->id }}" 
-                                                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                                                       placeholder="https://drive.google.com/drive/folders/..."
-                                                       value="{{ old('dokumentasi', $item->dokumentasi) }}" required>
-                                                <p class="text-[11px] text-slate-400 font-medium mt-1">Sediakan tautan folder/file Google Drive bukti instalasi di lapangan.</p>
-                                            </div>
-
-                                            <div>
-                                                <label for="catatan_admin_{{ $item->id }}" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Catatan Admin</label>
-                                                <textarea name="catatan_admin" id="catatan_admin_{{ $item->id }}" rows="3"
-                                                          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                                                          placeholder="Tulis alasan jika status Gagal Terinstal, atau detail tambahan lainnya...">{{ old('catatan_admin', $item->catatan_admin) }}</textarea>
-                                            </div>
-                                        </div>
-
-                                        <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-end gap-2">
-                                            <button type="button" onclick="toggleModal('modalProgress{{ $item->id }}', false)" class="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 transition focus:outline-none">
-                                                Batal
-                                            </button>
-                                            <button type="submit" class="rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
-                                                Simpan Perubahan
-                                            </button>
-                                        </div>
-                                    </form>
-
-                                </div>
-                            </div>
+                    $rowNumber = is_object($taskList) && method_exists($taskList, 'currentPage')
+                        ? ($taskList->currentPage() - 1) * $taskList->perPage() + ($index + 1)
+                        : $index + 1;
+                @endphp
+                <div class="flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-blue-300 hover:shadow-md sm:grid sm:grid-cols-12 sm:items-center">
+                    
+                    <div class="col-span-4 flex items-center gap-4">
+                        <span class="text-lg font-black text-slate-950 sm:w-8">{{ $rowNumber }}</span>
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-blue-900">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                         </div>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-sm font-medium text-slate-400">
-                                <svg class="h-8 w-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                                <span>Belum ada tugas instalasi yang ditugaskan kepada Anda.</span>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                        <div>
+                            <p class="text-base font-black text-slate-950">{{ $namaSoftware }}</p>
+                            <p class="text-xs font-semibold text-slate-500">v.{{ $versiSoftware }}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 text-left sm:text-center">
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-3 py-1 text-sm font-bold text-slate-700">
+                            {{ $labName }}
+                        </span>
+                    </div>
+
+                    <div class="col-span-2 text-left sm:text-center">
+                        <span class="inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold ring-1 ring-inset {{ $statusBadge($status) }}">
+                            {!! $statusIcon($status) !!}
+                            @if($status === 'gagal_terinstal') Gagal Terinstal @else {{ ucfirst($status) }} @endif
+                        </span>
+                    </div>
+
+                    <div class="col-span-2 text-left sm:text-center">
+                        <p class="text-sm font-bold text-slate-700">
+                            {{ $item->tgl_penugasan ? \Carbon\Carbon::parse($item->tgl_penugasan)->translatedFormat('d F Y') : '-' }}
+                        </p>
+                    </div>
+
+                    <div class="col-span-2 flex flex-wrap gap-2 justify-start sm:justify-end">
+                        <button onclick="openDetailModal({{ json_encode([
+                            'software' => $namaSoftware,
+                            'versi' => $versiSoftware,
+                            'dosen' => $item->dosen?->nama ?? $item->user?->nama ?? 'Dosen Tidak Diketahui',
+                            'lab' => $labName,
+                            'waktu' => $item->tgl_pengajuan ? \Carbon\Carbon::parse($item->tgl_pengajuan)->translatedFormat('d F Y H:i').' WIB' : '-',
+                            'matkul' => $item->mata_kuliah ?? '-',
+                            'kelompok' => $item->kelompok_matkul ?? '-',
+                            'status' => strtolower($status),
+                            'dokumentasi' => $item->dokumentasi ?? '-',
+                            'catatan_admin' => $item->catatan_admin ?? '-'
+                        ]) }})" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-blue-950 shadow-sm transition hover:bg-slate-50">
+                            Detail
+                        </button>
+                        
+                        <button onclick="openUpdateModal('{{ $item->id }}', '{{ $status }}', '{{ $item->dokumentasi ?? '' }}', '{{ $item->catatan_admin ?? '' }}')" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-900">
+                            Update
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                    <p class="text-sm font-bold text-slate-500">Belum ada tugas pengerjaan instalasi yang dialokasikan ke Anda.</p>
+                </div>
+            @endforelse
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            @if(is_object($taskList) && method_exists($taskList, 'links'))
+                {{ $taskList->links() }}
+            @endif
         </div>
     </div>
 </div>
 
+<div id="detailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div class="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div id="modal_header_container" class="relative flex items-center justify-center p-6">
+            <div class="flex items-center gap-3">
+                <div id="modal_icon_container"></div>
+                <h3 id="modal_title_text" class="text-xl font-black">Detail Tugas Instalasi</h3>
+            </div>
+            <button onclick="closeDetailModal()" class="absolute right-6 text-slate-600 hover:text-slate-900">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            <div class="rounded-2xl border border-slate-200">
+                <dl class="divide-y divide-slate-100">
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm">
+                        <dt class="font-bold text-slate-700">Nama Software</dt>
+                        <dd id="modal_software" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm">
+                        <dt class="font-bold text-slate-700">Versi</dt>
+                        <dd id="modal_versi" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm">
+                        <dt class="font-bold text-slate-700">Diajukan oleh</dt>
+                        <dd id="modal_dosen" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm">
+                        <dt class="font-bold text-slate-700">Laboratorium</dt>
+                        <dd id="modal_lab" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm">
+                        <dt class="font-bold text-slate-700">Waktu Pengajuan</dt>
+                        <dd id="modal_waktu" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm">
+                        <dt class="font-bold text-slate-700">Mata Kuliah / Kelompok</dt>
+                        <dd id="modal_matkul_kelompok" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm border-t-2 border-slate-100 bg-slate-50">
+                        <dt class="font-bold text-blue-950">Link Dokumentasi</dt>
+                        <dd id="modal_dokumentasi" class="font-medium text-slate-950 sm:col-span-2 break-all">-</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 text-sm bg-slate-50">
+                        <dt class="font-bold text-blue-950">Catatan Pengerjaan</dt>
+                        <dd id="modal_catatan_admin" class="font-medium text-slate-950 sm:col-span-2">-</dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeDetailModal()" class="rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 shadow-sm">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="updateModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div class="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div class="bg-blue-950 p-6 text-white flex justify-between items-center">
+            <h3 class="text-xl font-black">Update Progress Instalasi</h3>
+            <button onclick="closeUpdateModal()" class="text-white hover:text-slate-200">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <form id="updateForm" method="POST" class="p-6 space-y-4">
+            @csrf
+            @method('PUT')
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Status Progress</label>
+                <select name="status_progress" id="update_status" required class="w-full rounded-xl border border-slate-300 p-2.5 text-sm font-semibold text-slate-950 focus:border-blue-500 focus:ring-blue-500">
+                    <option value="progress">On Progress</option>
+                    <option value="terinstal">Selesai (Terinstal)</option>
+                    <option value="gagal_terinstal">Gagal Terinstal / Terkendala</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Link Dokumentasi Hasil</label>
+                <input type="url" name="dokumentasi" id="update_dokumentasi" required 
+                    class="w-full rounded-xl border border-slate-300 p-2.5 text-sm text-slate-950 focus:border-blue-500 focus:ring-blue-500" 
+                    placeholder="https://sharelink-cloud-atau-drive.com">
+                <p class="text-xs text-slate-400 mt-1">*Wajib menyertakan URL bukti instalasi berupa folder drive/cloud.</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Catatan Tambahan Teknis</label>
+                <textarea name="catatan_admin" id="update_catatan" rows="3" 
+                    class="w-full rounded-xl border border-slate-300 p-2.5 text-sm text-slate-950 focus:border-blue-500 focus:ring-blue-500" 
+                    placeholder="Tuliskan kendala atau rincian spesifikasi jika diperlukan..."></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeUpdateModal()" class="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-200">
+                    Batal
+                </button>
+                <button type="submit" class="rounded-xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-900 shadow-sm">
+                    Simpan Progress
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    function toggleModal(modalId, show) {
-        const modal = document.getElementById(modalId);
-        if (show) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Lock background scroll
+    // Logic Modal 1: Detail Tugas
+    function openDetailModal(data) {
+        document.getElementById('modal_software').innerText = data.software;
+        document.getElementById('modal_versi').innerText = 'v.' + data.versi;
+        document.getElementById('modal_dosen').innerText = data.dosen;
+        document.getElementById('modal_lab').innerText = data.lab;
+        document.getElementById('modal_waktu').innerText = data.waktu;
+        document.getElementById('modal_matkul_kelompok').innerText = data.matkul + ' (' + data.kelompok + ')';
+        
+        // Handle Teks link dokumentasi secara dinamis
+        const dokElem = document.getElementById('modal_dokumentasi');
+        if(data.dokumentasi && data.dokumentasi !== '-') {
+            dokElem.innerHTML = `<a href="${data.dokumentasi}" target="_blank" class="text-blue-600 underline font-bold hover:text-blue-800">${data.dokumentasi}</a>`;
         } else {
-            modal.classList.add('hidden');
-            document.body.style.overflow = ''; // Unlock background scroll
+            dokElem.innerText = '-';
         }
+        document.getElementById('modal_catatan_admin').innerText = data.catatan_admin;
+        
+        const headerContainer = document.getElementById('modal_header_container');
+        const titleText = document.getElementById('modal_title_text');
+        const iconContainer = document.getElementById('modal_icon_container');
+        
+        headerContainer.className = "relative flex items-center justify-center p-6 transition-colors duration-200 ";
+        titleText.className = "text-xl font-black ";
+        
+        const iconWaiting = `<svg class="h-8 w-8 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        const iconProgress = `<svg class="h-8 w-8 text-blue-700 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>`;
+        const iconSuccess = `<svg class="h-8 w-8 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        const iconFailed = `<svg class="h-8 w-8 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+
+        switch(data.status) {
+            case 'pending':
+            case 'menunggu':
+                headerContainer.classList.add('bg-amber-100');
+                titleText.classList.add('text-amber-800');
+                iconContainer.innerHTML = iconWaiting;
+                break;
+            case 'progress':
+            case 'on progress':
+                headerContainer.classList.add('bg-blue-100');
+                titleText.classList.add('text-blue-800');
+                iconContainer.innerHTML = iconProgress;
+                break;
+            case 'terinstal':
+            case 'installed':
+            case 'selesai':
+                headerContainer.classList.add('bg-emerald-100');
+                titleText.classList.add('text-emerald-800');
+                iconContainer.innerHTML = iconSuccess;
+                break;
+            case 'terkendala':
+            case 'gagal_terinstal':
+            case 'gagal':
+                headerContainer.classList.add('bg-red-100');
+                titleText.classList.add('text-red-800');
+                iconContainer.innerHTML = iconFailed;
+                break;
+            default:
+                headerContainer.classList.add('bg-slate-100');
+                titleText.classList.add('text-slate-800');
+                iconContainer.innerHTML = '';
+        }
+        
+        document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    // Logic Modal 2: Form Input Update Progress Pengerjaan
+    function openUpdateModal(id, currentStatus, currentDokumentasi, currentCatatan) {
+        const form = document.getElementById('updateForm');
+        
+        // Menggunakan rute dinamis Laravel agar aman
+        let actionUrl = "{{ route('admin.updateProgressTugas', ':id') }}";
+        form.action = actionUrl.replace(':id', id);
+        
+        // Map status agar sinkron dengan tag <option>
+        let mappedStatus = currentStatus.toLowerCase();
+        if (mappedStatus === 'menunggu' || mappedStatus === 'pending') {
+            mappedStatus = 'progress'; 
+        }
+        
+        document.getElementById('update_status').value = mappedStatus;
+        document.getElementById('update_dokumentasi').value = currentDokumentasi;
+        document.getElementById('update_catatan').value = currentCatatan;
+        
+        document.getElementById('updateModal').classList.remove('hidden');
+    }
+
+    function closeUpdateModal() {
+        document.getElementById('updateModal').classList.add('hidden');
     }
 </script>
 @endsection

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
     
     @if(session('success'))
         <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 shadow-sm">
@@ -12,30 +12,65 @@
         </div>
     @endif
 
-    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-black tracking-tight text-slate-950 uppercase">License Tracker</h2>
-            <p class="text-sm font-medium text-slate-500">Kelola data lisensi software di laboratorium.</p>
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">License Tracker</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">License Tracker</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Kelola data lisensi software di laboratorium.
+                </p>
+            </div>
+            <div>
+                <button type="button" onclick="openModal()" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
+                    Tambah Lisensi Baru
+                </button>
+            </div>
         </div>
-        <div>
-            <button type="button" onclick="openModal()" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
-                Tambah Lisensi Baru
-            </button>
-        </div>
-    </div>
+    </section>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
         
-        <div class="relative max-w-full">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+        <form action="{{ route('instalasi.index') }}" method="GET">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div class="relative md:col-span-2">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchLicense" name="search" value="{{ request('search') }}"
+                           class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" 
+                           placeholder="Cari software atau nomor laboratorium ">
+                </div>
+
+                <div class="flex gap-2">
+                    <select name="lab" onchange="this.form.submit()" 
+                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
+                        <option value="">-- Semua Laboratorium --</option>
+                        @foreach($laboratoriums as $lab)
+                            <option value="{{ $lab->no_lab }}" {{ request('lab') == $lab->no_lab ? 'selected' : '' }}>
+                                {{ $lab->nama_lab }} ({{ $lab->no_lab }})
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @if(request('lab') || request('search'))
+                        <a href="{{ route('instalasi.index') }}" 
+                           class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 shadow-sm"
+                           title="Reset Filter">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+
             </div>
-            <input type="text" id="searchLicense" 
-                   class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" 
-                   placeholder="Cari software atau nomor laboratorium...">
-        </div>
+        </form>
 
         <div class="overflow-x-auto rounded-xl border border-slate-100">
             <table class="w-full text-left border-collapse whitespace-nowrap">
@@ -117,6 +152,7 @@
             </table>
         </div>
     </div> 
+
     <div class="flex items-start gap-3.5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm">
         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -206,6 +242,7 @@
         document.getElementById('modalTambahLisensi').classList.add('hidden');
     }
 
+    // Fungsi live search lokal (tetap dipertahankan untuk pencarian instan pada text)
     document.getElementById('searchLicense').addEventListener('keyup', function() {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');

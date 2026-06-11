@@ -1,76 +1,155 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Manajemen User</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container my-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Daftar User Aplikasi</h2>
+@extends('layouts.app')
+
+@section('content')
+<div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    
+    @if(session('success'))
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-medium text-emerald-800 shadow-sm">
+            <svg class="h-5 w-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
             <div>
-                <a href="{{ route('dashboard') }}" class="btn btn-secondary me-2">Kembali ke Dashboard</a>
-                <a href="{{ route('users.create') }}" class="btn btn-primary">Tambah User Baru</a>
+                {{ session('success') }}
             </div>
         </div>
-
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th class="ps-3">No Induk</th>
-                            <th>Nama</th>
-                            <th>Email</th>
-                            <th>No HP</th>
-                            <th>Role</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($users as $user)
-                        <tr>
-                            <td class="ps-3">{{ $user->no_induk }}</td>
-                            <td>{{ $user->nama }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->no_hp ?? '-' }}</td>
-                            <td><span class="badge bg-secondary">{{ ucfirst($user->role) }}</span></td>
-                            <td class="text-center">
-                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                        <td>
-                        <td>
-                            @if($user->role == 'supervisor')
-                                <span class="badge bg-dark">Supervisor</span>
-                            @elseif($user->role == 'dosen')
-                                <span class="badge bg-primary">Dosen</span>
-                            @else
-                                <span class="badge bg-info text-dark">Admin</span>
-                                @if($user->laboratoriums->count() > 0)
-                                    <br><small class="text-muted">Tugas: <strong>{{ $user->laboratoriums->pluck('no_lab')->implode(', ') }}</strong></small>
-                                @else
-                                    <br><small class="text-danger"><em>Belum ada lab</em></small>
-                                @endif
-                            @endif
-                        </td>
-                        </td>
-                    </tbody>
-                </table>
+    @endif
+    
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">User Manager</span>
+                </nav>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Manajemen User</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Kelola hak akses, data induk, dan informasi akun pengguna aplikasi.
+                </p>
             </div>
+            <div>
+                <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                    Tambah User Baru
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Pengguna</p>
+            <p class="mt-2 text-2xl font-black text-slate-950">{{ $users->count() }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-blue-500">Supervisor</p>
+            <p class="mt-2 text-2xl font-black text-slate-950">{{ $users->where('role', 'supervisor')->count() }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-purple-500">Admin</p>
+            <p class="mt-2 text-2xl font-black text-slate-950">{{ $users->where('role', 'admin')->count() }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-emerald-500">Dosen</p>
+            <p class="mt-2 text-2xl font-black text-slate-950">{{ $users->where('role', 'dosen')->count() }}</p>
         </div>
     </div>
-</body>
-</html>
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 border-b border-slate-200">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">No Induk</th>
+                        <th scope="col" class="px-6 py-4">Nama Lengkap</th>
+                        <th scope="col" class="px-6 py-4">Email</th>
+                        <th scope="col" class="px-6 py-4">No HP</th>
+                        <th scope="col" class="px-6 py-4">Hak Akses / Role</th>
+                        <th scope="col" class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($users as $item)
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-slate-700">
+                                <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 border border-slate-200">
+                                    {{ $item->no_induk ?? $item->username ?? '-' }}
+                                </span>
+                            </td>
+                            
+                            <td class="px-6 py-4 font-semibold text-slate-950">
+                                {{ $item->nama }}
+                            </td>
+                            
+                            <td class="px-6 py-4 text-slate-600 font-medium">
+                                {{ $item->email }}
+                            </td>
+                            
+                            <td class="px-6 py-4 font-medium text-slate-500">
+                                {{ $item->no_hp ?? '-' }}
+                            </td>
+                            
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col items-start gap-1">
+                                    @if($item->role === 'supervisor')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 shadow-sm">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                                            Supervisor
+                                        </span>
+                                    @elseif($item->role === 'dosen')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 shadow-sm">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                                            Dosen
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-purple-100 bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700 shadow-sm">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-purple-600"></span>
+                                            Admin
+                                        </span>
+                                        
+                                        @if($item->laboratoriums && $item->laboratoriums->count() > 0)
+                                            <span class="text-[11px] font-medium text-slate-500 mt-0.5">
+                                                Tugas: <strong class="text-slate-700 font-semibold">{{ $item->laboratoriums->pluck('no_lab')->implode(', ') }}</strong>
+                                            </span>
+                                        @else
+                                            <span class="text-[11px] font-medium text-red-500 italic mt-0.5">
+                                                Belum ada lab
+                                            </span>
+                                        @endif
+                                    @endif
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('users.edit', $item->id) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none" title="Edit User">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </a>
+                                    
+                                    <form action="{{ route('users.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 shadow-sm transition hover:bg-red-100 focus:outline-none" title="Hapus User">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-16v1a1 1 0 001 1h4a1 1 0 001-1V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M10 11v6"></path></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    <p class="text-sm font-bold text-slate-900">Belum Ada Data User</p>
+                                    <p class="text-xs text-slate-500">Silakan tambahkan data pengguna baru sistem terlebih dahulu.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection

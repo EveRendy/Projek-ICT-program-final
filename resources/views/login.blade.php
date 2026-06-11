@@ -36,43 +36,11 @@
         }
 
         .left-header{
-            height:42%;
-            padding:35px 45px;
-            display:flex;
-            flex-direction:column;
-        }
-
-        .lab-brand{
-            display:flex;
-            align-items:center;
-            gap:15px;
-        }
-
-        .lab-logo{
-            width:80px;
-            height:80px;
-            object-fit:contain;
-        }
-
-        .lab-text h5{
-            margin:0;
-            font-size:16px;
-            font-weight:500;
-            color:#444;
-        }
-
-        .lab-text h3{
-            margin:0;
-            font-size:26px;
-            font-weight:700;
-            color:#1d2f3a;
-        }
-
-        .lab-text p{
-            margin:0;
-            font-size:12px;
-            color:#666;
-        }
+        height:32%;
+        padding:10px 45px 0 45px;
+        display:flex;
+        flex-direction:column;
+    }
 
         .title-login{
             flex:1;
@@ -81,25 +49,31 @@
             align-items:center;
             flex-direction:column;
             text-align:center;
+            padding-top:0;
+            margin-top:-10px;
         }
 
         .title-login h1{
             margin:0;
             font-size:3rem;
-            font-weight:700;
-            color:#1d2f3a;
-            line-height:1.15;
-            text-shadow:0 4px 8px rgba(0,0,0,0.15);
+            font-weight:500;
+            color:#2f3136;
+            line-height:1.25;
+            letter-spacing:1px;
+            text-shadow:none;
         }
 
         .left-image{
-            height:58%;
+            height:68%;
+            margin-top:-15px;
+            overflow:hidden;
         }
 
         .left-image img{
             width:100%;
             height:100%;
             object-fit:cover;
+            object-position:center top;
         }
 
         /* =========================
@@ -117,12 +91,41 @@
         .login-box{
             width:70%;
             max-width:550px;
+            margin-top:-20px;
         }
 
-        .ubl-logo{
-            width:260px;
-            display:block;
-            margin:0 auto 25px auto;
+        .login-brand{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:15px;
+            margin-bottom:30px;
+        }
+
+        .login-brand-logo{
+            width:85px;
+            height:85px;
+            object-fit:contain;
+        }
+
+        .login-brand-text h5{
+            margin:0;
+            font-size:16px;
+            font-weight:500;
+            color:#444;
+        }
+
+        .login-brand-text h3{
+            margin:0;
+            font-size:30px;
+            font-weight:700;
+            color:#1d2f3a;
+        }
+
+        .login-brand-text p{
+            margin:0;
+            font-size:13px;
+            color:#666;
         }
 
         .login-title{
@@ -161,10 +164,6 @@
             background:#222;
         }
 
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
         @media(max-width:992px){
 
             .left-side{
@@ -177,10 +176,16 @@
 
             .login-box{
                 width:90%;
+                margin-top:0;
             }
 
             .login-title{
                 font-size:3rem;
+            }
+
+            .login-brand{
+                flex-direction:column;
+                text-align:center;
             }
         }
     </style>
@@ -195,24 +200,11 @@
 
             <div class="left-header">
 
-                <div class="lab-brand">
-
-                    <img
-                        src="{{ asset('images/image.png') }}"
-                        alt="Logo ICT"
-                        class="lab-logo">
-
-                    <div class="lab-text">
-                        <h5>Laboratorium</h5>
-                        <h3>ICT TERPADU</h3>
-                        <p>Universitas Budi Luhur</p>
-                    </div>
-
-                </div>
-
                 <div class="title-login">
-                    <h1>REQUEST INSTALASI</h1>
-                    <h1>SOFTWARE</h1>
+                    <h1>
+                        REQUEST INSTALASI<br>
+                        SOFTWARE
+                    </h1>
                 </div>
 
             </div>
@@ -230,10 +222,20 @@
 
             <div class="login-box">
 
-                <img
-                    src="{{ asset('images/logoUBL.png') }}"
-                    alt="Universitas Budi Luhur"
-                    class="ubl-logo">
+                <div class="login-brand">
+
+                    <img
+                        src="{{ asset('images/image.png') }}"
+                        alt="Logo ICT"
+                        class="login-brand-logo">
+
+                    <div class="login-brand-text">
+                        <h5>Laboratorium</h5>
+                        <h3>ICT TERPADU</h3>
+                        <p>Universitas Budi Luhur</p>
+                    </div>
+
+                </div>
 
                 <h1 class="login-title">Login</h1>
 

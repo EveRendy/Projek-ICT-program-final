@@ -1,6 +1,30 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    // Mendefinisikan helper closure untuk warna badge agar tidak undefined
+    $statusBadge = function($status) {
+        return match($status) {
+            'menunggu', 'pending' => 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-600/10',
+            'progress' => 'bg-blue-50 text-blue-700 border-blue-200 ring-blue-600/10',
+            'terinstal' => 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-600/10',
+            'gagal_terinstal' => 'bg-rose-50 text-rose-700 border-rose-200 ring-rose-600/10',
+            default => 'bg-slate-50 text-slate-700 border-slate-200 ring-slate-600/10',
+        };
+    };
+
+    // Mendefinisikan helper closure untuk icon SVG berdasarkan status
+    $statusIcon = function($status) {
+        return match($status) {
+            'menunggu', 'pending' => '<svg class="mr-1.5 h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            'progress' => '<svg class="mr-1.5 h-4 w-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>',
+            'terinstal' => '<svg class="mr-1.5 h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+            'gagal_terinstal' => '<svg class="mr-1.5 h-4 w-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            default => '',
+        };
+    };
+@endphp
+
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
     
     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -344,11 +368,11 @@
     function openUpdateModal(id, currentStatus, currentDokumentasi, currentCatatan) {
         const form = document.getElementById('updateForm');
         
-        // PENTING: Gunakan rute dinamis dari Laravel agar aman dan tidak error 404
+        // Menggunakan rute dinamis Laravel agar aman
         let actionUrl = "{{ route('admin.updateProgressTugas', ':id') }}";
         form.action = actionUrl.replace(':id', id);
         
-        // Map status string agar pas dengan value tag <option>
+        // Map status agar sinkron dengan tag <option>
         let mappedStatus = currentStatus.toLowerCase();
         if (mappedStatus === 'menunggu' || mappedStatus === 'pending') {
             mappedStatus = 'progress'; 

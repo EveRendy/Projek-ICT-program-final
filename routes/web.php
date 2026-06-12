@@ -8,7 +8,8 @@ use App\Http\Controllers\LaboratoriumController;
 use App\Http\Controllers\SoftwareController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\InstalasiController;
-use App\Http\Controllers\RiwayatController; // <-- INI YANG BARU DITAMBAHKAN
+use App\Http\Controllers\RiwayatController; // <-- INI YANG BARU 
+use App\Http\Controllers\CetakController;
 
 // =========================================================================
 // 1. Route Publik & Autentikasi
@@ -76,4 +77,9 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // INI YANG DIPERBAIKI: Sekarang sudah mengarah ke RiwayatController yang kita edit tadi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+
+ 
+
+// Arahkan ke CetakController dan panggil method/fungsi 'cetakLaporanLab'
+    Route::get('/laporan/lab/{no_lab}', [CetakController::class, 'cetakLaporanLab'])->name('laporan.lab');
 });

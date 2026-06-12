@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Software;
 use App\Models\Laboratorium; // Tambahan Model Laboratorium
+use App\Models\Instalasi;
 use Illuminate\Http\Request;
 
 class SoftwareController extends Controller
@@ -41,6 +42,14 @@ class SoftwareController extends Controller
 
         // Paginasi 10 data per halaman & withQueryString agar filter tidak hilang saat ganti halaman
         $softwares = $query->latest()->paginate(10)->withQueryString();
+        $listLab = Instalasi::select('no_lab')
+                        ->distinct()
+                        ->whereNotNull('no_lab')
+                        ->orderBy('no_lab', 'asc')
+                        ->pluck('no_lab'); // Mengubah hasil menjadi array/koleksi sederhana
+
+    // 3. Kirim variabel $listLab ke dalam view bersama data software Anda
+    return view('softwares.index', compact('softwares', 'listLab'));
 
         return view('softwares.index', compact('softwares', 'laboratoriums'));
     }

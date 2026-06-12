@@ -46,7 +46,7 @@
     } elseif ($role === 'dosen') {
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
-            ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.index'), 'icon' => 'request'],
+            ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.create'), 'icon' => 'request'],
             ['label' => 'Status Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.index'), 'icon' => 'status'],
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
         ]);

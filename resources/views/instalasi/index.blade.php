@@ -79,7 +79,7 @@
                         <th class="px-6 py-4 text-center w-12">No.</th>
                         <th class="px-6 py-4">Software</th>
                         <th class="px-6 py-4">Laboratorium</th>
-                        <th class="px-6 py-4">Teknisi / Penginstal</th>
+                        <th class="px-6 py-4">Penginstal</th>
                         <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4">Mulai</th>
                         <th class="px-6 py-4">Berakhir</th>

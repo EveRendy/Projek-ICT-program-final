@@ -45,12 +45,15 @@
 
     <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 p-4 sm:p-5">
-            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_220px_auto]">
+            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_200px_200px_auto]">
+                
+                {{-- 1. Input Search --}}
                 <div class="relative">
                     <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"></path></svg>
                     <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari software" class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-950 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                 </div>
 
+                {{-- 2. Dropdown Kategori --}}
                 <select name="kategori" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
                     <option value="">Semua Kategori</option>
                     <option value="1" {{ request('kategori') == '1' ? 'selected' : '' }}>Level 1 (Low Spec)</option>
@@ -58,11 +61,22 @@
                     <option value="3" {{ request('kategori') == '3' ? 'selected' : '' }}>Level 3 (High Spec)</option>
                 </select>
 
+                {{-- 3. Dropdown Filter Laboratorium --}}
+                <select name="laboratorium" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
+                    <option value="">Semua Laboratorium</option>
+                    @foreach($laboratoriums as $lab)
+                        <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
+                            Lab {{ $lab->no_lab }}
+                        </option>
+                    @endforeach
+                </select>
+
+                {{-- 4. Blok Tombol Cari & Reset --}}
                 <div class="flex gap-2">
                     <button type="submit" class="rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900">
                         Cari
                     </button>
-                    @if(request('search') || request('kategori'))
+                    @if(request('search') || request('kategori') || request('laboratorium'))
                         <a href="{{ route('softwares.index') }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-500 transition hover:bg-slate-50">
                             Reset
                         </a>
@@ -99,18 +113,39 @@
                                     </div>
                                 </div>
                             </td>
+                            
+                            {{-- LOGIKA BARU UNTUK KOLOM VERSI SECARA DINAMIS --}}
                             <td class="px-5 py-4">
                                 <div class="flex max-w-xs flex-wrap gap-1.5">
-                                    @foreach($item->versi as $v)
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
-                                    @endforeach
+                                    @if(request()->filled('laboratorium'))
+                                        {{-- Jika filter laboratorium aktif, tampilkan hanya versi terinstall di lab tersebut --}}
+                                        @forelse($item->instalasis as $inst)
+                                            <span class="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-1 text-xs font-bold text-blue-700">
+                                                v{{ $inst->versi_terinstall }}
+                                            </span>
+                                        @empty
+                                            <span class="text-xs italic text-slate-400">Belum terinstal</span>
+                                        @endforelse
+                                    @else
+                                        {{-- Jika filter tidak aktif, tampilkan semua daftar versi master --}}
+                                        @foreach($item->versi as $v)
+                                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </td>
+
                             <td class="px-5 py-4">
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ $meta['class'] }}">{{ $meta['label'] }} · {{ $meta['desc'] }}</span>
                             </td>
                             <td class="px-5 py-4">
-                                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">Master Data</span>
+                                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                                    @if($item->instalasis && $item->instalasis->count() > 0)
+                                        Terpasang di: {{ implode(', ', $item->instalasis->pluck('no_lab')->unique()->toArray()) }}
+                                    @else
+                                        Master Data
+                                    @endif
+                                </span>
                             </td>
                             @if($isSupervisor)
                                 <td class="px-5 py-4">
@@ -119,7 +154,6 @@
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
                                         </a>
                                         
-                                        {{-- Form Hapus yang telah dihubungkan ke Modal JS --}}
                                         <form id="delete-form-{{ $item->id }}" action="{{ route('softwares.destroy', $item->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
@@ -172,7 +206,7 @@
     </section>
 </div>
 
-{{-- Modal Konfirmasi Hapus Premium --}}
+{{-- Modal Konfirmasi Hapus --}}
 <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
     <div id="deleteModalContent" class="w-full max-w-sm scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300">
         <div class="flex flex-col items-center gap-4 text-center">

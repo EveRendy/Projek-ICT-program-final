@@ -8,7 +8,8 @@ use App\Http\Controllers\LaboratoriumController;
 use App\Http\Controllers\SoftwareController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\InstalasiController;
-use App\Http\Controllers\RiwayatController;
+use App\Http\Controllers\RiwayatController; 
+use App\Http\Controllers\CetakController;
 
 // =========================================================================
 // 1. Route Publik & Autentikasi
@@ -39,19 +40,20 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // MENU DOSEN: 1. PENGAJUAN (Langsung Menampilkan Formulir Input)
     // -------------------------------------------------------------------------
-    // Diubah ke 'create' agar ketika dosen klik menu Pengajuan, langsung muncul Form Isian
     Route::get('/pengajuan', [PengajuanController::class, 'create'])->name('pengajuan.index');
     Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
 
     // -------------------------------------------------------------------------
-    // MENU DOSEN: 2. STATUS PENGAJUAN (Pelacakan Approval SPV - Tampilan List)
+    // MENU DOSEN: 2. STATUS PENGAJUAN (Pelacakan Progres - SUDAH DIPERBAIKI)
     // -------------------------------------------------------------------------
-    Route::get('/status-pengajuan', [PengajuanController::class, 'statusPengajuan'])->name('pengajuan.status');
+    // SEBELUMNYA: mengarah ke 'statusPengajuan' (punya SPV). 
+    // SEKARANG: diarahkan dengan benar ke 'statusPengajuanDosen' agar tombol approval hilang!
+    Route::get('/status-pengajuan', [PengajuanController::class, 'statusPengajuanDosen'])->name('pengajuan.status');
     Route::get('/status-pengajuan/{id}', [PengajuanController::class, 'detailPengajuan'])->name('pengajuan.showStatus');
 
     // -------------------------------------------------------------------------
-    // MENU DOSEN: 3. RIWAYAT PENGAJUAN (Menampilkan Tabel Data Horizontal Dosen)
+    // MENU DOSEN: 3. RIWAYAT PENGAJUAN (Tabel Data Horizontal Dosen)
     // -------------------------------------------------------------------------
     Route::get('/riwayat', [PengajuanController::class, 'riwayatPengajuan'])->name('riwayat.index');
 
@@ -60,31 +62,35 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     Route::get('/supervisor/pengajuan', [PengajuanController::class, 'indexSupervisor'])->name('supervisor.pengajuan.index');
 
-    // Tombol Aksi di halaman Supervisor
+    // Tombol Aksi di halaman Supervisor (Sesuaikan name dengan yang dipakai di Blade)
+    Route::post('/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('pengajuan.approve');
+    Route::post('/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('pengajuan.reject');
+    
+    // Alias backup rute lama agar tidak ada error di view lama
     Route::patch('/pengajuan/{pengajuan}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
     Route::patch('/pengajuan/{pengajuan}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');
-
 
     // -------------------------------------------------------------------------
     // MENU: ADMIN / TEKNISI (Update Status Jalannya Instalasi)
     // -------------------------------------------------------------------------
-    // Halaman utama Admin untuk mengelola instalasi yang ditugaskan kepadanya (Progress)
     Route::get('/admin/instalasi', [PengajuanController::class, 'indexAdmin'])->name('admin.instalasi.index');
-    
-    // Fitur simpan data progress instalasi dari Admin
     Route::put('/admin/instalasi/{id}/update', [PengajuanController::class, 'updateProgressTugas'])->name('admin.instalasi.update');
 
-    // [ALIAS SECURITY] Pengaman rute lama agar link lama tidak error 500
+    // [ALIAS SECURITY] Pengaman rute lama agar link di view Admin tidak error
     Route::get('/update-pengerjaan', [PengajuanController::class, 'indexAdmin'])->name('pengerjaan.index');
     Route::get('/admin/tugas', [PengajuanController::class, 'indexAdmin'])->name('admin.tugas.index');
-    
-    // BERHASIL DIPERBAIKI: Mengarah ke 'indexPenyelesaian' agar membuka file penyelesaian.blade.php
     Route::get('/admin/penyelesaian', [PengajuanController::class, 'indexPenyelesaian'])->name('admin.penyelesaian.index');
-    
     Route::put('/update-pengerjaan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
 
     // -------------------------------------------------------------------------
     // MENU: LICENSE TRACKER / RIWAYAT GLOBAL (Khusus Supervisor & Admin)
     // -------------------------------------------------------------------------
-    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+    // Diubah namanya menjadi 'riwayat.global' agar tidak bentrok dengan 'riwayat.index' milik dosen di atas
+    Route::get('/riwayat-global-view', [RiwayatController::class, 'index'])->name('riwayat.global');
+    Route::get('/admin/riwayat-global', [PengajuanController::class, 'licenseTracker'])->name('admin.riwayat.global');
+
+    // -------------------------------------------------------------------------
+    // MENU: CETAK LAPORAN
+    // -------------------------------------------------------------------------
+    Route::get('/cetak-laporan-lab/{no_lab}', [CetakController::class, 'cetakLaporanLab'])->name('cetak.laporan.lab');
 });

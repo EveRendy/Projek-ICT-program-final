@@ -15,14 +15,21 @@ class PengajuanController extends Controller
     // =========================================================================
     public function riwayatPengajuan()
     {
+        // 1. Ambil data user dan role yang sedang login
         $user = Auth::user();
-        $pengajuans = $user->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
-        
-        return view('pengajuan.index', compact('pengajuans'));
+        $role = $user->role ?? 'user';
+
+        $pengajuans = Pengajuan::with(['laboratorium', 'software'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
+        // 2. Tambahkan 'role' ke dalam compact agar dibaca oleh Blade
+        return view('pengajuan.index', compact('pengajuans', 'role'));
     }
 
     // =========================================================================
-    // 2. MENU SUPERVISOR: Menampilkan Pengajuan PENDING untuk Approval
+    // 2. MENU DOSEN: Menampilkan List Status Approval SPV (Mockup Vertikal)
     // =========================================================================
     public function indexSupervisor()
     {
@@ -126,10 +133,36 @@ class PengajuanController extends Controller
         ];
 
         return view('admin.penyelesaian', compact('tugas', 'summary', 'role', 'laboratoriums'));
-    }
+    } // <-- SUDAH DIPERBAIKI DISINI
 
     // =========================================================================
     // 4. Form Buat Pengajuan Baru (Dosen)
+    // =========================================================================
+    public function statusPengajuanDosen()
+    {
+        $pengajuans = Pengajuan::with(['laboratorium', 'software'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        // Diarahkan ke file khusus status pengajuan yang baru dibuat
+        return view('pengajuan.status', compact('pengajuans'));
+    }
+
+    // =========================================================================
+    // 3. MENU DOSEN: Menampilkan Detail Status & Progress Pengajuan (Tombol Lihat)
+    // =========================================================================
+    public function detailPengajuan($id)
+    {
+        $pengajuan = Pengajuan::with(['laboratorium', 'software'])
+            ->where('user_id', Auth::id())
+            ->findOrFail($id);
+
+        return view('pengajuan.status_detail', compact('pengajuan'));
+    }
+
+    // =========================================================================
+    // 4. MENU DOSEN: Menampilkan Form Buat Pengajuan Baru Langsung
     // =========================================================================
     public function create()
     {
@@ -170,10 +203,37 @@ class PengajuanController extends Controller
         return redirect()->route('pengajuan.index')->with('success', 'Pengajuan instalasi berhasil dikirim!');
     }
 
-// =========================================================================
-    // 6. Proses Menyetujui Pengajuan (Aksi Supervisor)
     // =========================================================================
-    // DIUBAH: Menggunakan $id secara manual agar terhindar dari bug Route Binding
+    // 6. MENU SUPERVISOR: Menampilkan Pengajuan yang Masih PENDING untuk Disetujui
+    // =========================================================================
+    public function indexSupervisor()
+    {
+        $query = Pengajuan::with(['dosen', 'laboratorium.admin', 'software']);
+
+        $summaryTotals = (clone $query)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
+            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'progress' THEN 1 ELSE 0 END) as progress,
+            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'terinstal' THEN 1 ELSE 0 END) as selesai,
+            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'gagal_terinstal' THEN 1 ELSE 0 END) as terkendala
+        ")->first();
+
+        $summary = [
+            'total'      => $summaryTotals->total ?? 0,
+            'menunggu'   => $summaryTotals->menunggu ?? 0,
+            'progress'   => $summaryTotals->progress ?? 0,
+            'selesai'    => $summaryTotals->selesai ?? 0,
+            'terkendala' => $summaryTotals->terkendala ?? 0,
+        ];
+
+        $tugas = $query->where('status_persetujuan', 'pending')->latest()->get();
+        
+        return view('supervisor.index', compact('tugas', 'summary'));
+    }
+
+    // =========================================================================
+    // 8. PROSES APPROVAL: Aksi Setuju oleh Supervisor -> Teruskan ke Admin/Teknisi
+    // =========================================================================
     public function setujui($id)
     {
         $pengajuan = Pengajuan::with('laboratorium')->findOrFail($id);
@@ -196,7 +256,6 @@ class PengajuanController extends Controller
     // =========================================================================
     // 9. PROSES REJECT: Aksi Tolak oleh Supervisor
     // =========================================================================
-    // DIUBAH: Menggunakan $id secara manual agar seragam dan aman
     public function tolak(Request $request, $id)
     {
         $request->validate(['catatan_spv' => 'required|string|max:500']);
@@ -213,7 +272,7 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 8. Proses Update Progress Pengerjaan (Aksi Admin)
+    // 10. PROSES UPDATE PROGRESS: Aksi Update Status Instalasi oleh Admin/Teknisi
     // =========================================================================
     public function updateProgressTugas(Request $request, $id)
     {
@@ -236,17 +295,34 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 9. License Tracker Page
+    // 11. LICENSE TRACKER / DASHBOARD UTAMA (Hanya Untuk Supervisor & Admin)
     // =========================================================================
     public function licenseTracker()
     {
         $user = Auth::user();
         $role = $user->role ?? 'user';
         
-        // Proteksi pencegahan jika dosen tersasar ke halaman summary ini
         if ($role !== 'supervisor' && $role !== 'admin') {
             return redirect()->route('riwayat.index');
         }
+
+        $query = Pengajuan::with(['software', 'laboratorium', 'dosen']);
+
+        $summaryTotals = (clone $query)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
+            SUM(CASE WHEN status_progress = 'progress' THEN 1 ELSE 0 END) as progress,
+            SUM(CASE WHEN status_progress = 'terinstal' THEN 1 ELSE 0 END) as selesai,
+            SUM(CASE WHEN status_progress = 'gagal_terinstal' THEN 1 ELSE 0 END) as terkendala
+        ")->first();
+
+        $summary = [
+            'total'      => $summaryTotals->total ?? 0,
+            'menunggu'   => $summaryTotals->menunggu ?? 0,
+            'progress'   => $summaryTotals->progress ?? 0,
+            'selesai'    => $summaryTotals->selesai ?? 0,
+            'terkendala' => $summaryTotals->terkendala ?? 0,
+        ];
 
         $pengajuans = $query->latest()->paginate(10);
         

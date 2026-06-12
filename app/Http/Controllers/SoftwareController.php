@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Software;
 use App\Models\Laboratorium; // Tambahan Model Laboratorium
+use App\Models\Instalasi;
 use Illuminate\Http\Request;
 
 class SoftwareController extends Controller
@@ -11,12 +12,18 @@ class SoftwareController extends Controller
     // 1. DAFTAR SOFTWARE (Read) dengan Search, Filter, dan Paginasi
     public function index(Request $request)
     {
-        // Ambil data laboratorium untuk dropdown filter
+        // Ambil data laboratorium untuk dropdown filter (Sesuai kode asli Anda)
         $laboratoriums = Laboratorium::all();
 
-        $query = Software::query();
+        // Menggunakan eager loading agar query pengambilan relasi instalasi di blade lebih efisien
+        $labSelected = $request->laboratorium;
+        $query = Software::with(['instalasis' => function($q) use ($request, $labSelected) {
+            if ($request->filled('laboratorium')) {
+                $q->where('no_lab', $labSelected);
+            }
+        }]);
 
-        // Logika Pencarian berdasarkan Nama atau ID Software
+        // Logika Pencarian berdasarkan Nama atau ID Software (Sesuai kode asli Anda)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -25,23 +32,24 @@ class SoftwareController extends Controller
             });
         }
 
-        // Logika Filter Kategori (Keterangan: 1, 2, 3)
+        // Logika Filter Kategori (Keterangan: 1, 2, 3) (Sesuai kode asli Anda)
         if ($request->filled('kategori')) {
             $query->where('keterangan', $request->kategori);
         }
 
-        // Logika Filter Laboratorium
-        // CATATAN: Buka comment di bawah ini JIKA tabel software memiliki kolom 'laboratorium_id'
-        // atau gunakan whereHas() jika menggunakan relasi many-to-many.
-        /*
+        // Logika Filter Laboratorium (Mengikuti variabel nama asli Anda: 'laboratorium')
+        // Disesuaikan agar memfilter nomor laboratorium melalui relasi instalasiasRelation
         if ($request->filled('laboratorium')) {
-            $query->where('laboratorium_id', $request->laboratorium);
+            $labSelected = $request->laboratorium;
+            $query->whereHas('instalasis', function($q) use ($labSelected) {
+                $q->where('no_lab', $labSelected);
+            });
         }
-        */
 
         // Paginasi 10 data per halaman & withQueryString agar filter tidak hilang saat ganti halaman
         $softwares = $query->latest()->paginate(10)->withQueryString();
 
+        // Mengembalikan nama variabel asli Anda: softwares dan laboratoriums
         return view('softwares.index', compact('softwares', 'laboratoriums'));
     }
 

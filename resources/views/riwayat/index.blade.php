@@ -23,7 +23,7 @@
                 </nav>
                 <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Riwayat Pengajuan & Pengerjaan</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    Menampilkan seluruh data log rekam jejak instalasi sistem laboratorium berdasarkan hak akses akun Anda.
+                    Menampilkan seluruh data log rekam jejak instalasi sistem laboratorium.
                 </p>
             </div>
             

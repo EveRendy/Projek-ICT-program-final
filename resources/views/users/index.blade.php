@@ -122,17 +122,18 @@
                             
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('users.edit', $item->id) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none" title="Edit User">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    {{-- Ikon Edit Baru (Lebih presisi & serasi) --}}
+                                    <a href="{{ route('users.edit', $item->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30" title="Edit User">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
                                     </a>
                                     
                                     {{-- Form Hapus dengan ID Unik --}}
                                     <form id="delete-form-{{ $item->id }}" action="{{ route('users.destroy', $item->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        {{-- Tombol Type Button yang memanggil Modal JS --}}
-                                        <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 shadow-sm transition hover:bg-red-100 focus:outline-none" title="Hapus User">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-16v1a1 1 0 001 1h4a1 1 0 001-1V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M10 11v6"></path></svg>
+                                        {{-- Ikon Tong Sampah Baru (Sesuai dengan List Software) --}}
+                                        <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id }}')" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Hapus User">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7v13h8V7"></path></svg>
                                         </button>
                                     </form>
                                 </div>
@@ -186,17 +187,13 @@
 
     function openDeleteModal(formId) {
         currentFormIdToSubmit = formId;
-        // Munculkan background overlay
         deleteModal.classList.remove('opacity-0', 'pointer-events-none');
-        // Efek zoom in pop up
         deleteModalContent.classList.remove('scale-95');
     }
 
     function closeDeleteModal() {
         currentFormIdToSubmit = null;
-        // Sembunyikan background overlay
         deleteModal.classList.add('opacity-0', 'pointer-events-none');
-        // Efek zoom out pop up
         deleteModalContent.classList.add('scale-95');
     }
 

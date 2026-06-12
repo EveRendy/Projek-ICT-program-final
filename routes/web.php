@@ -51,8 +51,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/supervisor/pengajuan', [PengajuanController::class, 'indexSupervisor'])->name('supervisor.pengajuan.index');
 
     // Tombol Aksi di halaman Supervisor
-    Route::patch('/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
-    Route::patch('/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');
+    Route::patch('/pengajuan/{pengajuan}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
+    Route::patch('/pengajuan/{pengajuan}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');
 
 
     // -------------------------------------------------------------------------

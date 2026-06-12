@@ -46,7 +46,7 @@
     } elseif ($role === 'dosen') {
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
-            ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.index'), 'icon' => 'request'],
+            ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.create'), 'icon' => 'request'],
             ['label' => 'Status Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.index'), 'icon' => 'status'],
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
         ]);
@@ -74,10 +74,10 @@
         <div class="flex h-full flex-col">
             <div class="border-b border-slate-100 p-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-950 text-xs font-black text-white shadow-sm">ICT</div>
+                    <img src="{{ asset('img/ict.jpg') }}" alt="Logo Lab ICT" class="h-11 w-11 rounded-xl object-contain bg-white p-0.5 border border-slate-100 shadow-sm">
                     <div>
                         <p class="text-sm font-black tracking-tight text-slate-950">Laboratorium ICT</p>
-                        <p class="text-xs font-medium text-slate-500">Software Installation</p>
+                        <p class="text-xs font-medium text-slate-500">Request Instalasi Software</p>
                     </div>
                 </div>
             </div>
@@ -146,7 +146,7 @@
 
                 <div class="min-w-0">
                     <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Dashboard</p>
-                    <h1 class="truncate text-lg font-black text-slate-950">Sistem Instalasi Software Lab</h1>
+                    <h1 class="truncate text-lg font-black text-slate-950">Sistem Request Instalasi Software</h1>
                 </div>
             </div>
         </header>
@@ -157,4 +157,4 @@
     </div>
 </div>
 </body>
-</html>
+</html> 

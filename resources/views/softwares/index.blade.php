@@ -118,10 +118,12 @@
                                         <a href="{{ route('softwares.edit', $item->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Edit {{ $item->nama_software }}">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
                                         </a>
-                                        <form action="{{ route('softwares.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus software ini?')">
+                                        
+                                        {{-- Form Hapus yang telah dihubungkan ke Modal JS --}}
+                                        <form id="delete-form-{{ $item->id }}" action="{{ route('softwares.destroy', $item->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30" aria-label="Hapus {{ $item->nama_software }}">
+                                            <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id }}')" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30" aria-label="Hapus {{ $item->nama_software }}">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7v13h8V7"></path></svg>
                                             </button>
                                         </form>
@@ -152,17 +154,14 @@
         <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <p>Menampilkan {{ $softwares->firstItem() ?? 0 }} - {{ $softwares->lastItem() ?? 0 }} dari {{ $softwares->total() }} software</p>
             <div class="flex items-center gap-1">
-                {{-- Tombol Sebelumnya --}}
                 @if ($softwares->onFirstPage())
                     <button type="button" disabled class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-400 bg-slate-50">Sebelumnya</button>
                 @else
                     <a href="{{ $softwares->previousPageUrl() }}" class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-700 transition hover:bg-slate-50">Sebelumnya</a>
                 @endif
 
-                {{-- Halaman Saat Ini --}}
                 <span class="rounded-lg bg-blue-950 px-3 py-1.5 font-bold text-white">{{ $softwares->currentPage() }}</span>
 
-                {{-- Tombol Berikutnya --}}
                 @if ($softwares->hasMorePages())
                     <a href="{{ $softwares->nextPageUrl() }}" class="rounded-lg border border-slate-200 px-3 py-1.5 font-bold text-slate-700 transition hover:bg-slate-50">Berikutnya</a>
                 @else
@@ -172,4 +171,53 @@
         </div>
     </section>
 </div>
+
+{{-- Modal Konfirmasi Hapus Premium --}}
+<div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="deleteModalContent" class="w-full max-w-sm scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300">
+        <div class="flex flex-col items-center gap-4 text-center">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 border-[6px] border-red-50 text-red-500 mb-2">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900">Hapus Software Ini?</h3>
+                <p class="mt-2 text-sm text-slate-500 leading-relaxed">Data master software yang sudah dihapus tidak dapat dikembalikan lagi ke sistem. Pastikan keputusan Anda sudah benar.</p>
+            </div>
+            <div class="mt-4 flex w-full gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500/20">
+                    Batal
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentFormIdToSubmit = null;
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteModalContent = document.getElementById('deleteModalContent');
+
+    function openDeleteModal(formId) {
+        currentFormIdToSubmit = formId;
+        deleteModal.classList.remove('opacity-0', 'pointer-events-none');
+        deleteModalContent.classList.remove('scale-95');
+    }
+
+    function closeDeleteModal() {
+        currentFormIdToSubmit = null;
+        deleteModal.classList.add('opacity-0', 'pointer-events-none');
+        deleteModalContent.classList.add('scale-95');
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (currentFormIdToSubmit) {
+            document.getElementById(currentFormIdToSubmit).submit();
+        }
+    });
+</script>
 @endsection

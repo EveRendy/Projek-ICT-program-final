@@ -50,34 +50,35 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 3. MENU UPDATE PENGERJAAN: Digunakan oleh Supervisor & Admin/Teknisi
+    // 3. MENU UPDATE PENGERJAAN: Menampilkan Tugas Aktif
     // =========================================================================
     public function indexAdmin(Request $request)
     {
         $user = Auth::user();
         $role = $user->role ?? 'user';
         
-        // Mengambil filter lab_id dari request dropdown
         $labId = $request->get('lab_id');
         $laboratoriums = Laboratorium::all();
 
-        // Base Query tugas yang sudah di-approve
+        // Base query awal: ambil semua yang sudah disetujui supervisor
         $query = Pengajuan::where('status_persetujuan', 'disetujui')
             ->with(['dosen', 'laboratorium', 'software']);
 
-        // Jika bukan supervisor, batasi hanya tugas milik admin yang sedang login
+        // JIKA BUKAN SUPERVISOR (Artinya dia Admin/Teknisi biasa)
         if ($role !== 'supervisor') {
-            $query->where('tugaskan_admin', $user->id);
+            // Batasi hanya tugas milik dia sendiri DAN yang statusnya masih 'progress'
+            $query->where('tugaskan_admin', $user->id)
+                  ->where('status_progress', 'progress');
         }
+        // JIKA SUPERVISOR: Query di atas dilewati, sehingga supervisor bisa melihat SEMUA status data.
 
-        // Terapkan filter laboratorium jika dipilih
         if ($labId) {
             $query->where('laboratorium_id', $labId);
         }
 
         $tugas = $query->latest()->get();
 
-        // Kalkulasi Card Statistik berdasarkan data yang terfilter
+        // Kalkulasi otomatis menyesuaikan data yang ditarik oleh query di atas
         $summary = [
             'total'      => $tugas->count(),
             'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
@@ -85,8 +86,46 @@ class PengajuanController extends Controller
             'selesai'    => $tugas->where('status_progress', 'terinstal')->count(),
         ];
 
-        // PERBAIKAN DI SINI: Ubah 'admin.penyelesaian' menjadi 'admin.tugas'
         return view('admin.tugas', compact('tugas', 'summary', 'role', 'laboratoriums'));
+    }
+
+    // =========================================================================
+    // NEW METHOD: Menampilkan Riwayat Tugas yang Selesai / Gagal Terinstal
+    // =========================================================================
+    public function indexPenyelesaian(Request $request)
+    {
+        $user = Auth::user();
+        $role = $user->role ?? 'user';
+        
+        $labId = $request->get('lab_id');
+        $laboratoriums = Laboratorium::all();
+
+        $query = Pengajuan::where('status_persetujuan', 'disetujui')
+            ->with(['dosen', 'laboratorium', 'software']);
+
+        if ($role !== 'supervisor') {
+            // Jika Admin biasa: Hanya melihat data miliknya yang sudah selesai/terkendala
+            $query->where('tugaskan_admin', $user->id)
+                  ->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
+        } else {
+            // Jika Supervisor: Melihat data riwayat penyelesaian dari SELURUH admin/teknisi
+            $query->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
+        }
+
+        if ($labId) {
+            $query->where('laboratorium_id', $labId);
+        }
+
+        $tugas = $query->latest()->get();
+
+        $summary = [
+            'total'      => $tugas->count(),
+            'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
+            'progress'   => $tugas->where('status_progress', 'progress')->count(),
+            'selesai'    => $tugas->where('status_progress', 'terinstal')->count(),
+        ];
+
+        return view('admin.penyelesaian', compact('tugas', 'summary', 'role', 'laboratoriums'));
     }
 
     // =========================================================================
@@ -131,11 +170,13 @@ class PengajuanController extends Controller
         return redirect()->route('pengajuan.index')->with('success', 'Pengajuan instalasi berhasil dikirim!');
     }
 
-    // =========================================================================
+// =========================================================================
     // 6. Proses Menyetujui Pengajuan (Aksi Supervisor)
     // =========================================================================
-    public function setujui(Pengajuan $pengajuan)
+    // DIUBAH: Menggunakan $id secara manual agar terhindar dari bug Route Binding
+    public function setujui($id)
     {
+        $pengajuan = Pengajuan::with('laboratorium')->findOrFail($id);
         $lab = $pengajuan->laboratorium;
 
         if (!$lab || !$lab->user_id) {
@@ -155,9 +196,12 @@ class PengajuanController extends Controller
     // =========================================================================
     // 7. Proses Menolak Pengajuan (Aksi Supervisor)
     // =========================================================================
-    public function tolak(Request $request, Pengajuan $pengajuan)
+    // DIUBAH: Menggunakan $id secara manual agar seragam dan aman
+    public function tolak(Request $request, $id)
     {
         $request->validate(['catatan_spv' => 'required|string|max:500']);
+        
+        $pengajuan = Pengajuan::findOrFail($id);
         
         $pengajuan->update([
             'status_persetujuan' => 'ditolak',
@@ -171,13 +215,16 @@ class PengajuanController extends Controller
     // =========================================================================
     // 8. Proses Update Progress Pengerjaan (Aksi Admin)
     // =========================================================================
-    public function updateProgressTugas(Request $request, Pengajuan $pengajuan)
+    public function updateProgressTugas(Request $request, $id)
     {
         $request->validate([
             'status_progress' => 'required|in:progress,terinstal,gagal_terinstal',
             'dokumentasi'     => 'required|url|max:255',
             'catatan_admin'   => 'nullable|string|max:500', 
         ]);
+
+        $id_pengajuan = is_object($id) ? $id->id : $id;
+        $pengajuan = Pengajuan::findOrFail($id_pengajuan);
 
         $pengajuan->update([
             'status_progress' => $request->status_progress,

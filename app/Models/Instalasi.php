@@ -13,6 +13,7 @@ class Instalasi extends Model
 
     protected $fillable = [
         'id_software',
+        'versi_terinstall',
         'no_lab',
         'status_lisensi',
         'tgl_aktif',

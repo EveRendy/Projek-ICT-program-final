@@ -22,7 +22,7 @@
                 </nav>
                 <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">License Tracker</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    Kelola data lisensi software di laboratorium.
+                    Kelola data lisensi dan riwayat instalasi software di seluruh laboratorium komputer.
                 </p>
             </div>
             <div>
@@ -36,9 +36,9 @@
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
         
         <form action="{{ route('instalasi.index') }}" method="GET">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 
-                <div class="relative md:col-span-2">
+                <div class="relative">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                         <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -46,10 +46,10 @@
                     </div>
                     <input type="text" id="searchLicense" name="search" value="{{ request('search') }}"
                            class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" 
-                           placeholder="Cari software atau nomor laboratorium ">
+                           placeholder="Cari teks instan...">
                 </div>
 
-                <div class="flex gap-2">
+                <div>
                     <select name="lab" onchange="this.form.submit()" 
                             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
                         <option value="">-- Semua Laboratorium --</option>
@@ -59,13 +59,29 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
 
-                    @if(request('lab') || request('search'))
+                <div>
+                    <select name="software" onchange="this.form.submit()" 
+                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
+                        <option value="">-- Semua Software --</option>
+                        @foreach($softwares as $sw)
+                            <option value="{{ $sw->id_software }}" {{ request('software') == $sw->id_software ? 'selected' : '' }}>
+                                {{ $sw->nama_software }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex items-center">
+                    @if(request('lab') || request('software') || request('search'))
                         <a href="{{ route('instalasi.index') }}" 
-                           class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 shadow-sm"
+                           class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 shadow-sm"
                            title="Reset Filter">
-                            Reset
+                             Reset Filter
                         </a>
+                    @else
+                        <span class="text-xs text-slate-400 font-medium italic">Silakan pilih opsi filter di atas</span>
                     @endif
                 </div>
 
@@ -97,12 +113,17 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-bold text-slate-950">{{ $item->software->nama_software ?? 'Unknown Software' }}</div>
-                                        <div class="text-xs font-medium text-slate-400">ID: {{ $item->id_software }}</div>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-700 ring-1 ring-inset ring-slate-600/10">
+                                                v{{ $item->versi_terinstall }}
+                                            </span>
+                                            <span class="text-xs font-medium text-slate-400">ID: {{ $item->id_software }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-slate-600 font-medium">
-                                {{ $item->laboratorium->nama_lab ?? 'Lab ' . $item->no_lab }}
+                                {{ $item->laboratorium->nama_lab ?? '' . $item->no_lab }}
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-slate-900 font-medium">{{ $item->teknisi->name ?? 'Admin' }}</div>
@@ -111,7 +132,7 @@
                             
                             <td class="px-6 py-4">
                                 @if($item->tgl_expired)
-                                    @if($item->tgl_expired->isPast())
+                                    @if(\Carbon\Carbon::parse($item->tgl_expired)->isPast())
                                         <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700">
                                             <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Kedaluwarsa
                                         </span>
@@ -128,10 +149,10 @@
                             </td>
                             
                             <td class="px-6 py-4 text-slate-500 font-medium">
-                                {{ $item->tgl_aktif ? $item->tgl_aktif->format('d-m-Y') : '-' }}
+                                {{ $item->tgl_aktif ? \Carbon\Carbon::parse($item->tgl_aktif)->format('d-m-Y') : '-' }}
                             </td>
                             <td class="px-6 py-4 text-slate-500 font-medium">
-                                {{ $item->tgl_expired ? $item->tgl_expired->format('d-m-Y') : '-' }}
+                                {{ $item->tgl_expired ? \Carbon\Carbon::parse($item->tgl_expired)->format('d-m-Y') : '-' }}
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <a href="{{ route('instalasi.edit', $item->id ?? $item->id_instalasi) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit Data">
@@ -182,11 +203,20 @@
                 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pilih Software *</label>
-                    <select name="id_software" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
+                    <select name="id_software" id="modal_id_software" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
                         <option value="">-- Pilih Software --</option>
                         @foreach($softwares as $sw)
-                            <option value="{{ $sw->id_software }}">{{ $sw->nama_software }}</option>
+                            <option value="{{ $sw->id_software }}" data-versi="{{ $sw->versi ?? $sw->versi_software ?? '' }}">
+                                {{ $sw->nama_software }}
+                            </option>
                         @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Versi Terinstall *</label>
+                    <select name="versi_terinstall" id="modal_versi_terinstall" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
+                        <option value="">-- Pilih Versi --</option>
                     </select>
                 </div>
 
@@ -205,6 +235,7 @@
                     <select name="status_lisensi" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
                         <option value="license_active">License Active (Berbayar/Subs)</option>
                         <option value="free_license">Free License (Gratis/Open Source)</option>
+                        <option value="license_expired">License Expired</option>
                     </select>
                 </div>
 
@@ -240,9 +271,43 @@
 
     function closeModal() {
         document.getElementById('modalTambahLisensi').classList.add('hidden');
+        // Reset dropdown versi jika modal ditutup agar kembali bersih
+        document.getElementById('modal_versi_terinstall').innerHTML = '<option value="">-- Pilih Versi --</option>';
+        document.getElementById('modal_id_software').selectedIndex = 0;
     }
 
-    // Fungsi live search lokal (tetap dipertahankan untuk pencarian instan pada text)
+    // LOGIKA CHAINED DROPDOWN (PILIHAN VERSI OTOMATIS)
+    document.getElementById('modal_id_software').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const versiData = selectedOption.getAttribute('data-versi');
+        const versiSelect = document.getElementById('modal_versi_terinstall');
+        
+        // Bersihkan data dropdown versi lama
+        versiSelect.innerHTML = '<option value="">-- Pilih Versi --</option>';
+        
+        if (versiData && versiData.trim() !== '') {
+            // Memisahkan data versi jika di DB menggunakan pemisah koma (contoh: v1, v2, v3)
+            const daftarVersi = versiData.split(',');
+            
+            daftarVersi.forEach(versi => {
+                const cleanVersi = versi.trim();
+                if (cleanVersi) {
+                    const opt = document.createElement('option');
+                    opt.value = cleanVersi;
+                    opt.textContent = cleanVersi;
+                    versiSelect.appendChild(opt);
+                }
+            });
+        } else {
+            // Jika kolom versi kosong di database software, sediakan opsi default agar form tidak error saat disubmit
+            const opt = document.createElement('option');
+            opt.value = "Default";
+            opt.textContent = "Default / Tidak Ada Informasi Versi";
+            versiSelect.appendChild(opt);
+        }
+    });
+
+    // Fungsi live search lokal pencarian instan pada tabel utama
     document.getElementById('searchLicense').addEventListener('keyup', function() {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');

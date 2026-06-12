@@ -11,8 +11,9 @@ return new class extends Migration
         Schema::create('instalasi', function (Blueprint $table) {
             $table->id();
             
-            // Kolom Foreign Key custom
+            // Kolom Foreign Key custom & Informasi Software
             $table->string('id_software'); 
+            $table->string('versi_terinstall'); // <-- Atribut baru untuk versi yang terinstall
             $table->string('no_lab');      
             $table->string('diinstal_oleh')->nullable(); // Boleh null jika admin terhapus, riwayat tetap ada
             
@@ -35,6 +36,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('instalasis');
+        // Diubah dari 'instalasis' menjadi 'instalasi' agar sesuai dengan method up()
+        Schema::dropIfExists('instalasi');
     }
 };

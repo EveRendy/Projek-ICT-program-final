@@ -48,7 +48,6 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // MENU: SUPERVISOR (Persetujuan Awal: Terima / Tolak)
     // -------------------------------------------------------------------------
-    // Menampilkan daftar data pengajuan yang 'pending' ke halaman Supervisor
     Route::get('/supervisor/pengajuan', [PengajuanController::class, 'indexSupervisor'])->name('supervisor.pengajuan.index');
 
     // Tombol Aksi di halaman Supervisor
@@ -59,23 +58,25 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // MENU: ADMIN / TEKNISI (Hanya Update Status Instalasi jika Sudah Disetujui)
     // -------------------------------------------------------------------------
-    // Halaman utama Admin untuk mengelola instalasi yang ditugaskan kepadanya
+    // Halaman utama Admin untuk mengelola instalasi yang ditugaskan kepadanya (Progress)
     Route::get('/admin/instalasi', [PengajuanController::class, 'indexAdmin'])->name('admin.instalasi.index');
     
-    // Fitur simpan data progress instalasi dari Admin (menggunakan fungsi updateProgressTugas)
+    // Fitur simpan data progress instalasi dari Admin
     Route::put('/admin/instalasi/{id}/update', [PengajuanController::class, 'updateProgressTugas'])->name('admin.instalasi.update');
 
-    // [ALIAS SECURITY] Pengaman rute lama agar link di view sidebar/dashboard lama tidak error 500
+    // [ALIAS SECURITY] Pengaman rute lama agar link lama tidak error 500
     Route::get('/update-pengerjaan', [PengajuanController::class, 'indexAdmin'])->name('pengerjaan.index');
     Route::get('/admin/tugas', [PengajuanController::class, 'indexAdmin'])->name('admin.tugas.index');
-    Route::get('/admin/penyelesaian', [PengajuanController::class, 'indexAdmin'])->name('admin.penyelesaian.index');
+    
+    // BERHASIL DIPERBAIKI: Mengarah ke 'indexPenyelesaian' agar membuka file penyelesaian.blade.php
+    Route::get('/admin/penyelesaian', [PengajuanController::class, 'indexPenyelesaian'])->name('admin.penyelesaian.index');
+    
     Route::put('/update-pengerjaan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
 
 
     // -------------------------------------------------------------------------
     // MENU: RIWAYAT / LICENSE TRACKER
     // -------------------------------------------------------------------------
-    // INI YANG DIPERBAIKI: Sekarang sudah mengarah ke RiwayatController yang kita edit tadi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 
  

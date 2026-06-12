@@ -45,12 +45,16 @@
 
     <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 p-4 sm:p-5">
-            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_200px_220px_auto]">
+            {{-- Mengubah grid sistem menjadi 4 kolom: Search, Kategori, Laboratorium, dan Tombol Aksi --}}
+            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_200px_200px_auto]">
+                
+                {{-- 1. Input Search (Ukurannya otomatis mengecil menyesuaikan sisa kolom grid) --}}
                 <div class="relative">
                     <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"></path></svg>
                     <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari software" class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-950 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                 </div>
 
+                {{-- 2. Dropdown Kategori (Digeser ke kolom kedua) --}}
                 <select name="kategori" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
                     <option value="">Semua Kategori</option>
                     <option value="1" {{ request('kategori') == '1' ? 'selected' : '' }}>Level 1 (Low Spec)</option>
@@ -58,25 +62,22 @@
                     <option value="3" {{ request('kategori') == '3' ? 'selected' : '' }}>Level 3 (High Spec)</option>
                 </select>
 
-                <div class="flex gap-2">
-                    <select id="pilihLab" class="w-full rounded-xl border border-slate-200 bg-blue-50/50 px-3 py-2.5 text-sm font-bold text-blue-950 outline-none focus:border-blue-500 transition cursor-pointer">
-                        <option value="">-- Cetak Laporan Lab --</option>
-                        
-                        @foreach($listLab as $lab)
-                            <option value="{{ $lab }}">{{ $lab }}</option>
-                        @endforeach
-                        
-                    </select>
-                    <button type="button" onclick="cetakLaporan()" class="rounded-xl bg-blue-900 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-blue-800 shadow-sm" title="Cetak Laporan PDF">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    </button>
-                </div>
+                {{-- 3. Dropdown Filter Laboratorium Baru (Menggunakan struktur list $laboratoriums Anda) --}}
+                <select name="laboratorium" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
+                    <option value="">Semua Laboratorium</option>
+                    @foreach($laboratoriums as $lab)
+                        <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
+                            Lab {{ $lab->no_lab }}
+                        </option>
+                    @endforeach
+                </select>
 
+                {{-- 4. Blok Tombol Cari & Reset --}}
                 <div class="flex gap-2">
                     <button type="submit" class="rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900">
                         Cari
                     </button>
-                    @if(request('search') || request('kategori'))
+                    @if(request('search') || request('kategori') || request('laboratorium'))
                         <a href="{{ route('softwares.index') }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-500 transition hover:bg-slate-50">
                             Reset
                         </a>
@@ -124,7 +125,13 @@
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ $meta['class'] }}">{{ $meta['label'] }} · {{ $meta['desc'] }}</span>
                             </td>
                             <td class="px-5 py-4">
-                                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">Master Data</span>
+                                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                                    @if($item->instalasis && $item->instalasis->count() > 0)
+                                        Terpasang di: {{ implode(', ', $item->instalasis->pluck('no_lab')->unique()->toArray()) }}
+                                    @else
+                                        Master Data
+                                    @endif
+                                </span>
                             </td>
                             @if($isSupervisor)
                                 <td class="px-5 py-4">
@@ -133,7 +140,6 @@
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
                                         </a>
                                         
-                                        {{-- Form Hapus yang telah dihubungkan ke Modal JS --}}
                                         <form id="delete-form-{{ $item->id }}" action="{{ route('softwares.destroy', $item->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')

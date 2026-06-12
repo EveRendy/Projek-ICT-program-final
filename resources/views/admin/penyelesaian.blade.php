@@ -21,52 +21,6 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex items-center gap-4">
-                <div class="rounded-xl bg-slate-100 p-3 text-slate-600">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                </div>
-                <div>
-                    <div class="text-3xl font-black text-slate-950">{{ $summary['total'] ?? 0 }}</div>
-                    <p class="text-xs font-bold text-slate-800 tracking-tight">Total Tugas Saya</p>
-                    <p class="text-[11px] text-slate-400">Semua Laboratorium</p>
-                </div>
-            </div>
-
-            <div class="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm flex items-center gap-4">
-                <div class="rounded-xl bg-rose-50 p-3 text-rose-500 border border-rose-100">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <div class="text-3xl font-black text-slate-950 text-rose-600">{{ $summary['terkendala'] ?? 0 }}</div>
-                    <p class="text-xs font-bold text-slate-800 tracking-tight">Gagal Terinstal</p>
-                    <p class="text-[11px] text-slate-400">Terkendala saat instalasi</p>
-                </div>
-            </div>
-
-            <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm flex items-center gap-4">
-                <div class="rounded-xl bg-blue-50 p-3 text-blue-500 border border-blue-100">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.212 9H18.5"></path></svg>
-                </div>
-                <div>
-                    <div class="text-3xl font-black text-slate-950 text-blue-600">{{ $summary['progress'] ?? 0 }}</div>
-                    <p class="text-xs font-bold text-slate-800 tracking-tight">Sedang Diproses</p>
-                    <p class="text-[11px] text-slate-400">On Progress</p>
-                </div>
-            </div>
-
-            <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm flex items-center gap-4">
-                <div class="rounded-xl bg-emerald-50 p-3 text-emerald-500 border border-emerald-100">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <div>
-                    <div class="text-3xl font-black text-slate-950 text-emerald-600">{{ $summary['selesai'] ?? 0 }}</div>
-                    <p class="text-xs font-bold text-slate-800 tracking-tight">Selesai Terinstal</p>
-                    <p class="text-[11px] text-slate-400">Instalasi Sukses</p>
-                </div>
-            </div>
-        </div>
-
         <div class="space-y-4 pt-2">
             <div class="hidden md:flex items-center text-xs font-bold uppercase tracking-wider text-slate-400 px-6">
                 <div class="w-12 text-center">No.</div>
@@ -77,11 +31,17 @@
                 <div class="flex-1 text-right">Aksi</div>
             </div>
 
-            @forelse($tugas as $index => $item)
+            {{-- FILTER KOLEKSI: Hanya ambil yang statusnya 'progress' & buat nomor urut manual --}}
+            @php
+                $tugasProgress = $tugas->where('status_progress', 'progress');
+                $no = 1;
+            @endphp
+
+            @forelse($tugasProgress as $item)
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row md:items-center transition hover:border-slate-300">
                     
                     <div class="w-full md:w-12 text-left md:text-center text-lg font-black text-slate-900 mb-2 md:mb-0">
-                        {{ $index + 1 }}
+                        {{ $no++ }}
                     </div>
 
                     <div class="w-full md:w-1/4 flex items-center gap-4 mb-3 md:mb-0 md:pl-6">
@@ -105,22 +65,10 @@
                     </div>
 
                     <div class="w-full md:w-1/5 flex md:justify-center mb-3 md:mb-0">
-                        @if($item->status_progress == 'terinstal')
-                            <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                                Terinstal
-                            </span>
-                        @elseif($item->status_progress == 'gagal_terinstal')
-                            <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                Gagal Terinstal
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                                <svg class="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.212 9H18.5"></path></svg>
-                                Progress
-                            </span>
-                        @endif
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                            <svg class="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.212 9H18.5"></path></svg>
+                            Progress
+                        </span>
                     </div>
 
                     <div class="w-full md:w-1/5 text-left md:text-center text-sm font-bold text-slate-600 mb-4 md:mb-0">
@@ -253,7 +201,7 @@
                 </div>
             @empty
                 <div class="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center text-sm font-bold text-slate-400">
-                    Belum ada penugasan instalasi software yang dialokasikan ke Anda.
+                    Semua penugasan instalasi sudah selesai atau belum ada tugas masuk.
                 </div>
             @endforelse
         </div>

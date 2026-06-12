@@ -15,13 +15,17 @@ class PengajuanController extends Controller
     // =========================================================================
     public function riwayatPengajuan()
     {
+        // 1. Ambil data user dan role yang sedang login
+        $user = Auth::user();
+        $role = $user->role ?? 'user';
+
         $pengajuans = Pengajuan::with(['laboratorium', 'software'])
-            ->where('user_id', Auth::id())
+            ->where('user_id', $user->id)
             ->latest()
             ->get();
 
-        // Mengarah ke file index di dalam folder pengajuan karena tabel horizontal dosenmu ada di sana
-        return view('pengajuan.index', compact('pengajuans'));
+        // 2. Tambahkan 'role' ke dalam compact agar dibaca oleh Blade
+        return view('pengajuan.index', compact('pengajuans', 'role'));
     }
 
     // =========================================================================

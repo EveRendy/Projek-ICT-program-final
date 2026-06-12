@@ -40,7 +40,13 @@
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
-            ['label' => 'Update Instalasi', 'route' => 'admin.penyelesaian.*', 'href' => route('admin.penyelesaian.index'), 'icon' => 'refresh'],
+            
+            // 1. KITA UBAH BARIS INI AGAR MENGARAH KE DATA PROGRESS (SAMA SEPERTI SUPERVISOR)
+            ['label' => 'Update Pengerjaan', 'route' => 'admin.tugas.*', 'href' => route('admin.tugas.index'), 'icon' => 'refresh'],
+            
+            // 2. KITA TAMBAHKAN MENU BARU KHUSUS UNTUK DATA YANG SUDAH SELESAI/GAGAL (Tugas yang sudah lewat)
+            ['label' => 'Riwayat Penyelesaian', 'route' => 'admin.penyelesaian.*', 'href' => route('admin.penyelesaian.index'), 'icon' => 'status'],
+            
             ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
         ]);
     } elseif ($role === 'dosen') {

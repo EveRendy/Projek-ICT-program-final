@@ -47,6 +47,8 @@
             </div>
         @endif
 
+        {{-- Menampilkan Card Summary HANYA untuk Supervisor --}}
+        @if(Auth::user()->role === 'supervisor')
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex items-center gap-4">
                 <div class="rounded-xl bg-slate-50 p-3 border border-slate-100 text-slate-500">
@@ -94,6 +96,8 @@
                 </div>
             </div>
         </div>
+        @endif
+        {{-- Akhir dari Card Summary --}}
 
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div class="overflow-x-auto">

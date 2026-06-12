@@ -98,14 +98,13 @@
                 </div>
             </div>
 
-            <div id="compatibility-warning" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                ⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium tujuan (Level <span id="lab-lvl"></span>) lebih rendah dibandingkan level beban software (Level <span id="soft-lvl"></span>). Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.
+            <div id="compatibility-warning" class="hidden rounded-2xl border p-4 text-sm">
             </div>
 
             <div class="mt-6 flex items-center justify-end gap-3">
                 <a href="{{ route('pengajuan.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/30">Batal
                 </a>
-                <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900">Kirim Pengajuan</button>
+                <button type="submit" id="submit_btn" class="inline-flex items-center justify-center rounded-2xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none">Kirim Pengajuan</button>
             </div>
         </form>
     </div>
@@ -136,21 +135,38 @@
         const labSelect = document.getElementById('laboratorium_id');
         const softSelect = document.getElementById('software_id');
         const warningBox = document.getElementById('compatibility-warning');
+        const submitBtn = document.getElementById('submit_btn');
+
+        // Reset tampilan saat fungsi dijalankan ulang
+        warningBox.classList.add('hidden');
+        submitBtn.disabled = false;
 
         if (labSelect.value === "" || softSelect.value === "") {
-            warningBox.classList.add('hidden');
             return;
         }
 
         const labLevel = parseInt(labSelect.options[labSelect.selectedIndex].getAttribute('data-level'));
         const softLevel = parseInt(softSelect.options[softSelect.selectedIndex].getAttribute('data-level'));
 
+        // Cek jika spek lab lebih rendah dari kebutuhan software
         if (softLevel > labLevel) {
-            document.getElementById('lab-lvl').textContent = labLevel;
-            document.getElementById('soft-lvl').textContent = softLevel;
             warningBox.classList.remove('hidden');
-        } else {
-            warningBox.classList.add('hidden');
+
+            if (labLevel === 1 && softLevel >= 3) {
+                // KONDISI KRITIS: Lab Level 1 vs Software Level 3
+                warningBox.className = "rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800";
+                warningBox.innerHTML = `⚠️ <strong>Peringatan:</strong> Spesifikasi laboratorium tujuan (Level ${labLevel}) sangat jauh di bawah syarat minimum software (Level ${softLevel}). Instalasi tidak dapat diajukan di ruangan ini.`;
+                
+                // Matikan tombol submit
+                submitBtn.disabled = true;
+            } else {
+                // KONDISI PERINGATAN BIASA: Lab Level 2 vs Software 3 (Atau Lab 1 vs Software 2)
+                warningBox.className = "rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800";
+                warningBox.innerHTML = `⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium  lebih rendah dibandingkan level beban software. Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.`;
+                
+                // Tombol tetap hidup
+                submitBtn.disabled = false;
+            }
         }
     }
 </script>

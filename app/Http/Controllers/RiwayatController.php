@@ -13,14 +13,13 @@ class RiwayatController extends Controller
         $user = Auth::user();
         $role = strtolower($user->role ?? 'user'); 
         
-        // 1. Tarik semua data mentah pengajuan sesuai filter role untuk keperluan ringkasan (Summary)
-        $allDataQuery = Pengajuan::query();
-        if ($role !== 'supervisor' && $role !== 'admin') {
-            $allDataQuery->where('user_id', $user->id);
-        }
-        $allData = $allDataQuery->get(); // Mengambil data mentah dalam bentuk Laravel Collection
+        // Cek apakah user adalah supervisor atau admin untuk hak akses cetak laporan
+        $canPrint = in_array($role, ['supervisor', 'admin']);
 
-        // 2. Hitung statistik langsung dari Collection (Sangat aman dari bug syntax database)
+        // 1. Tarik SEMUA data mentah pengajuan tanpa filter agar semua role bisa melihatnya
+        $allData = Pengajuan::all(); 
+
+        // 2. Hitung statistik dari seluruh data
         $summary = [
             'total' => $allData->count(),
             
@@ -48,16 +47,12 @@ class RiwayatController extends Controller
         ];
 
         // 3. Ambil data dengan Eager Loading relasi yang VALID untuk tabel (Paginasi 10 baris)
-        // PERBAIKAN UTAMA: Menghapus relasi 'user' yang memicu error
-        $tableQuery = Pengajuan::with(['laboratorium', 'software', 'dosen']);
-        
-        if ($role !== 'supervisor' && $role !== 'admin') {
-            $tableQuery->where('user_id', $user->id);
-        }
-        
-        $pengajuans = $tableQuery->latest()->paginate(10);
+        // Tanpa filter where(), agar dosen tetap bisa melihat riwayat pengajuan dosen lain
+        $pengajuans = Pengajuan::with(['laboratorium', 'software', 'dosen'])
+            ->latest()
+            ->paginate(10);
 
-        // 4. Kirim data ke view
-        return view('riwayat.index', compact('pengajuans', 'summary', 'role'));
+        // 4. Kirim data ke view, termasuk variabel $canPrint
+        return view('riwayat.index', compact('pengajuans', 'summary', 'role', 'canPrint'));
     }
 }

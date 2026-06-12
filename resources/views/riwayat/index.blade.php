@@ -61,9 +61,7 @@
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
                         <th class="px-6 py-4">Tanggal</th>
-                        @if($role === 'supervisor' || $role === 'admin')
-                            <th class="px-6 py-4">Pemohon</th>
-                        @endif
+                        <th class="px-6 py-4">Pemohon</th>
                         <th class="px-6 py-4">Software / Mata Kuliah</th>
                         <th class="px-6 py-4">Laboratorium</th>
                         <th class="px-6 py-4 text-center">Status</th>
@@ -77,12 +75,10 @@
                                 {{ $item->created_at ? $item->created_at->format('d M Y, H:i') : '-' }}
                             </td>
                             
-                            @if($role === 'supervisor' || $role === 'admin')
-                                <td class="px-6 py-4">
-                                    <div class="font-bold text-slate-950">{{ $item->dosen->nama ?? 'Dosen' }}</div>
-                                    <div class="text-xs text-slate-500">ID: {{ $item->dosen->no_induk ?? '-' }}</div>
-                                </td>
-                            @endif
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-950">{{ $item->dosen->nama ?? 'Dosen' }}</div>
+                                <div class="text-xs text-slate-500">ID: {{ $item->dosen->no_induk ?? '-' }}</div>
+                            </td>
 
                             <td class="px-6 py-4">
                                 <div class="font-bold text-slate-950">

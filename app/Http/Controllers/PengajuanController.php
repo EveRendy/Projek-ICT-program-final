@@ -29,7 +29,7 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 2. MENU DOSEN: Menampilkan List Status Approval SPV (Mockup Vertikal)
+    // 2. MENU DOSEN / SUPERVISOR: Menampilkan List Status Approval SPV (Mockup Vertikal)
     // =========================================================================
     public function indexSupervisor()
     {
@@ -133,7 +133,7 @@ class PengajuanController extends Controller
         ];
 
         return view('admin.penyelesaian', compact('tugas', 'summary', 'role', 'laboratoriums'));
-    } // <-- SUDAH DIPERBAIKI DISINI
+    }
 
     // =========================================================================
     // 4. Form Buat Pengajuan Baru (Dosen)
@@ -187,6 +187,28 @@ class PengajuanController extends Controller
             'versi_lain'      => 'nullable|string|max:255',
         ]);
 
+        // ---------------------------------------------------------
+        // BACKEND VALIDATION: Cek Kompatibilitas Level Lab vs Software
+        // ---------------------------------------------------------
+        if ($request->software_id) {
+            $lab = Laboratorium::find($request->laboratorium_id);
+            $software = Software::find($request->software_id);
+
+            if ($lab && $software) {
+                // Konversi ke integer untuk amannya
+                $labLevel = (int) $lab->level;
+                $swLevel = (int) $software->level_requirement;
+
+                // Tolak jika Lab Level 1 memaksakan Software Level 3 atau lebih
+                if ($labLevel === 1 && $swLevel >= 3) {
+                    return back()->withInput()->with('error', 'Gagal mengirim pengajuan! Spesifikasi laboratorium (Level ' . $labLevel . ') tidak mendukung software ini (Batas Minimum Level ' . $swLevel . ').');
+                }
+                
+                // Catatan: Jika Lab Level 2 dan Software Level 3, tetap lolos sesuai aturan (hanya peringatan di Frontend)
+            }
+        }
+        // ---------------------------------------------------------
+
         Pengajuan::create([
             'tgl_pengajuan'      => now()->toDateString(),
             'mata_kuliah'        => $request->mata_kuliah,
@@ -203,33 +225,7 @@ class PengajuanController extends Controller
         return redirect()->route('pengajuan.index')->with('success', 'Pengajuan instalasi berhasil dikirim!');
     }
 
-    // =========================================================================
-    // 6. MENU SUPERVISOR: Menampilkan Pengajuan yang Masih PENDING untuk Disetujui
-    // =========================================================================
-    public function indexSupervisor()
-    {
-        $query = Pengajuan::with(['dosen', 'laboratorium.admin', 'software']);
-
-        $summaryTotals = (clone $query)->selectRaw("
-            COUNT(*) as total,
-            SUM(CASE WHEN status_persetujuan = 'pending' THEN 1 ELSE 0 END) as menunggu,
-            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'progress' THEN 1 ELSE 0 END) as progress,
-            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'terinstal' THEN 1 ELSE 0 END) as selesai,
-            SUM(CASE WHEN status_persetujuan = 'disetujui' AND status_progress = 'gagal_terinstal' THEN 1 ELSE 0 END) as terkendala
-        ")->first();
-
-        $summary = [
-            'total'      => $summaryTotals->total ?? 0,
-            'menunggu'   => $summaryTotals->menunggu ?? 0,
-            'progress'   => $summaryTotals->progress ?? 0,
-            'selesai'    => $summaryTotals->selesai ?? 0,
-            'terkendala' => $summaryTotals->terkendala ?? 0,
-        ];
-
-        $tugas = $query->where('status_persetujuan', 'pending')->latest()->get();
-        
-        return view('supervisor.index', compact('tugas', 'summary'));
-    }
+    // NOTE: Blok duplikat "6. MENU SUPERVISOR" yang error sebelumnya sudah dihapus dari sini.
 
     // =========================================================================
     // 8. PROSES APPROVAL: Aksi Setuju oleh Supervisor -> Teruskan ke Admin/Teknisi

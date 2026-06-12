@@ -4,6 +4,10 @@
 @php
     $user = Auth::user();
     $isSupervisor = $user && $user->role === 'supervisor';
+    
+    // HANYA SUPERVISOR DAN ADMIN YANG BISA CETAK
+    $canPrint = $user && in_array($user->role, ['supervisor', 'admin']);
+
     $levelMeta = function ($level) {
         return match ((int) $level) {
             1 => ['label' => 'Level 1', 'desc' => 'Low Spec', 'class' => 'bg-red-50 text-red-700 ring-red-100'],
@@ -45,7 +49,7 @@
 
     <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 p-4 sm:p-5">
-            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_200px_200px_auto]">
+            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_180px_260px_auto]">
                 
                 {{-- 1. Input Search --}}
                 <div class="relative">
@@ -61,15 +65,34 @@
                     <option value="3" {{ request('kategori') == '3' ? 'selected' : '' }}>Level 3 (High Spec)</option>
                 </select>
 
-                {{-- 3. Dropdown Filter Laboratorium --}}
-                <select name="laboratorium" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
-                    <option value="">Semua Laboratorium</option>
-                    @foreach($laboratoriums as $lab)
-                        <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
-                            Lab {{ $lab->no_lab }}
-                        </option>
-                    @endforeach
-                </select>
+                {{-- 3. Dropdown Filter Laboratorium & Tombol Cetak PDF --}}
+                <div class="flex items-center gap-2">
+                    <select name="laboratorium" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
+                        <option value="">Semua Laboratorium</option>
+                        @foreach($laboratoriums as $lab)
+                            <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
+                                Lab {{ $lab->no_lab }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    {{-- Proteksi Tombol Cetak dari Sisi UI --}}
+                    @if($canPrint)
+                        @if(request()->filled('laboratorium'))
+                            <a href="{{ route('cetak.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak PDF Lab {{ request('laboratorium') }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                            </a>
+                        @else
+                            <button type="button" disabled class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed" title="Silakan pilih laboratorium terlebih dahulu">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                            </button>
+                        @endif
+                    @endif
+                </div>
 
                 {{-- 4. Blok Tombol Cari & Reset --}}
                 <div class="flex gap-2">
@@ -114,11 +137,9 @@
                                 </div>
                             </td>
                             
-                            {{-- LOGIKA BARU UNTUK KOLOM VERSI SECARA DINAMIS --}}
                             <td class="px-5 py-4">
                                 <div class="flex max-w-xs flex-wrap gap-1.5">
                                     @if(request()->filled('laboratorium'))
-                                        {{-- Jika filter laboratorium aktif, tampilkan hanya versi terinstall di lab tersebut --}}
                                         @forelse($item->instalasis as $inst)
                                             <span class="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-1 text-xs font-bold text-blue-700">
                                                 v{{ $inst->versi_terinstall }}
@@ -127,7 +148,6 @@
                                             <span class="text-xs italic text-slate-400">Belum terinstal</span>
                                         @endforelse
                                     @else
-                                        {{-- Jika filter tidak aktif, tampilkan semua daftar versi master --}}
                                         @foreach($item->versi as $v)
                                             <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
                                         @endforeach

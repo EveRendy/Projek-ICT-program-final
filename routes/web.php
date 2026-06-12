@@ -47,22 +47,21 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // MENU DOSEN: 2. STATUS PENGAJUAN (Pelacakan Progres - SUDAH DIPERBAIKI)
     // -------------------------------------------------------------------------
-    // SEBELUMNYA: mengarah ke 'statusPengajuan' (punya SPV). 
-    // SEKARANG: diarahkan dengan benar ke 'statusPengajuanDosen' agar tombol approval hilang!
     Route::get('/status-pengajuan', [PengajuanController::class, 'statusPengajuanDosen'])->name('pengajuan.status');
     Route::get('/status-pengajuan/{id}', [PengajuanController::class, 'detailPengajuan'])->name('pengajuan.showStatus');
 
     // -------------------------------------------------------------------------
-    // MENU DOSEN: 3. RIWAYAT PENGAJUAN (Tabel Data Horizontal Dosen)
+    // MENU UNTUK SEMUA ROLE: RIWAYAT PENGAJUAN & PENGERJAAN GLOBAL
     // -------------------------------------------------------------------------
-    Route::get('/riwayat', [PengajuanController::class, 'riwayatPengajuan'])->name('riwayat.index');
+    // PERBAIKAN: Diarahkan ke RiwayatController::class agar menggunakan logic baru kita
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 
     // -------------------------------------------------------------------------
     // MENU: SUPERVISOR (Persetujuan Awal: Terima / Tolak)
     // -------------------------------------------------------------------------
     Route::get('/supervisor/pengajuan', [PengajuanController::class, 'indexSupervisor'])->name('supervisor.pengajuan.index');
 
-    // Tombol Aksi di halaman Supervisor (Sesuaikan name dengan yang dipakai di Blade)
+    // Tombol Aksi di halaman Supervisor
     Route::post('/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('pengajuan.approve');
     Route::post('/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('pengajuan.reject');
     
@@ -83,11 +82,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/update-pengerjaan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
 
     // -------------------------------------------------------------------------
-    // MENU: LICENSE TRACKER / RIWAYAT GLOBAL (Khusus Supervisor & Admin)
+    // MENU: ALIAS RIWAYAT GLOBAL (Diarahkan ke Controller & View yang sama)
     // -------------------------------------------------------------------------
-    // Diubah namanya menjadi 'riwayat.global' agar tidak bentrok dengan 'riwayat.index' milik dosen di atas
+    // PERBAIKAN: Semua rute riwayat lama Admin/SPV ditembakkan ke RiwayatController::class 
+    // supaya tombol menu mana pun yang diklik di sidebar, hasilnya tetap sama dan sinkron.
     Route::get('/riwayat-global-view', [RiwayatController::class, 'index'])->name('riwayat.global');
-    Route::get('/admin/riwayat-global', [PengajuanController::class, 'licenseTracker'])->name('admin.riwayat.global');
+    Route::get('/admin/riwayat-global', [RiwayatController::class, 'index'])->name('admin.riwayat.global');
 
     // -------------------------------------------------------------------------
     // MENU: CETAK LAPORAN

@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Auth;
 class PengajuanController extends Controller
 {
     // =========================================================================
-    // 1. MENU DOSEN: Menampilkan Riwayat Pengajuan Milik Dosen Sendiri
+    // 1. MENU DOSEN: Menampilkan Riwayat Pengajuan (Tabel Horizontal Dosen)
     // =========================================================================
-    public function indexPengajuan()
+    public function riwayatPengajuan()
     {
         $user = Auth::user();
         $pengajuans = $user->pengajuans()->with(['laboratorium', 'software'])->latest()->get();
@@ -194,7 +194,7 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 7. Proses Menolak Pengajuan (Aksi Supervisor)
+    // 9. PROSES REJECT: Aksi Tolak oleh Supervisor
     // =========================================================================
     // DIUBAH: Menggunakan $id secara manual agar seragam dan aman
     public function tolak(Request $request, $id)
@@ -243,10 +243,9 @@ class PengajuanController extends Controller
         $user = Auth::user();
         $role = $user->role ?? 'user';
         
-        $query = Pengajuan::with(['software', 'laboratorium', 'dosen']);
-
+        // Proteksi pencegahan jika dosen tersasar ke halaman summary ini
         if ($role !== 'supervisor' && $role !== 'admin') {
-            $query->where('user_id', $user->id);
+            return redirect()->route('riwayat.index');
         }
 
         $pengajuans = $query->latest()->paginate(10);

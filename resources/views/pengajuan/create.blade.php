@@ -102,7 +102,9 @@
                 ⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium tujuan (Level <span id="lab-lvl"></span>) lebih rendah dibandingkan level beban software (Level <span id="soft-lvl"></span>). Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.
             </div>
 
-            <div class="flex justify-end border-t border-slate-100 pt-5">
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <a href="{{ route('pengajuan.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/30">Batal
+                </a>
                 <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900">Kirim Pengajuan</button>
             </div>
         </form>

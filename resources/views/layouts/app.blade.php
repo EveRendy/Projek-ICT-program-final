@@ -49,7 +49,7 @@
             
             ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
         ]);
-    } elseif ($role === 'dosen') {
+   } elseif ($role === 'dosen') {
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.create'), 'icon' => 'request'],

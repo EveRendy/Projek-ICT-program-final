@@ -37,12 +37,23 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('instalasi', InstalasiController::class); 
 
     // -------------------------------------------------------------------------
-    // MENU: PENGAJUAN (Khusus Dosen)
+    // MENU DOSEN: 1. PENGAJUAN (Langsung Menampilkan Formulir Input)
     // -------------------------------------------------------------------------
-    Route::get('/pengajuan', [PengajuanController::class, 'indexPengajuan'])->name('pengajuan.index');
+    // Diubah ke 'create' agar ketika dosen klik menu Pengajuan, langsung muncul Form Isian
+    Route::get('/pengajuan', [PengajuanController::class, 'create'])->name('pengajuan.index');
     Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
 
+    // -------------------------------------------------------------------------
+    // MENU DOSEN: 2. STATUS PENGAJUAN (Pelacakan Approval SPV - Tampilan List)
+    // -------------------------------------------------------------------------
+    Route::get('/status-pengajuan', [PengajuanController::class, 'statusPengajuan'])->name('pengajuan.status');
+    Route::get('/status-pengajuan/{id}', [PengajuanController::class, 'detailPengajuan'])->name('pengajuan.showStatus');
+
+    // -------------------------------------------------------------------------
+    // MENU DOSEN: 3. RIWAYAT PENGAJUAN (Menampilkan Tabel Data Horizontal Dosen)
+    // -------------------------------------------------------------------------
+    Route::get('/riwayat', [PengajuanController::class, 'riwayatPengajuan'])->name('riwayat.index');
 
     // -------------------------------------------------------------------------
     // MENU: SUPERVISOR (Persetujuan Awal: Terima / Tolak)
@@ -55,7 +66,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // -------------------------------------------------------------------------
-    // MENU: ADMIN / TEKNISI (Hanya Update Status Instalasi jika Sudah Disetujui)
+    // MENU: ADMIN / TEKNISI (Update Status Jalannya Instalasi)
     // -------------------------------------------------------------------------
     // Halaman utama Admin untuk mengelola instalasi yang ditugaskan kepadanya (Progress)
     Route::get('/admin/instalasi', [PengajuanController::class, 'indexAdmin'])->name('admin.instalasi.index');
@@ -72,9 +83,8 @@ Route::middleware(['auth'])->group(function () {
     
     Route::put('/update-pengerjaan/{id}/selesai', [PengajuanController::class, 'updateProgressTugas'])->name('admin.updateProgressTugas');
 
-
     // -------------------------------------------------------------------------
-    // MENU: RIWAYAT / LICENSE TRACKER
+    // MENU: LICENSE TRACKER / RIWAYAT GLOBAL (Khusus Supervisor & Admin)
     // -------------------------------------------------------------------------
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 });

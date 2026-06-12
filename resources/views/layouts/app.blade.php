@@ -49,11 +49,17 @@
             
             ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
         ]);
-    } elseif ($role === 'dosen') {
+   } elseif ($role === 'dosen') {
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
-            ['label' => 'Pengajuan', 'route' => 'pengajuan.*', 'href' => route('pengajuan.create'), 'icon' => 'request'],
-            ['label' => 'Status Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.index'), 'icon' => 'status'],
+            
+            // Mengarah ke form input langsung
+            ['label' => 'Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.index'), 'icon' => 'request'],
+            
+            // Mengarah ke halaman list tracking approval dari SPV
+            ['label' => 'Status Pengajuan', 'route' => 'pengajuan.status', 'href' => route('pengajuan.status'), 'icon' => 'status'],
+            
+            // Mengarah ke tabel horizontal riwayat pengajuan milik dosen
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
         ]);
     }

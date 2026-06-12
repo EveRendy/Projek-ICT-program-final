@@ -88,7 +88,7 @@ Route::middleware(['auth'])->group(function () {
  
 
 // Arahkan ke CetakController dan panggil method/fungsi 'cetakLaporanLab'
-    Route::get('/laporan/lab/{no_lab}', [CetakController::class, 'cetakLaporanLab'])->name('laporan.lab');
+    Route::get('/cetak-laporan-lab/{no_lab}', [CetakController::class, 'cetakLaporanLab'])->name('cetak.laporan.lab');
     // URL dipisahkan ke '/admin/riwayat-global' agar tidak menimpa rute '/riwayat' milik Dosen
     Route::get('/admin/riwayat-global', [PengajuanController::class, 'licenseTracker'])->name('admin.riwayat.global');
 });

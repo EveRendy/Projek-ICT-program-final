@@ -45,16 +45,16 @@
 
     <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 p-4 sm:p-5">
-            {{-- Mengubah grid sistem menjadi 4 kolom: Search, Kategori, Laboratorium, dan Tombol Aksi --}}
-            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_200px_200px_auto]">
+            {{-- Lebar grid disesuaikan menjadi 180px (Kategori) dan 260px (Lab + Cetak) agar muat seimbang --}}
+            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_180px_260px_auto]">
                 
-                {{-- 1. Input Search (Ukurannya otomatis mengecil menyesuaikan sisa kolom grid) --}}
+                {{-- 1. Input Search --}}
                 <div class="relative">
                     <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"></path></svg>
                     <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari software" class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-950 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                 </div>
 
-                {{-- 2. Dropdown Kategori (Digeser ke kolom kedua) --}}
+                {{-- 2. Dropdown Kategori --}}
                 <select name="kategori" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
                     <option value="">Semua Kategori</option>
                     <option value="1" {{ request('kategori') == '1' ? 'selected' : '' }}>Level 1 (Low Spec)</option>
@@ -62,15 +62,33 @@
                     <option value="3" {{ request('kategori') == '3' ? 'selected' : '' }}>Level 3 (High Spec)</option>
                 </select>
 
-                {{-- 3. Dropdown Filter Laboratorium Baru (Menggunakan struktur list $laboratoriums Anda) --}}
-                <select name="laboratorium" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
-                    <option value="">Semua Laboratorium</option>
-                    @foreach($laboratoriums as $lab)
-                        <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
-                            Lab {{ $lab->no_lab }}
-                        </option>
-                    @endforeach
-                </select>
+                {{-- 3. Dropdown Filter Laboratorium & Tombol Cetak PDF (Disesuaikan berdampingan) --}}
+                <div class="flex items-center gap-2">
+                    <select name="laboratorium" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
+                        <option value="">Semua Laboratorium</option>
+                        @foreach($laboratoriums as $lab)
+                            <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
+                                Lab {{ $lab->no_lab }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    {{-- Tombol Cetak Dinamis mengikuti filter lab aktif --}}
+                    @if(request()->filled('laboratorium'))
+                        <a href="{{ route('cetak.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak PDF Lab {{ request('laboratorium') }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                        </a>
+                    @else
+                        {{-- Tombol dinonaktifkan (disabled) jika user memilih 'Semua Laboratorium' --}}
+                        <button type="button" disabled class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed" title="Silakan pilih laboratorium terlebih dahulu">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                        </button>
+                    @endif
+                </div>
 
                 {{-- 4. Blok Tombol Cari & Reset --}}
                 <div class="flex gap-2">
@@ -114,13 +132,25 @@
                                     </div>
                                 </div>
                             </td>
+                            
                             <td class="px-5 py-4">
                                 <div class="flex max-w-xs flex-wrap gap-1.5">
-                                    @foreach($item->versi as $v)
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
-                                    @endforeach
+                                    @if(request()->filled('laboratorium'))
+                                        @forelse($item->instalasis as $inst)
+                                            <span class="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-1 text-xs font-bold text-blue-700">
+                                                v{{ $inst->versi_terinstall }}
+                                            </span>
+                                        @empty
+                                            <span class="text-xs italic text-slate-400">Belum terinstal</span>
+                                        @endforelse
+                                    @else
+                                        @foreach($item->versi as $v)
+                                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </td>
+
                             <td class="px-5 py-4">
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ $meta['class'] }}">{{ $meta['label'] }} · {{ $meta['desc'] }}</span>
                             </td>
@@ -192,7 +222,7 @@
     </section>
 </div>
 
-{{-- Modal Konfirmasi Hapus Premium --}}
+{{-- Modal Konfirmasi Hapus --}}
 <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
     <div id="deleteModalContent" class="w-full max-w-sm scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300">
         <div class="flex flex-col items-center gap-4 text-center">

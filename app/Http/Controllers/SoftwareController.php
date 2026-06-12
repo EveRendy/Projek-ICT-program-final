@@ -16,7 +16,12 @@ class SoftwareController extends Controller
         $laboratoriums = Laboratorium::all();
 
         // Menggunakan eager loading agar query pengambilan relasi instalasi di blade lebih efisien
-        $query = Software::with(['instalasis']);
+        $labSelected = $request->laboratorium;
+        $query = Software::with(['instalasis' => function($q) use ($request, $labSelected) {
+            if ($request->filled('laboratorium')) {
+                $q->where('no_lab', $labSelected);
+            }
+        }]);
 
         // Logika Pencarian berdasarkan Nama atau ID Software (Sesuai kode asli Anda)
         if ($request->filled('search')) {

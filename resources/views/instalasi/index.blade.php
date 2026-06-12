@@ -206,7 +206,7 @@
                     <select name="id_software" id="modal_id_software" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
                         <option value="">-- Pilih Software --</option>
                         @foreach($softwares as $sw)
-                            <option value="{{ $sw->id_software }}" data-versi="{{ $sw->versi ?? $sw->versi_software ?? '' }}">
+                            <option value="{{ $sw->id_software }}" data-versi="{{ is_array($sw->versi) ? implode(',', $sw->versi) : ($sw->versi ?? $sw->versi_software ?? '') }}">
                                 {{ $sw->nama_software }}
                             </option>
                         @endforeach

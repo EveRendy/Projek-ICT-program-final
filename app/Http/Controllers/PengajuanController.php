@@ -129,10 +129,13 @@ class PengajuanController extends Controller
         ];
 
         return view('admin.penyelesaian', compact('tugas', 'summary', 'role', 'laboratoriums'));
-    }
+    } // <-- SUDAH DIPERBAIKI DISINI
 
     // =========================================================================
     // 4. Form Buat Pengajuan Baru (Dosen)
+    // =========================================================================
+    public function statusPengajuanDosen()
+    {
         $pengajuans = Pengajuan::with(['laboratorium', 'software'])
             ->where('user_id', Auth::id())
             ->latest()
@@ -197,8 +200,6 @@ class PengajuanController extends Controller
         return redirect()->route('riwayat.index')->with('success', 'Pengajuan instalasi berhasil dikirim!');
     }
 
-// =========================================================================
-    // 6. Proses Menyetujui Pengajuan (Aksi Supervisor)
     // =========================================================================
     // 6. MENU SUPERVISOR: Menampilkan Pengajuan yang Masih PENDING untuk Disetujui
     // =========================================================================
@@ -228,51 +229,9 @@ class PengajuanController extends Controller
     }
 
     // =========================================================================
-    // 7. MENU UPDATE PENGERJAAN: Digunakan oleh Supervisor & Admin/Teknisi
-    // =========================================================================
-    public function indexAdmin()
-    {
-        $user = Auth::user();
-        $role = $user->role ?? 'user';
-
-        if ($role === 'supervisor') {
-            $tugas = Pengajuan::where('status_persetujuan', 'pending')
-                ->with(['dosen', 'laboratorium', 'software'])
-                ->latest()
-                ->get();
-
-            $summary = [
-                'total'      => $tugas->count(),
-                'menunggu'   => $tugas->count(),
-                'progress'   => 0,
-                'selesai'    => 0,
-                'terkendala' => 0,
-            ];
-
-            return view('admin.penyelesaian', compact('tugas', 'summary', 'role'));
-        }
-
-        $tugas = Pengajuan::where('tugaskan_admin', $user->id)
-            ->where('status_persetujuan', 'disetujui')
-            ->with(['dosen', 'laboratorium', 'software'])
-            ->latest()
-            ->get();
-
-        $summary = [
-            'total'      => $tugas->count(),
-            'menunggu'   => $tugas->whereIn('status_progress', [null, 'menunggu'])->count(),
-            'progress'   => $tugas->where('status_progress', 'progress')->count(),
-            'selesai'    => $tugas->where('status_progress', 'terinstal')->count(),
-            'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
-        ];
-
-        return view('admin.penyelesaian', compact('tugas', 'summary', 'role'));
-    }
-
-    // =========================================================================
     // 8. PROSES APPROVAL: Aksi Setuju oleh Supervisor -> Teruskan ke Admin/Teknisi
     // =========================================================================
-    public function setujui(Pengajuan $pengajuan)
+    public function setujui($id)
     {
         $pengajuan = Pengajuan::with('laboratorium')->findOrFail($id);
         $lab = $pengajuan->laboratorium;
@@ -294,7 +253,6 @@ class PengajuanController extends Controller
     // =========================================================================
     // 9. PROSES REJECT: Aksi Tolak oleh Supervisor
     // =========================================================================
-    // DIUBAH: Menggunakan $id secara manual agar seragam dan aman
     public function tolak(Request $request, $id)
     {
         $request->validate(['catatan_spv' => 'required|string|max:500']);
@@ -341,7 +299,6 @@ class PengajuanController extends Controller
         $user = Auth::user();
         $role = $user->role ?? 'user';
         
-        // Proteksi pencegahan jika dosen tersasar ke halaman summary ini
         if ($role !== 'supervisor' && $role !== 'admin') {
             return redirect()->route('riwayat.index');
         }

@@ -1,151 +1,113 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Laporan Instalasi Software - {{ $no_lab }}</title>
+    <title>Laporan Instalasi Software Komputer</title>
     <style>
-        /* Desain CSS khusus dompdf (Gunakan font standar dan Table Layout) */
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 12px;
             color: #333;
-            line-height: 1.4;
         }
-        .header-table {
-            width: 100%;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .header-table td {
-            vertical-align: middle;
-        }
-        .title {
-            font-size: 18px;
-            font-weight: bold;
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        /* Heading Styles */
+        .title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
             text-transform: uppercase;
-            margin: 0;
         }
-        .subtitle {
-            font-size: 12px;
-            margin: 5px 0 0 0;
+        .subtitle { 
+            font-size: 13px; 
+            margin-bottom: 15px; 
             color: #555;
         }
-        .info-table {
+        .line-separator {
+            border: 1.5px solid #000;
+            margin-bottom: 25px;
+        }
+
+        /* Meta Info */
+        .meta-table {
             width: 100%;
             margin-bottom: 15px;
         }
-        .info-table td {
-            padding: 3px 0;
+        .meta-table td {
+            padding: 4px 0;
+            vertical-align: top;
         }
-        /* Style untuk tabel data utama */
-        .data-table {
+
+        /* Main Table Styles */
+        .table-laporan {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
-        .data-table th {
-            background-color: #f4f4f4;
-            color: #000;
-            border: 1px solid #999;
-            padding: 8px;
+        .table-laporan th, .table-laporan td {
+            border: 1px solid #bbb;
+            padding: 10px 8px;
+        }
+        .table-laporan th {
+            background-color: #f2f2f2;
             font-weight: bold;
-            text-align: center;
+            color: #222;
         }
-        .data-table td {
-            border: 1px solid #999;
-            padding: 7px;
-            vertical-align: top;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .badge {
-            padding: 3px 6px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        /* Penanda halaman (Footer otomatis dari dompdf) */
+        
+        /* Footer */
         .footer {
-            position: fixed;
-            bottom: -30px;
-            left: 0;
-            right: 0;
-            height: 30px;
-            text-align: right;
-            font-size: 10px;
-            color: #aaa;
+            margin-top: 40px;
+            font-style: italic;
+            font-size: 11px;
+            color: #666;
         }
     </style>
 </head>
 <body>
 
-    <div class="footer">
-        Laporan Antarmuka Lab - Halaman
-    </div>
+    <div class="text-center title">LAPORAN INSTALASI SOFTWARE KOMPUTER</div>
+    <div class="text-center subtitle">Universitas Computer Laboratory</div>
+    <div class="line-separator"></div>
 
-    <table class="header-table">
+    <table class="meta-table">
         <tr>
-            <td>
-                <div class="title">Laporan Inventarisasi Instalasi Software</div>
-                <div class="subtitle">Sistem Informasi Manajemen Laboratorium Komputer</div>
+            <td style="width: 15%; font-weight: bold;">Nomor Lab</td>
+            <td style="width: 2%;">:</td>
+            <td>{{ $no_lab }}</td>
+            <td class="text-right" style="font-style: italic; color: #555;">
+                Tanggal Cetak: {{ $tanggal_cetak }}
             </td>
         </tr>
     </table>
 
-    <table class="info-table">
-        <tr>
-            <td width="18%"><strong>Nomor Laboratorium</strong></td>
-            <td width="2%">:</td>
-            <td width="30%">{{ $no_lab }}</td>
-            <td width="20%"><strong>Tanggal Cetak</strong></td>
-            <td width="2%">:</td>
-            <td width="28%">{{ $tanggal_cetak }}</td>
-        </tr>
-    </table>
-
-    <table class="data-table">
+    <table class="table-laporan">
         <thead>
             <tr>
-                <th width="5%">No</th>
-                <th width="25%">Nama Software</th>
-                <th width="12%">Versi</th>
-                <th width="15%">Status Lisensi</th>
-                <th width="15%">Tgl Aktif</th>
-                <th width="15%">Tgl Expired</th>
-                <th width="13%">Diinstal Oleh</th>
+                <th style="width: 8%;" class="text-center">No</th>
+                <th>Nama Software</th>
+                <th style="width: 25%;">Versi</th>
+                <th style="width: 30%;">Tanggal Instalasi</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($daftar_instalasi as $index => $item)
+            @foreach($daftar_instalasi as $index => $instalasi)
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
-                <td>{{ $item->software->nama_software ?? 'N/A' }}</td>
-                <td class="text-center">
-                    @if(is_array($item->software->versi) || is_object($item->software->versi))
-                        @foreach($item->software->versi as $v)
-                            <span style="background-color: #eee; padding: 2px 5px; margin: 2px; font-size: 10px; border-radius: 3px;">{{ $v }}</span>
-                        @endforeach
-                    @else
-                        {{ $item->software->versi ?? '-' }}
-                    @endif
-                </td>
+                <td>{{ $instalasi->software->nama_software ?? '-' }}</td>
                 
-                <td class="text-center">
-                    {{ $item->status_lisensi }}
+                <td>{{ $instalasi->versi_terinstall ?? '-' }}</td>
+                
+                <td>
+                    {{ $instalasi->tgl_aktif ? \Carbon\Carbon::parse($instalasi->tgl_aktif)->format('d-m-Y') : '-' }}
                 </td>
-                <td class="text-center">
-                    {{ $item->tgl_aktif ? date('d-m-Y', strtotime($item->tgl_aktif)) : '-' }}
-                </td>
-                <td class="text-center">
-                    {{ $item->tgl_expired ? date('d-m-Y', strtotime($item->tgl_expired)) : 'Selamanya' }}
-                </td>
-                <td>{{ $item->diinstal_oleh }}</td>
             </tr>
             @endforeach
         </tbody>
     </table>
+
+    <div class="text-right footer">
+        Dicetak secara otomatis oleh Sistem Manajemen Lab.
+    </div>
 
 </body>
 </html>

@@ -12,27 +12,23 @@ class InstalasiController extends Controller
 {
     public function index(Request $request) 
     {
-        // 1. Ambil data master untuk modal popup tambah data & dropdown filter
+        //Ambil data master 
         $softwares = Software::all();
         $laboratoriums = Laboratorium::all();
         
-        // 2. Gunakan query builder dengan Eager Loading relasi
         $query = Instalasi::with(['software', 'laboratorium', 'teknisi']);
 
-        // 3. Fitur Filter: Berdasarkan Laboratorium
+        //Fitur Filter
         if ($request->has('lab') && $request->lab != '') {
             $query->where('no_lab', $request->lab);
         }
 
-        // Fitur Filter: Berdasarkan Software
         if ($request->has('software') && $request->software != '') {
             $query->where('id_software', $request->software);
         }
 
-        // 4. Ambil data final (diurutkan dari yang terbaru)
         $instalasis = $query->latest()->get();
         
-        // 5. Return ke view dengan menyertakan semua data yang dibutuhkan
         return view('instalasi.index', compact('instalasis', 'softwares', 'laboratoriums'));
     }
 
@@ -45,7 +41,7 @@ class InstalasiController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi input data
+        //Validasi input data
         $request->validate([
             'id_software'      => 'required|exists:software,id_software', 
             'versi_terinstall' => 'required|string|max:50', 
@@ -57,7 +53,7 @@ class InstalasiController extends Controller
             'tgl_expired.after_or_equal' => 'Tanggal expired tidak boleh lebih awal dari tanggal aktif.',
         ]);
 
-        // Menyimpan data instalasi baru ke database
+        //Menyimpan data instalasi baru ke database
         Instalasi::create([
             'id_software'      => $request->id_software,
             'versi_terinstall' => $request->versi_terinstall, 

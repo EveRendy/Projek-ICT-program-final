@@ -13,13 +13,10 @@ class RiwayatController extends Controller
         $user = Auth::user();
         $role = strtolower($user->role ?? 'user'); 
         
-        // Cek apakah user adalah supervisor atau admin untuk hak akses cetak laporan
         $canPrint = in_array($role, ['supervisor', 'admin']);
 
-        // 1. Tarik SEMUA data mentah pengajuan tanpa filter agar semua role bisa melihatnya
         $allData = Pengajuan::all(); 
 
-        // 2. Hitung statistik dari seluruh data
         $summary = [
             'total' => $allData->count(),
             
@@ -46,13 +43,12 @@ class RiwayatController extends Controller
             })->count(),
         ];
 
-        // 3. Ambil data dengan Eager Loading relasi yang VALID untuk tabel (Paginasi 10 baris)
-        // Tanpa filter where(), agar dosen tetap bisa melihat riwayat pengajuan dosen lain
+        // Ambil data
+
         $pengajuans = Pengajuan::with(['laboratorium', 'software', 'dosen'])
             ->latest()
             ->paginate(10);
 
-        // 4. Kirim data ke view, termasuk variabel $canPrint
         return view('riwayat.index', compact('pengajuans', 'summary', 'role', 'canPrint'));
     }
 }

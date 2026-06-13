@@ -10,12 +10,10 @@ use Illuminate\Support\Facades\Auth;
 
 class PengajuanController extends Controller
 {
-    // =========================================================================
-    // 1. MENU DOSEN: Menampilkan Riwayat Pengajuan (Tabel Horizontal Dosen)
-    // =========================================================================
+
     public function riwayatPengajuan()
     {
-        // 1. Ambil data user dan role yang sedang login
+        //Ambil data user yg login
         $user = Auth::user();
         $role = $user->role ?? 'user';
 
@@ -24,13 +22,10 @@ class PengajuanController extends Controller
             ->latest()
             ->get();
 
-        // 2. Tambahkan 'role' ke dalam compact agar dibaca oleh Blade
         return view('pengajuan.index', compact('pengajuans', 'role'));
     }
 
-    // =========================================================================
-    // 2. MENU DOSEN / SUPERVISOR: Menampilkan List Status Approval SPV (Mockup Vertikal)
-    // =========================================================================
+
     public function indexSupervisor()
     {
         $query = Pengajuan::with(['dosen', 'laboratorium.admin', 'software']);
@@ -56,9 +51,7 @@ class PengajuanController extends Controller
         return view('supervisor.index', compact('tugas', 'summary'));
     }
 
-    // =========================================================================
-    // 3. MENU UPDATE PENGERJAAN: Menampilkan Tugas Aktif
-    // =========================================================================
+
     public function indexAdmin(Request $request)
     {
         $user = Auth::user();
@@ -67,17 +60,14 @@ class PengajuanController extends Controller
         $labId = $request->get('lab_id');
         $laboratoriums = Laboratorium::all();
 
-        // Base query awal: ambil semua yang sudah disetujui supervisor
         $query = Pengajuan::where('status_persetujuan', 'disetujui')
             ->with(['dosen', 'laboratorium', 'software']);
 
-        // JIKA BUKAN SUPERVISOR (Artinya dia Admin/Teknisi biasa)
+        // batasan role
         if ($role !== 'supervisor') {
-            // Batasi hanya tugas milik dia sendiri DAN yang statusnya masih 'progress'
             $query->where('tugaskan_admin', $user->id)
                   ->where('status_progress', 'progress');
         }
-        // JIKA SUPERVISOR: Query di atas dilewati, sehingga supervisor bisa melihat SEMUA status data.
 
         if ($labId) {
             $query->where('laboratorium_id', $labId);
@@ -85,7 +75,6 @@ class PengajuanController extends Controller
 
         $tugas = $query->latest()->get();
 
-        // Kalkulasi otomatis menyesuaikan data yang ditarik oleh query di atas
         $summary = [
             'total'      => $tugas->count(),
             'terkendala' => $tugas->where('status_progress', 'gagal_terinstal')->count(),
@@ -96,9 +85,6 @@ class PengajuanController extends Controller
         return view('admin.tugas', compact('tugas', 'summary', 'role', 'laboratoriums'));
     }
 
-    // =========================================================================
-    // NEW METHOD: Menampilkan Riwayat Tugas yang Selesai / Gagal Terinstal
-    // =========================================================================
     public function indexPenyelesaian(Request $request)
     {
         $user = Auth::user();
@@ -111,11 +97,9 @@ class PengajuanController extends Controller
             ->with(['dosen', 'laboratorium', 'software']);
 
         if ($role !== 'supervisor') {
-            // Jika Admin biasa: Hanya melihat data miliknya yang sudah selesai/terkendala
             $query->where('tugaskan_admin', $user->id)
                   ->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
         } else {
-            // Jika Supervisor: Melihat data riwayat penyelesaian dari SELURUH admin/teknisi
             $query->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
         }
 
@@ -135,9 +119,6 @@ class PengajuanController extends Controller
         return view('admin.penyelesaian', compact('tugas', 'summary', 'role', 'laboratoriums'));
     }
 
-    // =========================================================================
-    // 4. Form Buat Pengajuan Baru (Dosen)
-    // =========================================================================
     public function statusPengajuanDosen()
     {
         $pengajuans = Pengajuan::with(['laboratorium', 'software'])
@@ -149,9 +130,6 @@ class PengajuanController extends Controller
         return view('pengajuan.status', compact('pengajuans'));
     }
 
-    // =========================================================================
-    // 3. MENU DOSEN: Menampilkan Detail Status & Progress Pengajuan (Tombol Lihat)
-    // =========================================================================
     public function detailPengajuan($id)
     {
         $pengajuan = Pengajuan::with(['laboratorium', 'software'])
@@ -161,9 +139,7 @@ class PengajuanController extends Controller
         return view('pengajuan.status_detail', compact('pengajuan'));
     }
 
-    // =========================================================================
-    // 4. MENU DOSEN: Menampilkan Form Buat Pengajuan Baru Langsung
-    // =========================================================================
+    //pengajuan dosen
     public function create()
     {
         $laboratoriums = Laboratorium::all();
@@ -172,9 +148,7 @@ class PengajuanController extends Controller
         return view('pengajuan.create', compact('laboratoriums', 'softwares'));
     }
 
-    // =========================================================================
-    // 5. Memproses Penyimpanan Data Pengajuan (Dosen)
-    // =========================================================================
+    //simpan pengajuan dosen
     public function store(Request $request)
     {
         $request->validate([

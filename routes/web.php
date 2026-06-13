@@ -40,7 +40,7 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     // MENU DOSEN: 1. PENGAJUAN (Langsung Menampilkan Formulir Input)
     // -------------------------------------------------------------------------
-    Route::get('/pengajuan', [PengajuanController::class, 'create'])->name('pengajuan.index');
+    Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
 

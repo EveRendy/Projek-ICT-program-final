@@ -54,7 +54,7 @@
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             
             // Mengarah ke form input langsung
-            ['label' => 'Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.index'), 'icon' => 'request'],
+            ['label' => 'Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.create'), 'icon' => 'request'],
             
             // Mengarah ke halaman list tracking approval dari SPV
             ['label' => 'Status Pengajuan', 'route' => 'pengajuan.status', 'href' => route('pengajuan.status'), 'icon' => 'status'],

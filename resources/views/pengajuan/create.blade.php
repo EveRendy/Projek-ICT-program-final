@@ -98,11 +98,10 @@
                 </div>
             </div>
 
-            <div id="compatibility-warning" class="hidden rounded-2xl border p-4 text-sm">
-            </div>
+            <div id="compatibility-warning" class="hidden"></div>
 
             <div class="mt-6 flex items-center justify-end gap-3">
-                <a href="{{ route('pengajuan.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/30">Batal
+                <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/30">Batal
                 </a>
                 <button type="submit" id="submit_btn" class="inline-flex items-center justify-center rounded-2xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none">Kirim Pengajuan</button>
             </div>
@@ -137,35 +136,37 @@
         const warningBox = document.getElementById('compatibility-warning');
         const submitBtn = document.getElementById('submit_btn');
 
-        // Reset tampilan saat fungsi dijalankan ulang
+        // Setel ulang (reset) ke kondisi normal setiap kali dropdown diganti
         warningBox.classList.add('hidden');
-        submitBtn.disabled = false;
+        if (submitBtn) submitBtn.disabled = false;
 
-        if (labSelect.value === "" || softSelect.value === "") {
+        // Pastikan Lab dan Software sudah dipilih sebelum melakukan pengecekan
+        if (!labSelect || !softSelect || labSelect.value === "" || softSelect.value === "") {
             return;
         }
 
-        const labLevel = parseInt(labSelect.options[labSelect.selectedIndex].getAttribute('data-level'));
-        const softLevel = parseInt(softSelect.options[softSelect.selectedIndex].getAttribute('data-level'));
+        const labLevel = parseInt(labSelect.options[labSelect.selectedIndex].getAttribute('data-level')) || 0;
+        const softLevel = parseInt(softSelect.options[softSelect.selectedIndex].getAttribute('data-level')) || 0;
 
-        // Cek jika spek lab lebih rendah dari kebutuhan software
-        if (softLevel > labLevel) {
-            warningBox.classList.remove('hidden');
+        // Proses pengecekan
+        if (labLevel > 0 && softLevel > 0) {
+            if (softLevel > labLevel) {
+                // Tampilkan kotak peringatan
+                warningBox.classList.remove('hidden');
 
-            if (labLevel === 1 && softLevel >= 3) {
-                // KONDISI KRITIS: Lab Level 1 vs Software Level 3
-                warningBox.className = "rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800";
-                warningBox.innerHTML = `⚠️ <strong>Peringatan:</strong> Spesifikasi laboratorium tujuan (Level ${labLevel}) sangat jauh di bawah syarat minimum software (Level ${softLevel}). Instalasi tidak dapat diajukan di ruangan ini.`;
-                
-                // Matikan tombol submit
-                submitBtn.disabled = true;
-            } else {
-                // KONDISI PERINGATAN BIASA: Lab Level 2 vs Software 3 (Atau Lab 1 vs Software 2)
-                warningBox.className = "rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800";
-                warningBox.innerHTML = `⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium  lebih rendah dibandingkan level beban software. Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.`;
-                
-                // Tombol tetap hidup
-                submitBtn.disabled = false;
+                if (labLevel === 1 && softLevel >= 3) {
+                    // KONDISI KRITIS (Lab 1 vs Soft 3): Warna Merah & Tombol Mati
+                    warningBox.className = "rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800";
+                    warningBox.innerHTML = `⚠️ <strong>Peringatan Kritis:</strong> Spesifikasi laboratorium tujuan (Level ${labLevel}) sangat jauh di bawah syarat minimum software (Level ${softLevel}). Instalasi tidak dapat diajukan di ruangan ini.`;
+                    
+                    if (submitBtn) submitBtn.disabled = true; // Matikan tombol
+                } else {
+                    // KONDISI BIASA (Lab 2 vs Soft 3, dst): Warna Kuning & Tombol Tetap Nyala
+                    warningBox.className = "rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800";
+                    warningBox.innerHTML = `⚠️ <strong>Peringatan Kompatibilitas:</strong> Spesifikasi laboratorium tujuan (Level ${labLevel}) lebih rendah dibandingkan level beban software (Level ${softLevel}). Instalasi tetap dapat diajukan, namun kinerja software mungkin lambat.`;
+                    
+                    if (submitBtn) submitBtn.disabled = false; // Biarkan tombol menyala
+                }
             }
         }
     }

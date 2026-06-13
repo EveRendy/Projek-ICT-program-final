@@ -61,7 +61,9 @@
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
                         <th class="px-6 py-4">Tanggal</th>
-                        <th class="px-6 py-4">Pemohon</th>
+                        @if($role === 'supervisor' || $role === 'admin')
+                            <th class="px-6 py-4">Pemohon</th>
+                        @endif
                         <th class="px-6 py-4">Software / Mata Kuliah</th>
                         <th class="px-6 py-4">Laboratorium</th>
                         <th class="px-6 py-4 text-center">Status</th>
@@ -70,15 +72,35 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($pengajuans as $item)
+                        @php
+                            // Logika pintar untuk membaca nama laboratorium agar tidak muncul "LAB -"
+                            $labDisplay = '-';
+                            if (is_string($item->laboratorium) && !empty($item->laboratorium)) {
+                                $labDisplay = $item->laboratorium;
+                            } elseif (optional($item->laboratorium)->nama_lab) {
+                                $labDisplay = $item->laboratorium->nama_lab;
+                            } elseif (!empty($item->nama_lab)) {
+                                $labDisplay = $item->nama_lab;
+                            } elseif (!empty($item->no_lab)) {
+                                $labDisplay = 'LAB ' . $item->no_lab;
+                            } elseif (!empty($item->laboratorium_id)) {
+                                $labDisplay = 'LAB ' . $item->laboratorium_id;
+                            } else {
+                                $labDisplay = 'Belum Ditentukan';
+                            }
+                        @endphp
+                        
                         <tr class="transition hover:bg-slate-50/50">
                             <td class="whitespace-nowrap px-6 py-4 text-slate-600 font-medium">
                                 {{ $item->created_at ? $item->created_at->format('d M Y, H:i') : '-' }}
                             </td>
                             
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-slate-950">{{ $item->dosen->nama ?? 'Dosen' }}</div>
-                                <div class="text-xs text-slate-500">ID: {{ $item->dosen->no_induk ?? '-' }}</div>
-                            </td>
+                            @if($role === 'supervisor' || $role === 'admin')
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-950">{{ $item->dosen->nama ?? 'Dosen' }}</div>
+                                    <div class="text-xs text-slate-500">ID: {{ $item->dosen->no_induk ?? '-' }}</div>
+                                </td>
+                            @endif
 
                             <td class="px-6 py-4">
                                 <div class="font-bold text-slate-950">
@@ -92,7 +114,7 @@
                             <td class="whitespace-nowrap px-6 py-4">
                                 <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
                                     <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    {{ $item->laboratorium->nama_lab ?? 'LAB ' . ($item->no_lab ?? '-') }}
+                                    {{ $labDisplay }}
                                 </span>
                             </td>
 
@@ -128,14 +150,19 @@
                                     </div>
                                     
                                     <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
+                                        
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Software</span>
-                                                <span class="font-extrabold text-slate-900">{{ $item->software->nama_software ?? 'ID: '.$item->id_software }}</span>
+                                                <span class="font-extrabold text-slate-900">
+                                                    {{ $item->software->nama_software ?? $item->software_lain ?? 'Software Tidak Diketahui' }}
+                                                </span>
                                             </div>
                                             <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Versi Terinstal</span>
-                                                <span class="font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">v.{{ $item->versi_terinstall ?? '-' }}</span>
+                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Versi yang Diminta</span>
+                                                <span class="font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                                                    v.{{ $item->versi_requested ?? $item->versi_lain ?? '-' }}
+                                                </span>
                                             </div>
                                         </div>
                                         
@@ -145,13 +172,13 @@
                                             <div>
                                                 <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Laboratorium</span>
                                                 <span class="font-bold text-slate-800">
-                                                    {{ $item->laboratorium->nama_lab ?? 'LAB ' . ($item->no_lab ?? '-') }}
+                                                    {{ $labDisplay }}
                                                 </span>
                                             </div>
                                             <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status Lisensi</span>
-                                                <span class="inline-block rounded-md bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 ring-1 ring-blue-100 uppercase tracking-wider">
-                                                    {{ $item->status_lisensi ?? 'Free / Default' }}
+                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mata Kuliah / Kelompok</span>
+                                                <span class="font-medium text-slate-800">
+                                                    {{ $item->mata_kuliah ?? '-' }} ({{ $item->kelompok_matkul ?? '-' }})
                                                 </span>
                                             </div>
                                         </div>
@@ -160,19 +187,37 @@
                                         
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Aktif</span>
+                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Pengajuan</span>
                                                 <span class="font-medium text-slate-800">
-                                                    {{ $item->tgl_aktif ? \Carbon\Carbon::parse($item->tgl_aktif)->format('d F Y') : '-' }}
+                                                    {{ $item->tgl_pengajuan ? $item->tgl_pengajuan->format('d F Y') : '-' }}
                                                 </span>
                                             </div>
                                             <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Expired</span>
+                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Penugasan</span>
                                                 <span class="font-medium text-slate-800">
-                                                    {{ $item->tgl_expired ? \Carbon\Carbon::parse($item->tgl_expired)->format('d F Y') : 'Seumur Hidup (Perpetual)' }}
+                                                    {{ $item->tgl_penugasan ? $item->tgl_penugasan->format('d F Y') : 'Belum Ditugaskan' }}
                                                 </span>
                                             </div>
                                         </div>
                                         
+                                        @if($item->catatan_spv || $item->catatan_admin)
+                                            <hr class="border-slate-100">
+                                            <div class="space-y-2">
+                                                @if($item->catatan_spv)
+                                                    <div>
+                                                        <span class="block text-[11px] font-bold text-red-500 uppercase tracking-wider">Catatan Supervisor</span>
+                                                        <p class="text-xs text-slate-600 italic bg-red-50/50 p-2 rounded-lg border border-red-100">{{ $item->catatan_spv }}</p>
+                                                    </div>
+                                                @endif
+                                                @if($item->catatan_admin)
+                                                    <div>
+                                                        <span class="block text-[11px] font-bold text-amber-600 uppercase tracking-wider">Catatan Admin / Kendala</span>
+                                                        <p class="text-xs text-slate-600 italic bg-amber-50/50 p-2 rounded-lg border border-amber-100">{{ $item->catatan_admin }}</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+
                                         <hr class="border-slate-100">
                                         
                                         <div>
@@ -202,11 +247,10 @@
                                             <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Penanggung Jawab / Eksekutor</span>
                                             <div class="flex items-center gap-2 text-slate-800 font-semibold bg-slate-50 p-3 rounded-xl border border-slate-100">
                                                 <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                                <span>{{ $item->admin->name ?? $item->diinstal_oleh ?? 'Admin Lab' }}</span>
+                                                <span>{{ $item->admin->nama ?? $item->admin->name ?? 'Belum Ditugaskan' }}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end">
                                         <button type="button" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 cursor-pointer">
                                             Tutup

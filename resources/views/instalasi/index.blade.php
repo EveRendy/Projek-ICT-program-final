@@ -35,59 +35,99 @@
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
         
-        <form action="{{ route('instalasi.index') }}" method="GET">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                        <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
+        {{-- FORM FILTER & PENCARIAN (Sudah Disesuaikan Flex Full Width) --}}
+        <form id="filterForm" action="{{ route('instalasi.index') }}" method="GET" class="flex w-full flex-col gap-3 md:flex-row md:items-center">
+            
+            {{-- Input Pencarian Melar (Flex-1) --}}
+            <div class="relative flex-1 w-full">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <input type="text" id="searchLicense" name="search" value="{{ request('search') }}"
+                       class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
+                       placeholder="Cari lisensi atau penginstal...">
+            </div>
+
+            {{-- Dropdown Lab --}}
+            <div class="relative w-full md:w-56 z-30 dropdown-container">
+                <input type="hidden" name="lab" id="selectedLab" value="{{ request('lab') }}">
+                <button type="button" onclick="toggleDropdown(event, 'dropdownLab')" class="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition focus:border-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left cursor-pointer">
+                    <span id="labelLab" class="truncate pr-2">
+                        @if(request()->filled('lab') && isset($laboratoriums))
+                            @php 
+                                $selectedLab = $laboratoriums->firstWhere('no_lab', request('lab')); 
+                            @endphp
+                            {{ $selectedLab ? ($selectedLab->nama_lab . ' (' . $selectedLab->no_lab . ')') : 'Semua Laboratorium' }}
+                        @else
+                            Semua Laboratorium
+                        @endif
+                    </span>
+                    <svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg>
+                </button>
+                <div id="dropdownLab" class="hidden absolute left-0 z-30 mt-2 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
+                    <div onclick="selectOption('selectedLab', 'labelLab', '', 'Semua Laboratorium')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == '' ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                        Semua Laboratorium
                     </div>
-                    <input type="text" id="searchLicense" name="search" value="{{ request('search') }}"
-                           class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" 
-                           placeholder="Cari teks instan...">
-                </div>
-
-                <div>
-                    <select name="lab" onchange="this.form.submit()" 
-                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
-                        <option value="">-- Semua Laboratorium --</option>
+                    @if(isset($laboratoriums))
                         @foreach($laboratoriums as $lab)
-                            <option value="{{ $lab->no_lab }}" {{ request('lab') == $lab->no_lab ? 'selected' : '' }}>
-                                {{ $lab->nama_lab }} ({{ $lab->no_lab }})
-                            </option>
+                            @php
+                                $labLabel = $lab->nama_lab . ' (' . $lab->no_lab . ')';
+                            @endphp
+                            <div onclick="selectOption('selectedLab', 'labelLab', '{{ $lab->no_lab }}', '{{ $labLabel }}')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == $lab->no_lab ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                                {{ $labLabel }}
+                            </div>
                         @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <select name="software" onchange="this.form.submit()" 
-                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
-                        <option value="">-- Semua Software --</option>
-                        @foreach($softwares as $sw)
-                            <option value="{{ $sw->id_software }}" {{ request('software') == $sw->id_software ? 'selected' : '' }}>
-                                {{ $sw->nama_software }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex items-center">
-                    @if(request('lab') || request('software') || request('search'))
-                        <a href="{{ route('instalasi.index') }}" 
-                           class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 shadow-sm"
-                           title="Reset Filter">
-                             Reset Filter
-                        </a>
-                    @else
-                        <span class="text-xs text-slate-400 font-medium italic">Silakan pilih opsi filter di atas</span>
                     @endif
                 </div>
-
             </div>
+
+            {{-- Dropdown Software --}}
+            <div class="relative w-full md:w-56 z-20 dropdown-container">
+                <input type="hidden" name="software" id="selectedSoftware" value="{{ request('software') }}">
+                <button type="button" onclick="toggleDropdown(event, 'dropdownSoftware')" class="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition focus:border-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left cursor-pointer">
+                    <span id="labelSoftware" class="truncate pr-2">
+                        @if(request()->filled('software') && isset($softwares))
+                            @php 
+                                $selectedSoft = $softwares->firstWhere('id_software', request('software')); 
+                            @endphp
+                            {{ $selectedSoft ? $selectedSoft->nama_software : 'Semua Software' }}
+                        @else
+                            Semua Software
+                        @endif
+                    </span>
+                    <svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg>
+                </button>
+                <div id="dropdownSoftware" class="hidden absolute left-0 z-30 mt-2 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
+                    <div onclick="selectOption('selectedSoftware', 'labelSoftware', '', 'Semua Software')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('software') == '' ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                        Semua Software
+                    </div>
+                    @if(isset($softwares))
+                        @foreach($softwares as $sw)
+                            <div onclick="selectOption('selectedSoftware', 'labelSoftware', '{{ $sw->id_software }}', '{{ $sw->nama_software }}')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('software') == $sw->id_software ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                                {{ $sw->nama_software }}
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+
+            {{-- Tombol Aksi --}}
+            <div class="flex items-center gap-2">
+                <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                    Cari
+                </button>
+                @if(request('lab') || request('software') || request('search'))
+                    <a href="{{ route('instalasi.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/20" title="Reset Filter">
+                        Reset
+                    </a>
+                @endif
+            </div>
+
         </form>
 
+        {{-- TABEL DATA --}}
         <div class="overflow-x-auto rounded-xl border border-slate-100">
             <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
@@ -99,13 +139,13 @@
                         <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4">Mulai</th>
                         <th class="px-6 py-4">Berakhir</th>
-                        <th class="px-6 py-4 text-center w-20">Edit</th>
+                        <th class="px-6 py-4 text-center w-28">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-700">
                     @forelse($instalasis as $index => $item)
                         <tr class="hover:bg-slate-50/50 transition">
-                            <td class="px-6 py-4 text-center text-slate-400 font-normal">{{ $index + 1 }}.</td>
+                            <td class="px-6 py-4 text-center text-slate-400 font-normal">{{ ($instalasis->currentPage() - 1) * $instalasis->perPage() + $index + 1 }}.</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 font-black text-xs text-white shadow-sm uppercase tracking-tighter">
@@ -136,6 +176,10 @@
                                         <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700">
                                             <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Kedaluwarsa
                                         </span>
+                                    @elseif(\Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($item->tgl_expired), false) <= 3 && \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($item->tgl_expired), false) >= 0)
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Akan Habis
+                                        </span>
                                     @else
                                         <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
                                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktif
@@ -155,11 +199,23 @@
                                 {{ $item->tgl_expired ? \Carbon\Carbon::parse($item->tgl_expired)->format('d-m-Y') : '-' }}
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <a href="{{ route('instalasi.edit', $item->id ?? $item->id_instalasi) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit Data">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                                    </svg>
-                                </a>
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('instalasi.edit', $item->id ?? $item->id_instalasi) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit Data">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                        </svg>
+                                    </a>
+
+                                    <form id="delete-form-{{ $item->id ?? $item->id_instalasi }}" action="{{ route('instalasi.destroy', $item->id ?? $item->id_instalasi) }}" method="POST" class="m-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id ?? $item->id_instalasi }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 shadow-sm transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/20" title="Hapus Data">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -172,6 +228,51 @@
                 </tbody>
             </table>
         </div>
+
+        @if($instalasis->total() > 0)
+            <div class="border-t border-slate-200 bg-slate-50 px-6 py-4 flex items-center justify-between -mx-6 -mb-6 rounded-b-2xl">
+                <div class="hidden sm:block">
+                    <p class="text-sm text-slate-600">
+                        Menampilkan <span class="font-bold text-slate-900">{{ $instalasis->firstItem() ?? 0 }}</span> sampai <span class="font-bold text-slate-900">{{ $instalasis->lastItem() ?? 0 }}</span> dari <span class="font-bold text-slate-900">{{ $instalasis->total() }}</span> lisensi
+                    </p>
+                </div>
+                
+                @if($instalasis->hasPages())
+                <div>
+                    <nav class="inline-flex -space-x-px rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden" aria-label="Pagination">
+                        @if ($instalasis->onFirstPage())
+                            <span class="inline-flex items-center px-3 py-2 text-slate-300 bg-slate-50/50 cursor-not-allowed">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                            </span>
+                        @else
+                            <a href="{{ $instalasis->appends(request()->query())->previousPageUrl() }}" class="inline-flex items-center px-3 py-2 text-slate-500 hover:bg-slate-50 transition">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                            </a>
+                        @endif
+
+                        @foreach ($instalasis->getUrlRange(1, $instalasis->lastPage()) as $page => $url)
+                            @if ($page == $instalasis->currentPage())
+                                <span class="inline-flex items-center bg-blue-950 px-4 py-2 text-sm font-black text-white">{{ $page }}</span>
+                            @else
+                                <a href="{{ $instalasis->appends(request()->query())->url($page) }}" class="inline-flex items-center border-l border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">{{ $page }}</a>
+                            @endif
+                        @endforeach
+
+                        @if ($instalasis->hasMorePages())
+                            <a href="{{ $instalasis->appends(request()->query())->nextPageUrl() }}" class="inline-flex items-center border-l border-slate-200 px-3 py-2 text-slate-500 hover:bg-slate-50 transition">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                            </a>
+                        @else
+                            <span class="inline-flex items-center border-l border-slate-200 px-3 py-2 text-slate-300 bg-slate-50/50 cursor-not-allowed">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                            </span>
+                        @endif
+                    </nav>
+                </div>
+                @endif
+            </div>
+        @endif
+
     </div> 
 
     <div class="flex items-start gap-3.5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm">
@@ -182,10 +283,11 @@
         </div>
         <div class="space-y-0.5">
             <h4 class="text-sm font-bold text-slate-950">Kelola Lisensi dengan Baik</h4>
-            <p class="text-xs font-medium text-slate-600 leading-relaxed">Pastikan semua lisensi software selalu aktif dan sesuai dengan ketentuan yang berlaku untuk menjaga legalitas penggunaan software di laboratorium.</p>
+            <p class="text-xs font-medium text-slate-600 leading-relaxed">Pastikan semua lisensi software selalu aktif and sesuai dengan ketentuan yang berlaku untuk menjaga legalitas penggunaan software di laboratorium.</p>
         </div>
     </div>
 
+    {{-- MODAL TAMBAH LISENSI --}}
     <div id="modalTambahLisensi" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-slate-100 transform transition-all space-y-4">
             
@@ -262,33 +364,54 @@
         </div>
     </div>
 
+    {{-- MODAL HAPUS LISENSI --}}
+    <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="deleteModalContent" class="w-full max-w-sm scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-300">
+            <div class="flex flex-col items-center gap-4 text-center">
+                <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 border-[6px] border-red-50 text-red-500 mb-2">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900">Hapus Data Ini?</h3>
+                    <p class="mt-2 text-sm text-slate-500 leading-relaxed">Data tracker riwayat instalasi software yang dihapus tidak dapat dikembalikan lagi. Pastikan tindakan Anda benar.</p>
+                </div>
+                <div class="mt-4 flex w-full gap-3">
+                    <button type="button" onclick="closeDeleteModal()" class="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500/20">
+                        Batal
+                    </button>
+                    <button type="button" id="confirmDeleteBtn" class="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
+    // FUNGSI MODAL TAMBAH
     function openModal() {
         document.getElementById('modalTambahLisensi').classList.remove('hidden');
     }
 
     function closeModal() {
         document.getElementById('modalTambahLisensi').classList.add('hidden');
-        // Reset dropdown versi jika modal ditutup agar kembali bersih
         document.getElementById('modal_versi_terinstall').innerHTML = '<option value="">-- Pilih Versi --</option>';
         document.getElementById('modal_id_software').selectedIndex = 0;
     }
 
-    // LOGIKA CHAINED DROPDOWN (PILIHAN VERSI OTOMATIS)
     document.getElementById('modal_id_software').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const versiData = selectedOption.getAttribute('data-versi');
         const versiSelect = document.getElementById('modal_versi_terinstall');
         
-        // Bersihkan data dropdown versi lama
         versiSelect.innerHTML = '<option value="">-- Pilih Versi --</option>';
         
         if (versiData && versiData.trim() !== '') {
-            // Memisahkan data versi jika di DB menggunakan pemisah koma (contoh: v1, v2, v3)
             const daftarVersi = versiData.split(',');
-            
             daftarVersi.forEach(versi => {
                 const cleanVersi = versi.trim();
                 if (cleanVersi) {
@@ -299,7 +422,6 @@
                 }
             });
         } else {
-            // Jika kolom versi kosong di database software, sediakan opsi default agar form tidak error saat disubmit
             const opt = document.createElement('option');
             opt.value = "Default";
             opt.textContent = "Default / Tidak Ada Informasi Versi";
@@ -307,14 +429,70 @@
         }
     });
 
-    // Fungsi live search lokal pencarian instan pada tabel utama
+    // FUNGSI PENCARIAN LOKAL INSTAN (Ketik langsung filter table)
     document.getElementById('searchLicense').addEventListener('keyup', function() {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');
         rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(value) ? '' : 'none';
+            if (row.cells.length > 1) { 
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(value) ? '' : 'none';
+            }
         });
+    });
+
+    // FUNGSI DROPDOWN KUSTOM
+    function toggleDropdown(event, dropdownId) {
+        event.stopPropagation();
+        const dropdown = document.getElementById(dropdownId);
+        // Sembunyikan dropdown lain yang terbuka
+        document.querySelectorAll('.dropdown-container > div[id^="dropdown"]').forEach(el => {
+            if (el.id !== dropdownId) {
+                el.classList.add('hidden');
+            }
+        });
+        dropdown.classList.toggle('hidden');
+    }
+
+    function selectOption(hiddenInputId, labelId, value, labelText) {
+        document.getElementById(hiddenInputId).value = value;
+        document.getElementById(labelId).innerText = labelText;
+        // Tutup dropdown setelah memilih
+        document.getElementById(labelId).closest('.dropdown-container').querySelector('div[id^="dropdown"]').classList.add('hidden');
+        // Auto-submit form untuk update data pencarian ke backend
+        document.getElementById('filterForm').submit();
+    }
+
+    // Menutup dropdown jika user klik area kosong di luar
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.dropdown-container')) {
+            document.querySelectorAll('.dropdown-container > div[id^="dropdown"]').forEach(el => {
+                el.classList.add('hidden');
+            });
+        }
+    });
+
+    // FUNGSI MODAL HAPUS (Sudah Dilengkapi)
+    let currentFormIdToSubmit = null;
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteModalContent = document.getElementById('deleteModalContent');
+
+    function openDeleteModal(formId) {
+        currentFormIdToSubmit = formId;
+        deleteModal.classList.remove('opacity-0', 'pointer-events-none');
+        deleteModalContent.classList.remove('scale-95');
+    }
+
+    function closeDeleteModal() {
+        currentFormIdToSubmit = null;
+        deleteModal.classList.add('opacity-0', 'pointer-events-none');
+        deleteModalContent.classList.add('scale-95');
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (currentFormIdToSubmit) {
+            document.getElementById(currentFormIdToSubmit).submit();
+        }
     });
 </script>
 @endsection

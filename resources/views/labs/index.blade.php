@@ -15,7 +15,9 @@
         <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
-                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700"></a>
+                    <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
+                    <span>/</span>
+                    <span class="text-slate-950">Manajemen Lab</span>
                 </nav>
                 <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Manajemen Lab</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
@@ -60,17 +62,17 @@
                             <td class="px-6 py-4 text-slate-600 font-medium">{{ $lab->jumlah_pc }} Unit</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2">
-                                    {{-- Tombol Edit Sesuai Template --}}
-                                    <a href="{{ route('labs.edit', $lab->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Edit Lab">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
+                                    {{-- Tombol Edit (Disamakan gayanya dengan License Tracker) --}}
+                                    <a href="{{ route('labs.edit', $lab->id) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20" aria-label="Edit Lab">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </a>
                                     
-                                    {{-- Form Hapus yang Telah Dihubungkan ke Modal --}}
+                                    {{-- Form Hapus (Disamakan gayanya dengan warna merah bawaan License Tracker) --}}
                                     <form id="delete-form-{{ $lab->id }}" action="{{ route('labs.destroy', $lab->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" onclick="openDeleteModal('delete-form-{{ $lab->id }}')" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30" aria-label="Hapus Lab">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7v13h8V7"></path></svg>
+                                        <button type="button" onclick="openDeleteModal('delete-form-{{ $lab->id }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20" aria-label="Hapus Lab">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </form>
                                 </div>

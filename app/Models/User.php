@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,13 +14,21 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    // Menentukan primary key kustom menggantikan 'id'
+    protected $primaryKey = 'no_induk';
+
+    // Menonaktifkan auto-increment karena primary key berbentuk string
+    public $incrementing = false;
+
+    // Menentukan tipe data primary key berupa string
+    protected $keyType = 'string';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'id',
         'no_induk',
         'nama',
         'email',
@@ -49,6 +58,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Mutator untuk otomatis membuat huruf pertama menjadi kapital saat menyimpan data nama
+     */
+    protected function nama(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => ucwords(strtolower($value)),
+        );
     }
 
     // Relasi balik: Seorang Dosen bisa memiliki banyak data Pengajuan

@@ -29,8 +29,9 @@ class InstalasiController extends Controller
             $query->where('id_software', $request->software);
         }
 
-        // 4. Ambil data final (diurutkan dari yang terbaru)
-        $instalasis = $query->latest()->get();
+        // 4. Ambil data final dengan Pagination (diurutkan dari yang terbaru)
+        // DISESUAIKAN: Mengganti ->get() menjadi ->paginate(10) agar kompatibel dengan Blade Pagination
+        $instalasis = $query->latest()->paginate(10);
         
         // 5. Return ke view dengan menyertakan semua data yang dibutuhkan
         return view('instalasi.index', compact('instalasis', 'softwares', 'laboratoriums'));

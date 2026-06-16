@@ -9,16 +9,39 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('laboratoriums')->latest()->get();
+        // 1. Buat base query
+        $query = User::with('laboratoriums')->latest();
+
+        // 2. Cek jika ada input pencarian teks
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('no_induk', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // 3. Cek jika ada filter dropdown role
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // 4. Eksekusi query dengan pagination (10 per halaman)
+        $users = $query->paginate(10);
+        
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
         $laboratoriums = Laboratorium::all();
-        return view('users.create', compact('laboratoriums'));
+        $roles = ['supervisor', 'admin', 'dosen'];
+        $role = null; 
+
+        return view('users.create', compact('laboratoriums', 'roles', 'role'));
     }
 
     public function store(Request $request)
@@ -26,7 +49,19 @@ class UserController extends Controller
         $request->validate([
             'no_induk'        => 'required|string|max:50|unique:users,no_induk', 
             'nama'            => 'required|string|max:255',
-            'email'           => 'required|email|max:255|unique:users,email',
+            // Menambahkan validasi no_hp
+            'no_hp'           => 'required|string|max:20', 
+            'email'           => [
+                'required', 
+                'email', 
+                'max:255', 
+                'unique:users,email',
+                function ($attribute, $value, $fail) {
+                    if (!preg_match('/@lab\.com$/i', $value)) {
+                        $fail('Email harus menggunakan domain @lab.com');
+                    }
+                },
+            ],
             'password'        => 'required|string|min:6',
             'role'            => 'required|in:supervisor,admin,dosen',
             'laboratorium_id' => 'nullable|exists:laboratoriums,id',
@@ -34,8 +69,10 @@ class UserController extends Controller
 
         $user = User::create([
             'no_induk' => $request->no_induk,
-            'nama'     => $request->nama, // Menggunakan kolom 'nama' database
+            'nama'     => $request->nama, 
             'email'    => $request->email,
+            // Menyimpan no_hp ke database
+            'no_hp'    => $request->no_hp, 
             'password' => Hash::make($request->password),
             'role'     => $request->role,
         ]);
@@ -63,7 +100,19 @@ class UserController extends Controller
         $request->validate([
             'no_induk'        => 'required|string|max:50|unique:users,no_induk,' . $user->id,
             'nama'            => 'required|string|max:255',
-            'email'           => 'required|email|max:255|unique:users,email,' . $user->id,
+            // Menambahkan validasi no_hp saat update
+            'no_hp'           => 'required|string|max:20', 
+            'email'           => [
+                'required', 
+                'email', 
+                'max:255', 
+                'unique:users,email,' . $user->id,
+                function ($attribute, $value, $fail) {
+                    if (!preg_match('/@lab\.com$/i', $value)) {
+                        $fail('Email harus menggunakan domain @lab.com');
+                    }
+                },
+            ],
             'password'        => 'nullable|string|min:6',
             'role'            => 'required|in:supervisor,admin,dosen',
             'laboratorium_id' => 'nullable|exists:laboratoriums,id',
@@ -71,8 +120,10 @@ class UserController extends Controller
 
         $data = [
             'no_induk' => $request->no_induk,
-            'nama'     => $request->nama, // Menggunakan kolom 'nama' database
+            'nama'     => $request->nama, 
             'email'    => $request->email,
+            // Memasukkan no_hp ke array update
+            'no_hp'    => $request->no_hp, 
             'role'     => $request->role,
         ];
 
@@ -100,6 +151,6 @@ class UserController extends Controller
         Laboratorium::where('user_id', $user->id)->update(['user_id' => null]);
         $user->delete();
 
-        return redirect()->route('users.index')->with('success', 'User berhasil deleted!');
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
     }
 }

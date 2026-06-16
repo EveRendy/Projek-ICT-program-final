@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::table('laboratoriums', function (Blueprint $table) {
             // Menambahkan foreign key yang menyambung ke id di tabel users
             // nullable() digunakan agar jika data lab lama kosong tidak error, constrained('users') mengunci relasi ke tabel users
-            $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->onDelete('set null');
+            $table->string('user_id', 20)->nullable()->after('id');
+            $table->foreign('user_id')->references('no_induk')->on('users')->onDelete('set null');
         });
     }
 

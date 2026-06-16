@@ -222,7 +222,7 @@ class PengajuanController extends Controller
             'status_persetujuan' => 'pending', 
         ]);
 
-        return redirect()->route('pengajuan.index')->with('success', 'Pengajuan instalasi berhasil dikirim!');
+        return redirect()->route('pengajuan.create')->with('success', 'Pengajuan instalasi berhasil dikirim!');
     }
 
     // NOTE: Blok duplikat "6. MENU SUPERVISOR" yang error sebelumnya sudah dihapus dari sini.

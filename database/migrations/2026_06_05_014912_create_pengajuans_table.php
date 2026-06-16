@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('mata_kuliah');
             $table->string('kelompok_matkul'); // Contoh: A, B, atau Reguler/Karyawan
 
-            // Relasi Utama (Foreign Keys)
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Dosen pengaju
+            // Relasi Utama (Foreign Keys) - Diubah ke string(20) mengarah ke no_induk
+            $table->string('user_id', 20); // Dosen pengaju
+            $table->foreign('user_id')->references('no_induk')->on('users')->onDelete('cascade');
+            
             $table->foreignId('laboratorium_id')->constrained('laboratoriums')->onDelete('cascade'); // Lab tujuan
             
             // Relasi ke Software dibuat Nullable untuk mendukung fitur 'software_lain'
@@ -33,8 +35,10 @@ return new class extends Migration
             $table->enum('status_persetujuan', ['pending', 'disetujui', 'ditolak'])->default('pending');
             $table->text('catatan_spv')->nullable(); // Alasan jika ditolak
 
-            // Atribut Penugasan Teknis (Otomatis terisi saat disetujui SPV berdasarkan penjaga lab)
-            $table->foreignId('tugaskan_admin')->nullable()->constrained('users')->onDelete('set null');
+            // Atribut Penugasan Teknis (Otomatis terisi saat disetujui SPV berdasarkan penjaga lab) - Diubah ke string(20) mengarah ke no_induk
+            $table->string('tugaskan_admin', 20)->nullable();
+            $table->foreign('tugaskan_admin')->references('no_induk')->on('users')->onDelete('set null');
+            
             $table->date('tgl_penugasan')->nullable();
 
             // Atribut Eksekusi Lapangan (Admin)

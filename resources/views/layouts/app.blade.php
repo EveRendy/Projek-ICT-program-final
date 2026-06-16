@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Lab - ICT Terpadu</title>
+    
+    {{-- TAG FAVICON UNTUK LOGO DI TAB BROWSER --}}
+    <link rel="icon" type="image/jpeg" href="{{ asset('img/ict.jpg.png') }}">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,7 +90,7 @@
         <div class="flex h-full flex-col">
             <div class="border-b border-slate-100 p-5">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('img/ict.jpg') }}" alt="Logo Lab ICT" class="h-11 w-11 rounded-xl object-contain bg-white p-0.5 border border-slate-100 shadow-sm">
+                    <img src="{{ asset('img/ict.jpg.png') }}" alt="Logo Lab ICT" class="h-11 w-11 rounded-xl object-contain bg-white p-0.5 border border-slate-100 shadow-sm">
                     <div>
                         <p class="text-sm font-black tracking-tight text-slate-950">Laboratorium ICT</p>
                         <p class="text-xs font-medium text-slate-500">Request Instalasi Software</p>
@@ -169,4 +173,4 @@
     </div>
 </div>
 </body>
-</html> 
+</html>

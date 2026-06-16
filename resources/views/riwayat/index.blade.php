@@ -25,7 +25,7 @@
                 </nav>
                 <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Riwayat Pengajuan & Pengerjaan</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    Menampilkan seluruh data log rekam jejak instalasi sistem laboratorium.
+                    Menampilkan seluruh data rekam jejak instalasi sistem laboratorium.
                 </p>
             </div>
             
@@ -53,6 +53,94 @@
             <p class="text-sm font-medium text-slate-500">Gagal Terinstal</p>
             <p class="mt-2 text-3xl font-bold text-red-600">{{ $summary['gagal'] ?? 0 }}</p>
         </div>
+    </section>
+
+    <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <form id="filterForm" action="{{ url()->current() }}" method="GET" class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pemohon, mata kuliah..." class="w-full pl-10 pr-4 py-2 text-sm rounded-xl border border-slate-200 text-slate-900 bg-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+
+                <div class="relative dropdown-container">
+                    <input type="hidden" name="laboratorium" id="selectedLaboratorium" value="{{ request('laboratorium') }}">
+                    <button type="button" onclick="toggleDropdown(event, 'dropdownLab')" class="w-full flex items-center justify-between px-4 py-2 text-sm rounded-xl border border-slate-200 text-slate-700 bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition text-left cursor-pointer">
+                        <span id="labelLab">
+                            @if(request()->filled('laboratorium') && isset($list_laboratorium))
+                                @php 
+                                    $selectedLab = $list_laboratorium->firstWhere('id', request('laboratorium')); 
+                                @endphp
+                                {{ $selectedLab ? ($selectedLab->nama_lab ?? $selectedLab->nama ?? $selectedLab->nama_laboratorium ?? 'LAB ' . $selectedLab->id) : 'Semua Laboratorium' }}
+                            @else
+                                Semua Laboratorium
+                            @endif
+                        </span>
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="dropdownLab" class="hidden absolute left-0 z-30 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
+                        <div onclick="selectOption('selectedLaboratorium', 'labelLab', '', 'Semua Laboratorium')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition">
+                            Semua Laboratorium
+                        </div>
+                        @if(isset($list_laboratorium))
+                            @foreach($list_laboratorium as $lab)
+                                @php
+                                    $labName = $lab->nama_lab ?? $lab->nama ?? $lab->nama_laboratorium ?? 'LAB ' . $lab->id;
+                                @endphp
+                                <div onclick="selectOption('selectedLaboratorium', 'labelLab', '{{ $lab->id }}', '{{ $labName }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition {{ request('laboratorium') == $lab->id ? 'bg-blue-50 text-blue-700 font-bold' : '' }}">
+                                    {{ $labName }}
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+
+                <div class="relative dropdown-container">
+                    <input type="hidden" name="software" id="selectedSoftware" value="{{ request('software') }}">
+                    <button type="button" onclick="toggleDropdown(event, 'dropdownSoftware')" class="w-full flex items-center justify-between px-4 py-2 text-sm rounded-xl border border-slate-200 text-slate-700 bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition text-left cursor-pointer">
+                        <span id="labelSoftware">
+                            @if(request()->filled('software') && isset($list_software))
+                                @php 
+                                    $selectedSoft = $list_software->firstWhere('id', request('software')); 
+                                @endphp
+                                {{ $selectedSoft ? ($selectedSoft->nama_software ?? $selectedSoft->nama ?? $selectedSoft->nama_program ?? 'Software ' . $selectedSoft->id) : 'Semua Software' }}
+                            @else
+                                Semua Software
+                            @endif
+                        </span>
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="dropdownSoftware" class="hidden absolute left-0 z-30 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
+                        <div onclick="selectOption('selectedSoftware', 'labelSoftware', '', 'Semua Software')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition">
+                            Semua Software
+                        </div>
+                        @if(isset($list_software))
+                            @foreach($list_software as $soft)
+                                @php
+                                    $softName = $soft->nama_software ?? $soft->nama ?? $soft->nama_program ?? 'Software ' . $soft->id;
+                                @endphp
+                                <div onclick="selectOption('selectedSoftware', 'labelSoftware', '{{ $soft->id }}', '{{ $softName }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition {{ request('software') == $soft->id ? 'bg-blue-50 text-blue-700 font-bold' : '' }}">
+                                    {{ $softName }}
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="submit" class="w-full md:w-auto rounded-xl bg-blue-950 px-5 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-900 transition cursor-pointer">
+                    Cari
+                </button>
+                @if(request()->filled('search') || request()->filled('laboratorium') || request()->filled('software'))
+                    <a href="{{ url()->current() }}" class="w-full md:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 text-center hover:bg-slate-100 transition">
+                        Reset
+                    </a>
+                @endif
+            </div>
+        </form>
     </section>
 
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -150,7 +238,6 @@
                                     </div>
                                     
                                     <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
-                                        
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Software</span>
@@ -261,7 +348,7 @@
                         </div>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-10 text-center">
+                            <td colspan="{{ $role === 'supervisor' || $role === 'admin' ? 6 : 5 }}" class="px-6 py-10 text-center">
                                 <div class="flex flex-col items-center justify-center gap-2">
                                     <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <p class="text-sm font-semibold text-slate-500">Belum ada rekaman riwayat aktivitas pengerjaan.</p>
@@ -292,5 +379,37 @@
             document.body.style.overflow = '';
         }
     }
+
+    // Fungsi Pengendali Komponen Custom Dropdown Modern
+    function toggleDropdown(event, id) {
+        event.stopPropagation();
+        const dropdown = document.getElementById(id);
+        const allDropdowns = ['dropdownLab', 'dropdownSoftware'];
+        
+        allDropdowns.forEach(dId => {
+            if(dId !== id) {
+                const element = document.getElementById(dId);
+                if (element) element.classList.add('hidden');
+            }
+        });
+
+        if (dropdown) dropdown.classList.toggle('hidden');
+    }
+
+    function selectOption(inputId, labelId, value, labelText) {
+        document.getElementById(inputId).value = value;
+        document.getElementById(labelId).innerText = labelText;
+        document.getElementById('filterForm').submit();
+    }
+
+    // Tutup dropdown otomatis jika klik di luar area filter
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown-container')) {
+            const dropdownLab = document.getElementById('dropdownLab');
+            const dropdownSoftware = document.getElementById('dropdownSoftware');
+            if (dropdownLab) dropdownLab.classList.add('hidden');
+            if (dropdownSoftware) dropdownSoftware.classList.add('hidden');
+        }
+    });
 </script>
 @endsection

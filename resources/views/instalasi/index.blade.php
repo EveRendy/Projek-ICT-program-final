@@ -18,9 +18,9 @@
                 <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
                     <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
                     <span>/</span>
-                    <span class="text-slate-950">License Tracker</span>
+                    <span class="text-slate-950">Tracker Lisensi</span>
                 </nav>
-                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">License Tracker</h2>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Tracker Lisensi</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                     Kelola data lisensi dan riwayat instalasi software di seluruh laboratorium komputer.
                 </p>
@@ -67,7 +67,7 @@
                     <svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg>
                 </button>
                 <div id="dropdownLab" class="hidden absolute left-0 z-30 mt-2 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
-                    <div onclick="selectOption('selectedLab', 'labelLab', '', 'Semua Laboratorium')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == '' ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                    <div onclick="selectOption('selectedLab', 'labelLab', '', 'Semua Laboratorium')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == '' ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
                         Semua Laboratorium
                     </div>
                     @if(isset($laboratoriums))
@@ -75,7 +75,7 @@
                             @php
                                 $labLabel = $lab->nama_lab . ' (' . $lab->no_lab . ')';
                             @endphp
-                            <div onclick="selectOption('selectedLab', 'labelLab', '{{ $lab->no_lab }}', '{{ $labLabel }}')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == $lab->no_lab ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                            <div onclick="selectOption('selectedLab', 'labelLab', '{{ $lab->no_lab }}', '{{ $labLabel }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == $lab->no_lab ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
                                 {{ $labLabel }}
                             </div>
                         @endforeach
@@ -100,12 +100,12 @@
                     <svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg>
                 </button>
                 <div id="dropdownSoftware" class="hidden absolute left-0 z-30 mt-2 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
-                    <div onclick="selectOption('selectedSoftware', 'labelSoftware', '', 'Semua Software')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('software') == '' ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                    <div onclick="selectOption('selectedSoftware', 'labelSoftware', '', 'Semua Software')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('software') == '' ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
                         Semua Software
                     </div>
                     @if(isset($softwares))
                         @foreach($softwares as $sw)
-                            <div onclick="selectOption('selectedSoftware', 'labelSoftware', '{{ $sw->id_software }}', '{{ $sw->nama_software }}')" class="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('software') == $sw->id_software ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
+                            <div onclick="selectOption('selectedSoftware', 'labelSoftware', '{{ $sw->id_software }}', '{{ $sw->nama_software }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('software') == $sw->id_software ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
                                 {{ $sw->nama_software }}
                             </div>
                         @endforeach
@@ -119,8 +119,8 @@
                     Cari
                 </button>
                 @if(request('lab') || request('software') || request('search'))
-                    <a href="{{ route('instalasi.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/20" title="Reset Filter">
-                        Reset
+                    <a href="{{ route('instalasi.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/20" title="Atur Ulang Filter">
+                        Atur Ulang
                     </a>
                 @endif
             </div>
@@ -152,7 +152,7 @@
                                         {{ substr($item->software->nama_software ?? 'SW', 0, 2) }}
                                     </div>
                                     <div>
-                                        <div class="text-sm font-bold text-slate-950">{{ $item->software->nama_software ?? 'Unknown Software' }}</div>
+                                        <div class="text-sm font-bold text-slate-950">{{ $item->software->nama_software ?? 'Software Tidak Diketahui' }}</div>
                                         <div class="flex items-center gap-2 mt-0.5">
                                             <span class="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-700 ring-1 ring-inset ring-slate-600/10">
                                                 v{{ $item->versi_terinstall }}
@@ -305,40 +305,60 @@
                 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pilih Software *</label>
-                    <select name="id_software" id="modal_id_software" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                        <option value="">-- Pilih Software --</option>
-                        @foreach($softwares as $sw)
-                            <option value="{{ $sw->id_software }}" data-versi="{{ is_array($sw->versi) ? implode(',', $sw->versi) : ($sw->versi ?? $sw->versi_software ?? '') }}">
-                                {{ $sw->nama_software }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select name="id_software" id="modal_id_software"
+                            class="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-sm"
+                            required>
+                            <option value="">-- Pilih Software --</option>
+                            @foreach($softwares as $sw)
+                                <option value="{{ $sw->id_software }}" data-versi="{{ is_array($sw->versi) ? implode(',', $sw->versi) : ($sw->versi ?? $sw->versi_software ?? '') }}">
+                                    {{ $sw->nama_software }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                        </span>
+                    </div>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Versi Terinstall *</label>
-                    <select name="versi_terinstall" id="modal_versi_terinstall" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                        <option value="">-- Pilih Versi --</option>
-                    </select>
+                    <div class="relative">
+                        <select name="versi_terinstall" id="modal_versi_terinstall"
+                            class="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-sm"
+                            required>
+                            <option value="">-- Pilih Versi --</option>
+                        </select>
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                        </span>
+                    </div>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Laboratorium *</label>
-                    <select name="no_lab" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                        <option value="">-- Pilih Laboratorium --</option>
-                        @foreach($laboratoriums as $lab)
-                            <option value="{{ $lab->no_lab }}">{{ $lab->nama_lab }} ({{ $lab->no_lab }})</option>
-                        @endforeach
-                    </select>
+                    <x-custom-select
+                        name="no_lab"
+                        label="-- Pilih Laboratorium --"
+                        :selected="''"
+                        :options="array_merge(
+                            [['value' => '', 'label' => '-- Pilih Laboratorium --']],
+                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->nama_lab . ' (' . $l->no_lab . ')'])->toArray()
+                        )" />
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Lisensi *</label>
-                    <select name="status_lisensi" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                        <option value="license_active">License Active (Berbayar/Subs)</option>
-                        <option value="free_license">Free License (Gratis/Open Source)</option>
-                        <option value="license_expired">License Expired</option>
-                    </select>
+                    <x-custom-select
+                        name="status_lisensi"
+                        label="Pilih Status"
+                        :selected="'license_active'"
+                        :options="[
+                            ['value' => 'license_active',  'label' => 'Lisensi Aktif (Berbayar/Subs)'],
+                            ['value' => 'free_license',    'label' => 'Lisensi Gratis (Open Source)'],
+                            ['value' => 'license_expired', 'label' => 'Lisensi Kedaluwarsa'],
+                        ]" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -424,7 +444,7 @@
         } else {
             const opt = document.createElement('option');
             opt.value = "Default";
-            opt.textContent = "Default / Tidak Ada Informasi Versi";
+            opt.textContent = "Bawaan / Tidak Ada Informasi Versi";
             versiSelect.appendChild(opt);
         }
     });

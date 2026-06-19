@@ -16,7 +16,7 @@
 
     $maxPengajuan = max($totalPengajuan ?? 0, $menungguInstalasi ?? 0, $pengajuanDisetujui ?? 0, $pengajuanDitolak ?? 0, 1);
     $chartRows = [
-        ['label' => 'Pending', 'value' => $menungguInstalasi ?? 0, 'color' => 'bg-amber-500'],
+        ['label' => 'Menunggu', 'value' => $menungguInstalasi ?? 0, 'color' => 'bg-amber-500'],
         ['label' => 'Disetujui', 'value' => $pengajuanDisetujui ?? 0, 'color' => 'bg-emerald-500'],
         ['label' => 'Ditolak', 'value' => $pengajuanDitolak ?? 0, 'color' => 'bg-red-500'],
         ['label' => 'Progress', 'value' => $sedangDiinstal ?? 0, 'color' => 'bg-blue-500'],
@@ -28,7 +28,7 @@
         <div class="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_320px] lg:items-center">
             <div>
                 <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
-                    {{ ucfirst($role) }} Workspace
+                    Halaman Kerja {{ ucfirst($role) }}
                 </div>
                 <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
                     Selamat datang, {{ $user->nama ?? ucfirst($role) }}
@@ -125,29 +125,6 @@
             </div>
         </section>
     @elseif($role === 'admin')
-        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-500">Total Instalasi</p>
-                <p class="mt-3 text-3xl font-black text-slate-950">{{ $adminTotalInstalasi ?? 0 }}</p>
-                <p class="mt-3 text-sm text-slate-500">Ditugaskan ke Anda</p>
-            </article>
-            <article class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-emerald-700">Instalasi Selesai</p>
-                <p class="mt-3 text-3xl font-black text-emerald-950">{{ $adminInstalasiSelesai ?? 0 }}</p>
-                <p class="mt-3 text-sm text-emerald-700">Status terinstal</p>
-            </article>
-            <article class="rounded-2xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-blue-700">Instalasi Berjalan</p>
-                <p class="mt-3 text-3xl font-black text-blue-950">{{ $adminInstalasiBerjalan ?? 0 }}</p>
-                <p class="mt-3 text-sm text-blue-700">Sedang diproses</p>
-            </article>
-            <article class="rounded-2xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-amber-700">Instalasi Pending</p>
-                <p class="mt-3 text-3xl font-black text-amber-950">{{ $adminInstalasiPending ?? 0 }}</p>
-                <p class="mt-3 text-sm text-amber-700">Menunggu update</p>
-            </article>
-        </section>
-
         <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr]">
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 class="text-lg font-black text-slate-950">Progress Instalasi Terbaru</h3>
@@ -187,29 +164,6 @@
             </div>
         </section>
     @else
-        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-500">Total Pengajuan</p>
-                <p class="mt-3 text-3xl font-black text-slate-950">{{ $dosenTotalPengajuan ?? 0 }}</p>
-                <p class="mt-3 text-sm text-slate-500">Pengajuan Anda</p>
-            </article>
-            <article class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-emerald-700">Disetujui</p>
-                <p class="mt-3 text-3xl font-black text-emerald-950">{{ $dosenPengajuanDisetujui ?? 0 }}</p>
-                <p class="mt-3 text-sm text-emerald-700">Siap diproses admin</p>
-            </article>
-            <article class="rounded-2xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-amber-700">Pending</p>
-                <p class="mt-3 text-3xl font-black text-amber-950">{{ $dosenPengajuanPending ?? 0 }}</p>
-                <p class="mt-3 text-sm text-amber-700">Menunggu supervisor</p>
-            </article>
-            <article class="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-red-700">Ditolak</p>
-                <p class="mt-3 text-3xl font-black text-red-950">{{ $dosenPengajuanDitolak ?? 0 }}</p>
-                <p class="mt-3 text-sm text-red-700">Perlu revisi</p>
-            </article>
-        </section>
-
         <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_0.85fr]">
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

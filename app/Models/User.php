@@ -34,7 +34,8 @@ class User extends Authenticatable
         'email',
         'password',
         'no_hp',
-        'role'
+        'role',
+        'is_first_login',
     ];
 
     /**
@@ -61,31 +62,32 @@ class User extends Authenticatable
     }
 
     /**
-     * Mutator untuk otomatis membuat huruf pertama menjadi kapital saat menyimpan data nama
+     * Mutator untuk otomatis membuat huruf pertama menjadi kapital saat menyimpan data nama.
+     * Menerima null agar dosen bisa dibuat tanpa nama (dilengkapi saat first login).
      */
     protected function nama(): Attribute
     {
         return Attribute::make(
-            set: fn (string $value) => ucwords(strtolower($value)),
+            set: fn (?string $value) => $value !== null ? ucwords(strtolower($value)) : null,
         );
     }
 
-    // Relasi balik: Seorang Dosen bisa memiliki banyak data Pengajuan
+    // PERBAIKAN: Tambahkan parameter ketiga 'no_induk' agar relasi tidak mencari kolom 'id'
     public function pengajuans()
     {
-        return $this->hasMany(Pengajuan::class, 'user_id');
+        return $this->hasMany(Pengajuan::class, 'user_id', 'no_induk');
     }
 
-    // Relasi balik penugasan: Seorang Admin bisa memiliki banyak tugas Pengajuan
+    // PERBAIKAN: Tambahkan parameter ketiga 'no_induk' agar relasi tidak mencari kolom 'id'
     public function tugasInstalasi()
     {
-        return $this->hasMany(Pengajuan::class, 'tugaskan_admin');
+        return $this->hasMany(Pengajuan::class, 'tugaskan_admin', 'no_induk');
     }
 
-    // Relasi penanggung jawab: Seorang Admin bisa mengelola beberapa ruang Laboratorium
+    // PERBAIKAN UTAMA: Tambahkan parameter ketiga 'no_induk' agar status kepengurusan lab muncul di view
     public function laboratoriums()
     {
-        return $this->hasMany(Laboratorium::class, 'user_id');
+        return $this->hasMany(Laboratorium::class, 'user_id', 'no_induk');
     }
 
     // Untuk melacak riwayat instalasi apa saja yang pernah dikerjakan oleh admin ini

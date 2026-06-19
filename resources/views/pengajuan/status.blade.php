@@ -4,10 +4,21 @@
 <div class="w-full px-4 py-4 sm:px-6 lg:px-8">
     
     <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-col">
-            <span class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Dashboard / Status Pengajuan</span>
-            <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Status Pengajuan Software</h2>
-            <p class="mt-2 text-sm text-slate-500">Menampilkan data pelacakan rekam jejak persetujuan serta proses instalasi sistem laboratorium Anda.</p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col">
+                <span class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Dashboard / Status Pengajuan</span>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Status Pengajuan Software</h2>
+                <p class="mt-2 text-sm text-slate-500">Menampilkan data pelacakan rekam jejak persetujuan serta proses instalasi sistem laboratorium Anda.</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('pengajuan.create') }}" 
+                   class="inline-flex items-center justify-center rounded-xl bg-blue-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Buat Pengajuan
+                </a>
+            </div>
         </div>
     </div>
 
@@ -54,13 +65,28 @@
                                         <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-600">
                                             Menunggu
                                         </span>
-                                    @elseif($p->status_persetujuan == 'disetujui')
-                                        <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
-                                            Disetujui
-                                        </span>
-                                    @else
+                                    @elseif($p->status_persetujuan == 'ditolak')
                                         <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
                                             Ditolak
+                                        </span>
+                                    @elseif($p->status_progress === 'terinstal' && $p->status_verifikasi === 'disetujui')
+                                        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                            Terinstal
+                                        </span>
+                                    @elseif($p->status_progress === 'gagal_terinstal')
+                                        <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
+                                            Gagal Terinstal
+                                        </span>
+                                    @elseif($p->status_verifikasi === 'menunggu')
+                                        <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-600">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            Menunggu Verif.
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                            Diproses
                                         </span>
                                     @endif
                                 </td>

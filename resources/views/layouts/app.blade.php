@@ -27,7 +27,7 @@
     $activeItem = 'border border-blue-100 bg-blue-50 text-blue-950 shadow-sm';
 
     $menuItems = [
-        ['label' => 'Home', 'route' => 'dashboard', 'href' => route('dashboard'), 'icon' => 'home'],
+        ['label' => 'Beranda', 'route' => 'dashboard', 'href' => route('dashboard'), 'icon' => 'home'],
     ];
 
     if ($role === 'supervisor') {
@@ -36,8 +36,8 @@
             ['label' => 'Pengajuan', 'route' => 'supervisor.pengajuan.*', 'href' => route('supervisor.pengajuan.index'), 'icon' => 'request'],
             ['label' => 'Update Pengerjaan', 'route' => 'admin.tugas.*', 'href' => route('admin.tugas.index'), 'icon' => 'refresh'],
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
-            ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
-            ['label' => 'User Manager', 'route' => 'users.*', 'href' => route('users.index'), 'icon' => 'users'],
+            ['label' => 'Pelacak Lisensi', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
+            ['label' => 'Kelola Pengguna', 'route' => 'users.*', 'href' => route('users.index'), 'icon' => 'users'],
             ['label' => 'Manajemen Lab', 'route' => 'labs.*', 'href' => route('labs.index'), 'icon' => 'building'],
         ]);
     } elseif ($role === 'admin') {
@@ -45,23 +45,23 @@
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
             
-            // 1. KITA UBAH BARIS INI AGAR MENGARAH KE DATA PROGRESS (SAMA SEPERTI SUPERVISOR)
+            // 1. MENGARAH KE DATA PROGRESS 
             ['label' => 'Update Pengerjaan', 'route' => 'admin.tugas.*', 'href' => route('admin.tugas.index'), 'icon' => 'refresh'],
             
-            // 2. KITA TAMBAHKAN MENU BARU KHUSUS UNTUK DATA YANG SUDAH SELESAI/GAGAL (Tugas yang sudah lewat)
+            // 2. DATA YANG SUDAH SELESAI/GAGAL 
             ['label' => 'Riwayat Penyelesaian', 'route' => 'admin.penyelesaian.*', 'href' => route('admin.penyelesaian.index'), 'icon' => 'status'],
             
-            ['label' => 'License Tracker', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
+            ['label' => 'Pelacak Lisensi', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
+            
+            // 3. TAMBAHAN MENU MANAJEMEN LAB UNTUK ADMIN
+            ['label' => 'Manajemen Lab', 'route' => 'labs.*', 'href' => route('labs.index'), 'icon' => 'building'],
         ]);
    } elseif ($role === 'dosen') {
         $menuItems = array_merge($menuItems, [
             ['label' => 'List Software', 'route' => 'softwares.*', 'href' => route('softwares.index'), 'icon' => 'list'],
             
-            // Mengarah ke form input langsung
-            ['label' => 'Pengajuan', 'route' => 'pengajuan.index', 'href' => route('pengajuan.create'), 'icon' => 'request'],
-            
             // Mengarah ke halaman list tracking approval dari SPV
-            ['label' => 'Status Pengajuan', 'route' => 'pengajuan.status', 'href' => route('pengajuan.status'), 'icon' => 'status'],
+            ['label' => 'Pengajuan', 'route' => 'pengajuan.status', 'href' => route('pengajuan.status'), 'icon' => 'plus'],
             
             // Mengarah ke tabel horizontal riwayat pengajuan milik dosen
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
@@ -80,6 +80,7 @@
             'users' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20a8 8 0 0116 0"></path></svg>',
             'building' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 7h1M9 11h1M9 15h1M14 7h1M14 11h1M14 15h1M3 21h18"></path></svg>',
             'status' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7M4 4h16v16H4z"></path></svg>',
+            'plus' => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>',
             default => '<svg class="'.$class.'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>',
         };
     };
@@ -127,10 +128,17 @@
                     </summary>
                     <div class="mt-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                         <p class="truncate px-3 py-2 text-xs text-slate-500">{{ $user->email }}</p>
+                        @if($role === 'dosen' || $role === 'user')
+                        <div class="px-1 pb-1">
+                            <button type="button" onclick="document.getElementById('modal-ubah-password').classList.remove('hidden')" class="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
+                                Ubah Password
+                            </button>
+                        </div>
+                        @endif
                         <form action="{{ route('logout') }}" method="POST" class="px-1 pb-1">
                             @csrf
                             <button type="submit" class="flex w-full items-center justify-center rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-rose-700">
-                                Logout
+                                Keluar
                             </button>
                         </form>
                     </div>
@@ -172,5 +180,137 @@
         </main>
     </div>
 </div>
+
+<!-- Modal Ubah Password -->
+<div id="modal-ubah-password" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/50 backdrop-blur-sm transition-all">
+    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+        <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                    </div>
+                    <div class="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-lg font-black leading-6 text-slate-900" id="modal-title">Ubah Password</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-slate-500">Perbarui password Anda secara berkala untuk menjaga keamanan akun.</p>
+                            
+                            <form action="{{ route('password.update') }}" method="POST" class="mt-4 space-y-4">
+                                @csrf
+                                @method('PUT')
+                                
+                                <div>
+                                    <label for="current_password" class="block text-sm font-bold text-slate-700">Password Saat Ini</label>
+                                    <input type="password" name="current_password" id="current_password" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="new_password" class="block text-sm font-bold text-slate-700">Password Baru</label>
+                                    <input type="password" name="new_password" id="new_password" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <p class="mt-1 text-xs text-slate-500">Minimal 6 karakter.</p>
+                                </div>
+                                
+                                <div>
+                                    <label for="new_password_confirmation" class="block text-sm font-bold text-slate-700">Konfirmasi Password Baru</label>
+                                    <input type="password" name="new_password_confirmation" id="new_password_confirmation" required class="mt-1 block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+
+                                <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                                    <button type="button" onclick="document.getElementById('modal-ubah-password').classList.add('hidden')" class="inline-flex w-full justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-base font-bold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto sm:text-sm">Batal</button>
+                                    <button type="submit" class="inline-flex w-full justify-center rounded-xl border border-transparent bg-blue-600 px-4 py-2 text-base font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto sm:text-sm">Simpan Password</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if(session('password_success'))
+<script>
+    alert("{{ session('password_success') }}");
+</script>
+@endif
+@if(session('password_error'))
+<script>
+    alert("{{ session('password_error') }}");
+    document.getElementById('modal-ubah-password').classList.remove('hidden');
+</script>
+@endif
+@if(session('password_error'))
+<script>
+    alert("{{ session('password_error') }}");
+    document.getElementById('modal-ubah-password').classList.remove('hidden');
+</script>
+@endif
+@if($errors->has('new_password'))
+<script>
+    alert("{{ $errors->first('new_password') }}");
+    document.getElementById('modal-ubah-password').classList.remove('hidden');
+</script>
+@endif
+
+<script>
+/* =====================================================
+   CUSTOM SELECT GLOBAL — dipakai oleh semua halaman
+   yang menggunakan komponen custom-select
+   ===================================================== */
+function toggleCustomSelect(uid) {
+    const menu    = document.getElementById('menu_' + uid);
+    const chevron = document.getElementById('chevron_' + uid);
+    const isOpen  = !menu.classList.contains('hidden');
+
+    // Tutup semua dropdown lain dulu
+    document.querySelectorAll('[id^="menu_"]').forEach(m => {
+        if (m.id !== 'menu_' + uid) {
+            m.classList.add('hidden');
+            const c = document.getElementById(m.id.replace('menu_', 'chevron_'));
+            if (c) c.classList.remove('rotate-180');
+        }
+    });
+
+    menu.classList.toggle('hidden', isOpen);
+    chevron.classList.toggle('rotate-180', !isOpen);
+}
+
+function pickCustomSelect(uid, value, label, autosubmit) {
+    document.getElementById('val_'     + uid).value    = value;
+    document.getElementById('lbl_'     + uid).textContent = label;
+    document.getElementById('menu_'    + uid).classList.add('hidden');
+    document.getElementById('chevron_' + uid).classList.remove('rotate-180');
+
+    // Tandai item aktif secara visual
+    const menu = document.getElementById('menu_' + uid);
+    menu.querySelectorAll('[onclick]').forEach(el => {
+        const isThis = el.getAttribute('onclick').includes("'" + value + "'");
+        el.classList.toggle('bg-blue-50',    isThis);
+        el.classList.toggle('text-blue-700', isThis);
+        el.classList.toggle('font-bold',     isThis);
+        el.classList.toggle('text-slate-700',!isThis);
+        el.classList.toggle('font-semibold', !isThis);
+    });
+
+    if (autosubmit) {
+        // Cari form terdekat dan submit
+        const input = document.getElementById('val_' + uid);
+        const form  = input ? input.closest('form') : null;
+        if (form) form.submit();
+    }
+}
+
+// Tutup semua dropdown saat klik di luar
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown-wrapper')) {
+        document.querySelectorAll('[id^="menu_"]').forEach(m => {
+            m.classList.add('hidden');
+            const c = document.getElementById(m.id.replace('menu_', 'chevron_'));
+            if (c) c.classList.remove('rotate-180');
+        });
+    }
+});
+</script>
+
 </body>
 </html>

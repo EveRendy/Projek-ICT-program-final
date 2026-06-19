@@ -16,7 +16,8 @@ class Pengajuan extends Model
         'mata_kuliah',
         'kelompok_matkul',
         'user_id',
-        'laboratorium_id',
+        'lab_ids',
+        'level_akses',
         'software_id',
         'versi_requested',
         'software_lain',
@@ -28,13 +29,18 @@ class Pengajuan extends Model
         'status_progress',
         'dokumentasi',
         'catatan_admin',
+        'foto_bukti',
+        'status_verifikasi',
+        'catatan_penolakan_foto',
     ];
 
     /**Supaya tanggal otomatis dibaca sebagai object date */
     protected $casts = [
         'tgl_pengajuan' => 'date',
         'tgl_penugasan' => 'date',
+        'lab_ids'       => 'array', // <-- Ditambahkan agar Laravel otomatis mengubah JSON menjadi Array
     ];
+    
     /**
      * ==========================================
      * RELASI ANTAR MODEL / TABEL
@@ -47,11 +53,14 @@ class Pengajuan extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi ke Laboratorium (Lab tujuan instalasi)
-    public function laboratorium()
+    // --- DIUBAH ---
+    // Karena lab_ids sekarang berupa array/JSON, kita tidak bisa memakai belongsTo biasa.
+    // Fungsi ini akan mengambil semua data Laboratorium yang ID-nya ada di dalam array lab_ids.
+    public function getLaboratoriums()
     {
-        return $this->belongsTo(Laboratorium::class, 'laboratorium_id');
+        return Laboratorium::whereIn('id', $this->lab_ids ?? [])->get();
     }
+    // --------------
 
     // Relasi ke Software (Software master yang dipilih, jika ada)
     public function software()
@@ -65,6 +74,4 @@ class Pengajuan extends Model
         return $this->belongsTo(User::class, 'tugaskan_admin');
     }
 
-
-    
 }

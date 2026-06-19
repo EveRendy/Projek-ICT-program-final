@@ -6,7 +6,7 @@
         <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
             <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
             <span>/</span>
-            <a href="{{ route('softwares.index') }}" class="transition hover:text-blue-700">List Software</a>
+            <a href="{{ route('softwares.index') }}" class="transition hover:text-blue-700">Daftar Software</a>
             <span>/</span>
             <span class="text-slate-950">Edit</span>
         </nav>
@@ -32,7 +32,8 @@
 
             <div>
                 <label class="mb-2 block text-sm font-bold text-slate-700">ID Software</label>
-                <input type="text" name="id_software" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10" value="{{ $software->id_software }}" required>
+                <input type="text" name="id_software" class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-900 outline-none cursor-not-allowed" value="{{ $software->id_software }}" readonly>
+                <p class="mt-2 text-xs font-medium text-slate-500">ID Software tidak dapat diubah setelah dibuat</p>
             </div>
 
             <div>
@@ -48,11 +49,15 @@
 
             <div>
                 <label class="mb-2 block text-sm font-bold text-slate-700">Level Kompatibilitas Spek Lab</label>
-                <select name="keterangan" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10" required>
-                    <option value="1" {{ $software->keterangan == 1 ? 'selected' : '' }}>Level 1 - PC Spek Standar / Low</option>
-                    <option value="2" {{ $software->keterangan == 2 ? 'selected' : '' }}>Level 2 - PC Spek Menengah</option>
-                    <option value="3" {{ $software->keterangan == 3 ? 'selected' : '' }}>Level 3 - PC Spek Tinggi / Multimedia</option>
-                </select>
+                <x-custom-select
+                    name="keterangan"
+                    label="Pilih Level"
+                    :selected="old('keterangan', $software->keterangan)"
+                    :options="[
+                        ['value' => '1', 'label' => 'Level 1 — PC Spek Standar / Rendah'],
+                        ['value' => '2', 'label' => 'Level 2 — PC Spek Menengah'],
+                        ['value' => '3', 'label' => 'Level 3 — PC Spek Tinggi / Multimedia'],
+                    ]" />
             </div>
 
             <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">

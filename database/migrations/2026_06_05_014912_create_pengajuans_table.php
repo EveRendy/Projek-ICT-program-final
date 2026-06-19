@@ -21,7 +21,12 @@ return new class extends Migration
             $table->string('user_id', 20); // Dosen pengaju
             $table->foreign('user_id')->references('no_induk')->on('users')->onDelete('cascade');
             
-            $table->foreignId('laboratorium_id')->constrained('laboratoriums')->onDelete('cascade'); // Lab tujuan
+            // --- ATRIBUT YANG DIUBAH / DITAMBAHKAN ---
+            // Mengganti foreignId tunggal menjadi array (JSON) untuk checkbox multi-lab
+            $table->json('lab_ids'); 
+            // Menambahkan kolom level_akses hasil kalkulasi otomatis (Low/Medium/High)
+            $table->enum('level_akses', ['Low', 'Medium', 'High'])->nullable();
+            // -----------------------------------------
             
             // Relasi ke Software dibuat Nullable untuk mendukung fitur 'software_lain'
             $table->foreignId('software_id')->nullable()->constrained('software')->onDelete('set null'); 

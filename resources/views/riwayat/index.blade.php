@@ -42,11 +42,11 @@
             <p class="mt-2 text-3xl font-bold text-amber-600">{{ $summary['menunggu'] ?? 0 }}</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">On Progress</p>
+            <p class="text-sm font-medium text-slate-500">Sedang Diproses</p>
             <p class="mt-2 text-3xl font-bold text-blue-600">{{ $summary['progress'] ?? 0 }}</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">Selesai (Installed)</p>
+            <p class="text-sm font-medium text-slate-500">Selesai (Terinstal)</p>
             <p class="mt-2 text-3xl font-bold text-emerald-600">{{ $summary['selesai'] ?? 0 }}</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -73,23 +73,23 @@
                                 @php 
                                     $selectedLab = $list_laboratorium->firstWhere('id', request('laboratorium')); 
                                 @endphp
-                                {{ $selectedLab ? ($selectedLab->nama_lab ?? $selectedLab->nama ?? $selectedLab->nama_laboratorium ?? 'LAB ' . $selectedLab->id) : 'Semua Laboratorium' }}
+                                {{ $selectedLab ? ($selectedLab->no_lab ?? 'LAB ' . $selectedLab->id) : 'Semua Laboratorium' }}
                             @else
                                 Semua Laboratorium
                             @endif
                         </span>
                         <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div id="dropdownLab" class="hidden absolute left-0 z-30 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
+                    <div id="dropdownLab" class="hidden absolute left-0 z-30 mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
                         <div onclick="selectOption('selectedLaboratorium', 'labelLab', '', 'Semua Laboratorium')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition">
                             Semua Laboratorium
                         </div>
                         @if(isset($list_laboratorium))
                             @foreach($list_laboratorium as $lab)
                                 @php
-                                    $labName = $lab->nama_lab ?? $lab->nama ?? $lab->nama_laboratorium ?? 'LAB ' . $lab->id;
+                                    $labName = $lab->no_lab ?? 'LAB ' . $lab->id;
                                 @endphp
-                                <div onclick="selectOption('selectedLaboratorium', 'labelLab', '{{ $lab->id }}', '{{ $labName }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition {{ request('laboratorium') == $lab->id ? 'bg-blue-50 text-blue-700 font-bold' : '' }}">
+                                <div onclick="selectOption('selectedLaboratorium', 'labelLab', '{{ $lab->id }}', '{{ $labName }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition @if(request('laboratorium') == $lab->id) bg-blue-50 text-blue-700 font-bold @endif">
                                     {{ $labName }}
                                 </div>
                             @endforeach
@@ -112,7 +112,7 @@
                         </span>
                         <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div id="dropdownSoftware" class="hidden absolute left-0 z-30 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
+                    <div id="dropdownSoftware" class="hidden absolute left-0 z-30 mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
                         <div onclick="selectOption('selectedSoftware', 'labelSoftware', '', 'Semua Software')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition">
                             Semua Software
                         </div>
@@ -136,7 +136,7 @@
                 </button>
                 @if(request()->filled('search') || request()->filled('laboratorium') || request()->filled('software'))
                     <a href="{{ url()->current() }}" class="w-full md:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 text-center hover:bg-slate-100 transition">
-                        Reset
+                        Atur Ulang
                     </a>
                 @endif
             </div>
@@ -161,21 +161,24 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($pengajuans as $item)
                         @php
-                            // Logika pintar untuk membaca nama laboratorium agar tidak muncul "LAB -"
-                            $labDisplay = '-';
-                            if (is_string($item->laboratorium) && !empty($item->laboratorium)) {
-                                $labDisplay = $item->laboratorium;
-                            } elseif (optional($item->laboratorium)->nama_lab) {
-                                $labDisplay = $item->laboratorium->nama_lab;
-                            } elseif (!empty($item->nama_lab)) {
-                                $labDisplay = $item->nama_lab;
-                            } elseif (!empty($item->no_lab)) {
-                                $labDisplay = 'LAB ' . $item->no_lab;
-                            } elseif (!empty($item->laboratorium_id)) {
-                                $labDisplay = 'LAB ' . $item->laboratorium_id;
-                            } else {
-                                $labDisplay = 'Belum Ditentukan';
+                            // Logika baru untuk membaca multi-laboratorium (array lab_ids)
+                            $rawLabIds = $item->lab_ids;
+                            $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
+
+                            // Debug: Tampilkan struktur lab_ids untuk item pertama saja
+                            if ($loop->first) {
+                                // echo '<!-- DEBUG: lab_ids structure: ' . json_encode($rawLabIds) . ' -->';
+                                // echo '<!-- DEBUG: lab_ids array: ' . json_encode($labIdsArray) . ' -->';
+                                // echo '<!-- DEBUG: filter lab: ' . request('laboratorium') . ' -->';
                             }
+
+                            // Gunakan data list_laboratorium dari controller (sama dengan tugas.blade.php)
+                            $labNames = collect($list_laboratorium ?? [])
+                                ->whereIn('id', $labIdsArray)
+                                ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
+                                ->implode(', ');
+
+                            $labDisplay = $labNames ?: 'Belum Ditentukan';
                         @endphp
                         
                         <tr class="transition hover:bg-slate-50/50">
@@ -199,9 +202,9 @@
                                 </div>
                             </td>
 
-                            <td class="whitespace-nowrap px-6 py-4">
-                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
-                                    <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            <td class="px-6 py-4 min-w-[200px]">
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800 break-words line-clamp-2">
+                                    <svg class="h-3.5 w-3.5 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                     {{ $labDisplay }}
                                 </span>
                             </td>
@@ -327,6 +330,23 @@
                                                 <span class="text-xs font-semibold text-slate-400 italic">Belum ada link dokumentasi yang diunggah.</span>
                                             @endif
                                         </div>
+
+                                        {{-- Foto bukti instalasi — hanya tampil jika sudah diverifikasi supervisor --}}
+                                        @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
+                                            <hr class="border-slate-100">
+                                            <div>
+                                                <span class="block text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                                    Foto Bukti Instalasi (Terverifikasi)
+                                                </span>
+                                                <button type="button" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', true)" class="block w-full group">
+                                                    <img src="{{ asset('storage/' . $item->foto_bukti) }}"
+                                                         alt="Foto Bukti Instalasi"
+                                                         class="w-full max-h-48 object-cover rounded-xl border border-emerald-100 shadow-sm group-hover:opacity-90 transition cursor-zoom-in">
+                                                    <p class="text-center text-xs font-semibold text-slate-400 mt-1">Klik untuk perbesar</p>
+                                                </button>
+                                            </div>
+                                        @endif
                                         
                                         <hr class="border-slate-100">
                                         
@@ -356,6 +376,29 @@
                             </td>
                         </tr>
                     @endforelse
+
+                    {{-- Modal lihat foto full — di luar tbody, dirender per item --}}
+                    @foreach($pengajuans as $item)
+                        @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
+                        <tr class="hidden">
+                            <td>
+                                <div id="modalFotoRiwayat{{ $item->id }}" class="fixed inset-0 z-[60] hidden overflow-y-auto" role="dialog" aria-modal="true">
+                                    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', false)"></div>
+                                    <div class="flex min-h-full items-center justify-center p-4">
+                                        <div class="relative z-10 max-w-3xl w-full">
+                                            <button type="button" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', false)"
+                                                class="absolute -top-10 right-0 rounded-xl p-1.5 text-white hover:bg-white/20 transition">
+                                                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </button>
+                                            <img src="{{ asset('storage/' . $item->foto_bukti) }}" alt="Bukti Foto Instalasi"
+                                                 class="w-full rounded-2xl shadow-2xl border border-white/20">
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        @endif
+                    @endforeach
                 </tbody>
             </table>
         </div>

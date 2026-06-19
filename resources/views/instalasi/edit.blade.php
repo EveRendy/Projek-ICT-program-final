@@ -44,35 +44,39 @@
             
             <div class="space-y-1.5">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pilih Software *</label>
-                <select name="id_software" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                    <option value="">-- Pilih Software --</option>
-                    @foreach($softwares as $sw)
-                        <option value="{{ $sw->id_software }}" {{ $instalasi->id_software == $sw->id_software ? 'selected' : '' }}>
-                            {{ $sw->nama_software }}
-                        </option>
-                    @endforeach
-                </select>
+                <x-custom-select
+                    name="id_software"
+                    label="-- Pilih Software --"
+                    :selected="$instalasi->id_software"
+                    :options="array_merge(
+                        [['value' => '', 'label' => '-- Pilih Software --']],
+                        $softwares->map(fn($sw) => ['value' => $sw->id_software, 'label' => $sw->nama_software])->toArray()
+                    )" />
             </div>
 
             <div class="space-y-1.5">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Laboratorium *</label>
-                <select name="no_lab" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                    <option value="">-- Pilih Laboratorium --</option>
-                    @foreach($laboratoriums as $lab)
-                        <option value="{{ $lab->no_lab }}" {{ $instalasi->no_lab == $lab->no_lab ? 'selected' : '' }}>
-                            {{ $lab->nama_lab }} ({{ $lab->no_lab }})
-                        </option>
-                    @endforeach
-                </select>
+                <x-custom-select
+                    name="no_lab"
+                    label="-- Pilih Laboratorium --"
+                    :selected="$instalasi->no_lab"
+                    :options="array_merge(
+                        [['value' => '', 'label' => '-- Pilih Laboratorium --']],
+                        $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->nama_lab . ' (' . $l->no_lab . ')'])->toArray()
+                    )" />
             </div>
 
             <div class="space-y-1.5">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Lisensi *</label>
-                <select name="status_lisensi" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10" required>
-                    <option value="license_active" {{ $instalasi->status_lisensi == 'license_active' ? 'selected' : '' }}>License Active (Berbayar/Subs)</option>
-                    <option value="free_license" {{ $instalasi->status_lisensi == 'free_license' ? 'selected' : '' }}>Free License (Gratis/Open Source)</option>
-                    <option value="license_expired" {{ $instalasi->status_lisensi == 'license_expired' ? 'selected' : '' }}>License Expired (Kedaluwarsa)</option>
-                </select>
+                <x-custom-select
+                    name="status_lisensi"
+                    label="Pilih Status"
+                    :selected="$instalasi->status_lisensi"
+                    :options="[
+                        ['value' => 'license_active',  'label' => 'Lisensi Aktif (Berbayar/Subs)'],
+                        ['value' => 'free_license',    'label' => 'Lisensi Gratis (Open Source)'],
+                        ['value' => 'license_expired', 'label' => 'Lisensi Kedaluwarsa'],
+                    ]" />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

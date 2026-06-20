@@ -66,7 +66,7 @@
                         [['value' => '', 'label' => '-- Pilih Ruang Lab --']],
                         $laboratoriums->map(fn($lab) => [
                             'value' => (string) $lab->id,
-                            'label' => $lab->no_lab . ' (Spesifikasi Level ' . $lab->level . ')',
+                            'label' => $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : '') . ' (Spesifikasi Level ' . $lab->level . ')',
                         ])->toArray()
                     )" />
             </label>

@@ -128,6 +128,23 @@ class UserController extends Controller
 
         if ($request->role === 'admin' && $request->laboratorium_id) {
             Laboratorium::where('id', $request->laboratorium_id)->update(['user_id' => $user->no_induk]);
+            
+            // Otomatis tugaskan pengajuan yang sudah disetujui ke admin baru
+            $pengajuans = \App\Models\Pengajuan::where('status_persetujuan', 'disetujui')
+                ->whereNull('tugaskan_admin')
+                ->get()
+                ->filter(function($pengajuan) use ($request) {
+                    $labIds = is_string($pengajuan->lab_ids) ? json_decode($pengajuan->lab_ids, true) : $pengajuan->lab_ids;
+                    return in_array($request->laboratorium_id, $labIds ?? []);
+                });
+
+            foreach ($pengajuans as $pengajuan) {
+                $pengajuan->update([
+                    'tugaskan_admin'  => $user->no_induk,
+                    'tgl_penugasan'   => now()->toDateString(),
+                    'status_progress' => 'progress',
+                ]);
+            }
         }
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
@@ -194,6 +211,23 @@ class UserController extends Controller
             Laboratorium::where('user_id', $user->no_induk)->update(['user_id' => null]);
             if ($request->laboratorium_id) {
                 Laboratorium::where('id', $request->laboratorium_id)->update(['user_id' => $user->no_induk]);
+                
+                // Otomatis tugaskan pengajuan yang sudah disetujui ke admin baru
+                $pengajuans = \App\Models\Pengajuan::where('status_persetujuan', 'disetujui')
+                    ->whereNull('tugaskan_admin')
+                    ->get()
+                    ->filter(function($pengajuan) use ($request) {
+                        $labIds = is_string($pengajuan->lab_ids) ? json_decode($pengajuan->lab_ids, true) : $pengajuan->lab_ids;
+                        return in_array($request->laboratorium_id, $labIds ?? []);
+                    });
+
+                foreach ($pengajuans as $pengajuan) {
+                    $pengajuan->update([
+                        'tugaskan_admin'  => $user->no_induk,
+                        'tgl_penugasan'   => now()->toDateString(),
+                        'status_progress' => 'progress',
+                    ]);
+                }
             }
         } else {
             Laboratorium::where('user_id', $user->no_induk)->update(['user_id' => null]);

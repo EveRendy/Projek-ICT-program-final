@@ -79,13 +79,13 @@
                         :autosubmit="true"
                         :options="array_merge(
                             [['value' => '', 'label' => 'Semua Laboratorium']],
-                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab])->toArray()
+                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
                         )" />
 
                     {{-- Proteksi Tombol Cetak dari Sisi UI --}}
                     @if($canPrint)
                         @if(request()->filled('laboratorium'))
-                            <a href="{{ route('cetak.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak PDF Lab {{ request('laboratorium') }}">
+                            <a href="{{ route('preview.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak/Pratinjau Laporan Lab {{ request('laboratorium') }}">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                 </svg>
@@ -175,7 +175,14 @@
                             <td class="px-5 py-4">
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
                                     @if($item->instalasis && $item->instalasis->count() > 0)
-                                        Terpasang di: {{ implode(', ', $item->instalasis->pluck('no_lab')->unique()->toArray()) }}
+                                        @php
+                                            $labList = $item->instalasis->pluck('no_lab')->unique();
+                                            $labListWithName = $labList->map(function($no_lab) use ($laboratoriums) {
+                                                $lab = $laboratoriums->firstWhere('no_lab', $no_lab);
+                                                return $no_lab . ($lab && $lab->nama_lab ? ' : ' . $lab->nama_lab : '');
+                                            })->toArray();
+                                        @endphp
+                                        Terpasang di: {{ implode(', ', $labListWithName) }}
                                     @else
                                         Belum Terinstal di Lab Manapun
                                     @endif

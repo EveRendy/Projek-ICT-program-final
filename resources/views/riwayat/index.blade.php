@@ -87,7 +87,7 @@
                         @if(isset($list_laboratorium))
                             @foreach($list_laboratorium as $lab)
                                 @php
-                                    $labName = $lab->no_lab ?? 'LAB ' . $lab->id;
+                                    $labName = $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : '');
                                 @endphp
                                 <div onclick="selectOption('selectedLaboratorium', 'labelLab', '{{ $lab->id }}', '{{ $labName }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition @if(request('laboratorium') == $lab->id) bg-blue-50 text-blue-700 font-bold @endif">
                                     {{ $labName }}
@@ -169,13 +169,12 @@
                             if ($loop->first) {
                                 // echo '<!-- DEBUG: lab_ids structure: ' . json_encode($rawLabIds) . ' -->';
                                 // echo '<!-- DEBUG: lab_ids array: ' . json_encode($labIdsArray) . ' -->';
-                                // echo '<!-- DEBUG: filter lab: ' . request('laboratorium') . ' -->';
                             }
 
                             // Gunakan data list_laboratorium dari controller (sama dengan tugas.blade.php)
                             $labNames = collect($list_laboratorium ?? [])
                                 ->whereIn('id', $labIdsArray)
-                                ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
+                                ->map(fn($l) => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : ''))
                                 ->implode(', ');
 
                             $labDisplay = $labNames ?: 'Belum Ditentukan';

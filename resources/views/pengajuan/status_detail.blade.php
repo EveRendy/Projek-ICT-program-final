@@ -57,7 +57,7 @@
                         <strong class="font-bold text-slate-900">
                             @if(isset($laboratoriums) && $laboratoriums->count() > 0)
                                 @foreach($laboratoriums as $lab)
-                                    Ruang {{ $lab->no_lab ?? '-' }} — {{ $lab->nama_lab }}@if(!$loop->last), @endif
+                                    {{ $lab->no_lab ?? '-' }}{{ $lab->nama_lab ? ' : ' . $lab->nama_lab : '' }}@if(!$loop->last), @endif
                                 @endforeach
                             @else
                                 <span class="italic text-slate-500">Tidak ada lab spesifik</span>

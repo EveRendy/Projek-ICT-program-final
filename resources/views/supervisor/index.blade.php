@@ -64,196 +64,7 @@
         </div>
     @endif
 
-    {{-- ===================================================================
-         SECTION: VERIFIKASI FOTO BUKTI INSTALASI
-         Muncul hanya jika ada foto yang menunggu verifikasi
-    =================================================================== --}}
-    @if(isset($tugasVerifikasiFoto) && $tugasVerifikasiFoto->count() > 0)
-    <div class="overflow-hidden rounded-2xl border-2 border-amber-200 bg-white shadow-sm">
-        <div class="bg-amber-50 px-6 py-4 border-b border-amber-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="rounded-xl bg-amber-500 p-2 text-white">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="font-extrabold text-amber-900 text-sm">Verifikasi Foto Bukti Instalasi</h3>
-                    <p class="text-xs text-amber-700 mt-0.5">{{ $tugasVerifikasiFoto->count() }} foto menunggu persetujuan Anda</p>
-                </div>
-            </div>
-            <span class="inline-flex items-center justify-center h-7 w-7 rounded-full bg-amber-500 text-white text-xs font-black animate-pulse">
-                {{ $tugasVerifikasiFoto->count() }}
-            </span>
-        </div>
-
-        <div class="divide-y divide-slate-100">
-            @foreach($tugasVerifikasiFoto as $foto)
-            <div class="p-5 flex flex-col lg:flex-row lg:items-start gap-5">
-
-                {{-- Foto bukti --}}
-                <div class="shrink-0 w-full lg:w-48">
-                    <button type="button" onclick="toggleModal('modalFotoLihat{{ $foto->id }}', true)" class="block w-full group">
-                        <img src="{{ asset('storage/' . $foto->foto_bukti) }}"
-                             alt="Foto Bukti Instalasi"
-                             class="w-full h-36 object-cover rounded-xl border border-slate-200 shadow-sm group-hover:opacity-90 transition cursor-zoom-in">
-                        <p class="text-center text-xs font-semibold text-slate-400 mt-1.5">Klik untuk perbesar</p>
-                    </button>
-                </div>
-
-                {{-- Info pengajuan --}}
-                <div class="flex-1 space-y-3">
-                    <div class="flex flex-wrap items-start gap-2">
-                        <span class="text-base font-extrabold text-slate-900 uppercase">
-                            {{ $foto->software_id ? $foto->software->nama_software : $foto->software_lain }}
-                        </span>
-                        <span class="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200">
-                            v{{ $foto->versi_requested ?? $foto->versi_lain ?? '-' }}
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Admin</span>
-                            <span class="font-semibold text-slate-700">
-                                @php
-                                    $adminUser = \App\Models\User::where('no_induk', $foto->tugaskan_admin)->first();
-                                @endphp
-                                {{ $adminUser->nama ?? $foto->tugaskan_admin }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Laboratorium</span>
-                            <span class="font-semibold text-slate-700">
-                                @php
-                                    $labIds = is_string($foto->lab_ids) ? json_decode($foto->lab_ids, true) : ($foto->lab_ids ?? []);
-                                    $labNama = \App\Models\Laboratorium::whereIn('id', $labIds)->get()->map(fn($l) => $l->nama_lab ?? $l->no_lab)->implode(', ');
-                                @endphp
-                                {{ $labNama ?: '-' }}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Dosen Pengaju</span>
-                            <span class="font-semibold text-slate-700">{{ $foto->dosen->nama ?? '-' }}</span>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Mata Kuliah</span>
-                            <span class="font-semibold text-slate-700">{{ $foto->mata_kuliah }} ({{ $foto->kelompok_matkul }})</span>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Tgl Ditugaskan</span>
-                            <span class="font-semibold text-slate-700">{{ $foto->tgl_penugasan ? \Carbon\Carbon::parse($foto->tgl_penugasan)->format('d M Y') : '-' }}</span>
-                        </div>
-                        @if($foto->dokumentasi)
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Link Dokumen</span>
-                            <a href="{{ $foto->dokumentasi }}" target="_blank" class="font-semibold text-blue-600 hover:underline flex items-center gap-1">
-                                <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                Buka
-                            </a>
-                        </div>
-                        @endif
-                    </div>
-
-                    @if($foto->catatan_admin)
-                    <div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 text-xs text-slate-600">
-                        <span class="font-bold text-slate-500">Catatan Admin:</span> {{ $foto->catatan_admin }}
-                    </div>
-                    @endif
-
-                    {{-- Tombol aksi verifikasi --}}
-                    <div class="flex flex-wrap gap-2 pt-1">
-                        <button type="button" onclick="toggleModal('modalApprove{{ $foto->id }}', true)"
-                            class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                            Setujui — Instalasi Selesai
-                        </button>
-                        <button type="button" onclick="toggleModal('modalTolakFoto{{ $foto->id }}', true)"
-                            class="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-rose-700">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            Tolak — Minta Unggah Ulang
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- MODAL LIHAT FOTO FULL --}}
-            <div id="modalFotoLihat{{ $foto->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-                <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="toggleModal('modalFotoLihat{{ $foto->id }}', false)"></div>
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div class="relative z-10 max-w-3xl w-full">
-                        <button type="button" onclick="toggleModal('modalFotoLihat{{ $foto->id }}', false)"
-                            class="absolute -top-10 right-0 rounded-xl p-1.5 text-white hover:bg-white/20 transition">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                        <img src="{{ asset('storage/' . $foto->foto_bukti) }}" alt="Foto Bukti Instalasi"
-                             class="w-full rounded-2xl shadow-2xl border border-white/20">
-                    </div>
-                </div>
-            </div>
-
-            {{-- MODAL KONFIRMASI SETUJUI FOTO --}}
-            <div id="modalApprove{{ $foto->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="toggleModal('modalApprove{{ $foto->id }}', false)"></div>
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div class="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
-                        <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-emerald-50">
-                            <div>
-                                <p class="text-xs font-bold uppercase tracking-wider text-emerald-600">Konfirmasi Verifikasi</p>
-                                <h3 class="text-base font-black text-slate-950">Setujui Foto Bukti?</h3>
-                            </div>
-                            <button type="button" onclick="toggleModal('modalApprove{{ $foto->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 transition">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                        <div class="px-6 py-4 text-sm text-slate-600">
-                            <p>Dengan menyetujui foto ini, status instalasi <strong class="text-slate-900">{{ $foto->software_id ? $foto->software->nama_software : $foto->software_lain }}</strong> akan diubah menjadi <strong class="text-emerald-700">Terinstal (Selesai)</strong>.</p>
-                        </div>
-                        <form action="{{ route('supervisor.foto.approve', $foto->id) }}" method="POST"
-                              class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-end gap-2">
-                            @csrf
-                            @method('PATCH')
-                            <button type="button" onclick="toggleModal('modalApprove{{ $foto->id }}', false)" class="rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
-                            <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700">Ya, Setujui</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            {{-- MODAL TOLAK FOTO --}}
-            <div id="modalTolakFoto{{ $foto->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="toggleModal('modalTolakFoto{{ $foto->id }}', false)"></div>
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div class="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
-                        <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
-                            <h3 class="text-base font-bold text-slate-950">Tolak Foto Bukti</h3>
-                            <button type="button" onclick="toggleModal('modalTolakFoto{{ $foto->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 transition">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                        <form action="{{ route('supervisor.foto.tolak', $foto->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div class="px-6 py-4 space-y-4">
-                                <p class="text-sm text-slate-600">Tuliskan alasan penolakan. Admin akan diminta untuk mengunggah ulang foto bukti.</p>
-                                <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Alasan Penolakan <span class="text-rose-500">*</span></label>
-                                    <textarea name="catatan_penolakan_foto" rows="4"
-                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-rose-400 focus:outline-none"
-                                        placeholder="Contoh: Foto tidak jelas, tidak terlihat nama software terinstal, foto tidak sesuai laboratorium yang diminta..." required></textarea>
-                                </div>
-                            </div>
-                            <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-end gap-2">
-                                <button type="button" onclick="toggleModal('modalTolakFoto{{ $foto->id }}', false)" class="rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
-                                <button type="submit" class="rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-rose-700">Tolak & Kirim Feedback</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
-    {{-- END SECTION VERIFIKASI FOTO --}}
+    {{-- VERIFIKASI FOTO DIHAPUS DARI SINI (Pindah ke Update Pengerjaan) --}}
 
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
@@ -293,7 +104,7 @@
                                 @endphp
 
                                 @if($labs && $labs->count() > 0)
-                                    {{ $labs->map(function($lab) { return $lab->nama_lab ?? $lab->no_lab; })->implode(', ') }}
+                                    {{ $labs->map(function($lab) { return $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : ''); })->implode(', ') }}
                                 @else
                                     <span class="italic text-slate-400">Tidak ada lab</span>
                                 @endif
@@ -434,6 +245,7 @@
                                                                 class="h-4 w-4 accent-blue-600 cursor-pointer"
                                                                 {{ $isChecked ? 'checked' : '' }} required>
                                                             <span class="text-xs font-bold text-slate-700">{{ $lab->no_lab }}</span>
+                                                            <span class="text-[10px] text-slate-500 font-medium">{{ $lab->nama_lab ?? '' }}</span>
                                                         </label>
                                                     @endforeach
                                                 </div>
@@ -593,7 +405,7 @@
                                 @endphp
 
                                 @if($labs && $labs->count() > 0)
-                                    {{ $labs->map(function($lab) { return $lab->nama_lab ?? $lab->no_lab; })->implode(', ') }}
+                                    {{ $labs->map(function($lab) { return $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : ''); })->implode(', ') }}
                                 @else
                                     <span class="italic text-slate-400">Tidak ada lab</span>
                                 @endif

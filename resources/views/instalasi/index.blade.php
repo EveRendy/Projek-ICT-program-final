@@ -59,7 +59,7 @@
                             @php 
                                 $selectedLab = $laboratoriums->firstWhere('no_lab', request('lab')); 
                             @endphp
-                            {{ $selectedLab ? ($selectedLab->nama_lab . ' (' . $selectedLab->no_lab . ')') : 'Semua Laboratorium' }}
+                            {{ $selectedLab ? ($selectedLab->no_lab . ($selectedLab->nama_lab ? ' : ' . $selectedLab->nama_lab : '')) : 'Semua Laboratorium' }}
                         @else
                             Semua Laboratorium
                         @endif
@@ -73,7 +73,7 @@
                     @if(isset($laboratoriums))
                         @foreach($laboratoriums as $lab)
                             @php
-                                $labLabel = $lab->nama_lab . ' (' . $lab->no_lab . ')';
+                                $labLabel = $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : '');
                             @endphp
                             <div onclick="selectOption('selectedLab', 'labelLab', '{{ $lab->no_lab }}', '{{ $labLabel }}')" class="cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold transition {{ request('lab') == $lab->no_lab ? 'bg-slate-100 text-slate-900 font-bold' : '' }}">
                                 {{ $labLabel }}
@@ -162,8 +162,8 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-slate-600 font-medium">
-                                {{ $item->laboratorium->nama_lab ?? '' . $item->no_lab }}
+                            <td class="px-6 py-4">
+                                <div class="text-xs font-bold text-slate-800">{{ $item->no_lab }}{{ $item->laboratorium->nama_lab ? ' : ' . $item->laboratorium->nama_lab : '' }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-slate-900 font-medium">{{ $item->teknisi->name ?? 'Admin' }}</div>
@@ -344,7 +344,7 @@
                         :selected="''"
                         :options="array_merge(
                             [['value' => '', 'label' => '-- Pilih Laboratorium --']],
-                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->nama_lab . ' (' . $l->no_lab . ')'])->toArray()
+                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
                         )" />
                 </div>
 

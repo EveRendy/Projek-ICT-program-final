@@ -73,7 +73,7 @@
                         <tr class="hover:bg-slate-50/50 transition">
                             <td class="px-6 py-4">
                                 <div class="text-sm font-bold text-slate-950">{{ $lab->no_lab }}</div>
-                                <div class="text-xs font-medium text-slate-400">Ruang laboratorium</div>
+                                <div class="text-xs font-medium text-slate-500">{{ $lab->nama_lab ?? 'Laboratorium' }}</div>
                             </td>
 
                             @if(auth()->user()->role === 'supervisor')
@@ -191,6 +191,7 @@
                                                     <div>
                                                         <p class="text-xs font-bold uppercase tracking-wider text-amber-600">Menunggu Persetujuan</p>
                                                         <h3 class="text-lg font-black text-slate-950">Detail Lab {{ $lab->no_lab }}</h3>
+                                                        <p class="text-sm text-slate-500">{{ $lab->nama_lab ?? 'Laboratorium ICT Terpadu' }}</p>
                                                     </div>
                                                     <button type="button" onclick="toggleModal('modalDetailLab{{ $lab->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 transition">
                                                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -204,7 +205,8 @@
                                                     <div class="grid grid-cols-3 gap-3">
                                                         <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
                                                             <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">No. Lab</span>
-                                                            <span class="text-base font-black text-slate-900">{{ $lab->no_lab }}</span>
+                                                            <div class="text-base font-black text-slate-900">{{ $lab->no_lab }}</div>
+                                                            <div class="text-[10px] text-slate-500 font-semibold">{{ $lab->nama_lab ?? 'Lab' }}</div>
                                                         </div>
                                                         <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
                                                             <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah PC</span>

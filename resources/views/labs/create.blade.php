@@ -54,10 +54,19 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label for="no_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nomor / Nama Lab</label>
+                    <label for="no_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nomor Lab <span class="text-red-500">*</span></label>
                     <input type="text" id="no_lab" name="no_lab" value="{{ old('no_lab') }}" required
                         class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                        placeholder="Contoh: LAB01">
+                        placeholder="Contoh: LAB01"
+                        oninput="this.value = this.value.replace(/\s/g, '').toUpperCase()"
+                        style="text-transform: uppercase; letter-spacing: 0.5px;">
+                    <p class="mt-1 text-xs text-slate-400">Otomatis kapital & tanpa spasi. Contoh: <strong>LAB01</strong>, <strong>LAB-TI</strong></p>
+                </div>
+                <div>
+                    <label for="nama_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nama Lab <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama_lab" name="nama_lab" value="{{ old('nama_lab') }}" required
+                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                        placeholder="Contoh: Laboratorium Teknik Informatika">
                 </div>
                 <div>
                     <label for="jumlah_pc" class="mb-2 block text-sm font-semibold text-slate-700">Jumlah PC</label>

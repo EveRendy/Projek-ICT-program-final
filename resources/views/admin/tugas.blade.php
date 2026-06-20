@@ -37,7 +37,7 @@
                         class="w-full sm:w-64"
                         :options="array_merge(
                             [['value' => '', 'label' => 'Semua Laboratorium']],
-                            collect($laboratoriums ?? [])->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->nama_lab ?? $l->no_lab])->toArray()
+                            collect($laboratoriums ?? [])->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
                         )" />
                 </form>
             </div>
@@ -128,7 +128,7 @@
                                             $labIdsArray = is_string($item->lab_ids) ? json_decode($item->lab_ids, true) : ($item->lab_ids ?? []);
                                             $labNames = collect($laboratoriums)
                                                 ->whereIn('id', $labIdsArray)
-                                                ->map(fn($l) => $l->nama_lab ?? $l->no_lab)
+                                                ->map(fn($l) => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : ''))
                                                 ->implode(', ');
                                         @endphp
                                         {{ $labNames ?: '-' }}
@@ -446,7 +446,7 @@
                                     $labIdsArrayModal = is_string($item->lab_ids) ? json_decode($item->lab_ids, true) : ($item->lab_ids ?? []);
                                     $labNamesModal = collect($laboratoriums)
                                         ->whereIn('id', $labIdsArrayModal)
-                                        ->map(fn($l) => $l->nama_lab ?? $l->no_lab)
+                                        ->map(fn($l) => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : ''))
                                         ->implode(', ');
                                 @endphp
                                 {{ $labNamesModal ?: '-' }}

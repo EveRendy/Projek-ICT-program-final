@@ -25,9 +25,9 @@
                     label="-- Pilih Lab --"
                     :selected="old('no_lab')"
                     :options="array_merge(
-                        [['value' => '', 'label' => '-- Pilih Lab --']],
-                        $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ' - ' . $l->nama_lab])->toArray()
-                    )" />
+                            [['value' => '', 'label' => '-- Pilih Lab --']],
+                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
+                        )" />
             </div>
 
             <div>

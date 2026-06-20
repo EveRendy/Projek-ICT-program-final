@@ -128,4 +128,5 @@ Route::middleware(['auth', 'check.first.login'])->group(function () {
     // MENU: CETAK LAPORAN
     // -------------------------------------------------------------------------
     Route::get('/cetak-laporan-lab/{no_lab}', [CetakController::class, 'cetakLaporanLab'])->name('cetak.laporan.lab');
+    Route::get('/preview-laporan-lab/{no_lab}', [CetakController::class, 'previewLaporanLab'])->name('preview.laporan.lab');
 });

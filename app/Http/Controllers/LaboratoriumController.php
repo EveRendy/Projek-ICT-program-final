@@ -154,12 +154,13 @@ class LaboratoriumController extends Controller
 
         if ($request->has('no_lab')) {
             $request->merge([
-                'no_lab' => strtoupper($request->input('no_lab')),
+                'no_lab' => strtoupper(str_replace(' ', '', $request->input('no_lab'))),
             ]);
         }
 
         $request->validate(array_merge([
-            'no_lab' => 'required|string|unique:laboratoriums,no_lab|max:50',
+            'no_lab'    => 'required|string|unique:laboratoriums,no_lab|max:50|regex:/^\S+$/',
+            'nama_lab'  => 'required|string|max:100',
             'jumlah_pc' => 'required|integer|min:1',
         ], $this->hardwareValidationRules()));
 
@@ -190,13 +191,14 @@ class LaboratoriumController extends Controller
         $statusOtomatis = ($roleUser === 'supervisor') ? 'approved' : 'pending';
         
         $pesanSukses = ($roleUser === 'supervisor') 
-            ? 'Laboratorium baru berhasil ditambahkan dan langsung otomatis Aktif!'
+            ? 'Laboratorium baru berhasil ditambahkan dan langsung otomatis Aktif! Jangan lupa untuk menugaskan Admin untuk lab ini.'
             : 'Laboratorium berhasil ditambahkan dan menunggu persetujuan supervisor!';
 
         Laboratorium::create([
-            'user_id'     => Auth::user()->no_induk,
-            'no_lab'      => strtoupper($request->no_lab),
-            'level'       => $this->hitungLevel($request), // Kalkulasi server-side, tidak percaya input client
+            'user_id'     => ($roleUser === 'supervisor') ? null : Auth::user()->no_induk,
+            'no_lab'      => strtoupper(str_replace(' ', '', $request->no_lab)),
+            'nama_lab'    => $request->nama_lab,
+            'level'       => $this->hitungLevel($request),
             'jumlah_pc'   => $request->jumlah_pc,
             'spesifikasi' => $this->buildSpesifikasiFromRequest($request),
             'status'      => $statusOtomatis,
@@ -251,9 +253,10 @@ class LaboratoriumController extends Controller
         }
 
         $request->validate(array_merge([
-            'no_lab' => 'required|string|max:50|unique:laboratoriums,no_lab,' . $lab->id,
+            'no_lab'    => 'required|string|max:50|unique:laboratoriums,no_lab,' . $lab->id,
+            'nama_lab'  => 'required|string|max:100',
             'jumlah_pc' => 'required|integer|min:1',
-            'user_id' => 'nullable|string|exists:users,no_induk',
+            'user_id'   => 'nullable|string|exists:users,no_induk',
         ], $this->hardwareValidationRules()));
 
         $cpuDetail = $request->input('cpu_detail');
@@ -286,8 +289,9 @@ class LaboratoriumController extends Controller
 
         // Update data lab
         $updateData = [
-            'no_lab'      => strtoupper($request->no_lab),
-            'level'       => $this->hitungLevel($request), // Kalkulasi server-side
+            'no_lab'      => strtoupper(str_replace(' ', '', $request->no_lab)),
+            'nama_lab'    => $request->nama_lab,
+            'level'       => $this->hitungLevel($request),
             'jumlah_pc'   => $request->jumlah_pc,
             'spesifikasi' => $this->buildSpesifikasiFromRequest($request),
             'status'      => $statusBaru,

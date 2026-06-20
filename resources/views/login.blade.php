@@ -49,7 +49,7 @@
             
             <div class="mt-auto">
                 <p class="text-sm text-slate-400">
-                    © 2024 Universitas Budi Luhur. All rights reserved.
+                    © 2026 Universitas Budi Luhur. All rights reserved.
                 </p>
             </div>
         </div>

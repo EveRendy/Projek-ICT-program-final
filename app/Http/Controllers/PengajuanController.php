@@ -62,16 +62,10 @@ class PengajuanController extends Controller
             ->latest()
             ->get();
 
-        // Pengajuan yang fotonya dikirim admin dan menunggu verifikasi supervisor
-        $tugasVerifikasiFoto = Pengajuan::with(['dosen', 'software'])
-            ->where('status_verifikasi', 'menunggu')
-            ->latest()
-            ->get();
-
         // Daftar laboratorium untuk modal edit
         $list_laboratorium = Laboratorium::orderBy('no_lab')->get();
 
-        return view('supervisor.index', compact('tugas', 'tugasTanpaAdmin', 'summary', 'tugasVerifikasiFoto', 'list_laboratorium'));
+        return view('supervisor.index', compact('tugas', 'tugasTanpaAdmin', 'summary', 'list_laboratorium'));
     }
 
     // =========================================================================
@@ -210,6 +204,15 @@ public function indexPenyelesaian(Request $request)
             'versi_lain'      => 'nullable|string|max:255',
         ]);
 
+        // Tentukan versi final yang tersimpan:
+        // - Jika software master dan versi dipilih dari daftar → pakai versi_requested
+        // - Jika software master tapi versi manual (lainnya) → pakai versi_lain
+        // - Jika software lainnya → pakai versi_lain
+        $versiFinal = $request->versi_requested;
+        if ($request->versi_requested === 'lainnya' || $request->software_id === 'lainnya') {
+            $versiFinal = $request->versi_lain;
+        }
+
         // Cek apakah software dengan versi yang sama sudah terinstal di lab yang dipilih
         if ($request->software_id !== 'lainnya') {
             $software = Software::find($request->software_id);
@@ -218,11 +221,11 @@ public function indexPenyelesaian(Request $request)
             if ($software && $lab) {
                 $existingInstalasi = Instalasi::where('id_software', $software->id_software)
                     ->where('no_lab', $lab->no_lab)
-                    ->where('versi_terinstall', $request->versi_requested)
+                    ->where('versi_terinstall', $versiFinal)
                     ->first();
 
                 if ($existingInstalasi) {
-                    return back()->withInput()->with('error', 'Software ' . $software->nama_software . ' versi ' . $request->versi_requested . ' sudah terinstal di ' . $lab->nama_lab . '. Silakan ajukan versi yang berbeda atau lab yang berbeda.');
+                    return back()->withInput()->with('error', 'Software ' . $software->nama_software . ' versi ' . $versiFinal . ' sudah terinstal di ' . $lab->nama_lab . '. Silakan ajukan versi yang berbeda atau lab yang berbeda.');
                 }
             }
         }
@@ -257,14 +260,7 @@ public function indexPenyelesaian(Request $request)
             $tglPenugasan  = now()->toDateString();
         }
 
-        // Tentukan versi final yang tersimpan:
-        // - Jika software master dan versi dipilih dari daftar → pakai versi_requested
-        // - Jika software master tapi versi manual (lainnya) → pakai versi_lain
-        // - Jika software lainnya → pakai versi_lain
-        $versiFinal = $request->versi_requested;
-        if ($request->versi_requested === 'lainnya' || $request->software_id === 'lainnya') {
-            $versiFinal = $request->versi_lain;
-        }
+        // versiFinal sudah ditentukan di atas
 
         Pengajuan::create([
             'tgl_pengajuan'      => now()->toDateString(),
@@ -344,6 +340,23 @@ public function indexPenyelesaian(Request $request)
                 } else {
                     $updateData['versi_requested'] = $request->versi_requested;
                     $updateData['versi_lain']      = null;
+                }
+            }
+            
+            // Cek duplikasi instalasi untuk software master
+            $software = Software::find($pengajuan->software_id);
+            $lab = Laboratorium::find($request->lab_id);
+
+            if ($software && $lab) {
+                $versiFinalEdit = $updateData['versi_requested'] ?? $pengajuan->versi_requested;
+                
+                $existingInstalasi = Instalasi::where('id_software', $software->id_software)
+                    ->where('no_lab', $lab->no_lab)
+                    ->where('versi_terinstall', $versiFinalEdit)
+                    ->first();
+
+                if ($existingInstalasi) {
+                    return back()->withInput()->with('error', 'Software ' . $software->nama_software . ' versi ' . $versiFinalEdit . ' sudah terinstal di ' . $lab->nama_lab . '. Silakan edit ke versi atau lab yang berbeda.');
                 }
             }
         }
@@ -707,6 +720,14 @@ public function indexPenyelesaian(Request $request)
                     ]);
                 }
             }
+        }
+
+        // Kirim email pemberitahuan ke dosen bahwa instalasi telah selesai (KECUALI jika pengaju adalah supervisor)
+        if ($pengajuan->dosen && $pengajuan->dosen->email && $pengajuan->dosen->role !== 'supervisor') {
+            \Illuminate\Support\Facades\Mail::to($pengajuan->dosen->email)
+                ->send(new \App\Mail\InstalasiSelesaiMail($pengajuan));
+                
+            return back()->with('success', 'Foto bukti diverifikasi. Instalasi dinyatakan selesai dan tercatat di License Tracker! Email pemberitahuan telah dikirim ke Dosen.');
         }
 
         return back()->with('success', 'Foto bukti diverifikasi. Instalasi dinyatakan selesai dan tercatat di License Tracker!');

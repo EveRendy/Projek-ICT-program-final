@@ -61,9 +61,9 @@
                     label="-- Pilih Laboratorium --"
                     :selected="$instalasi->no_lab"
                     :options="array_merge(
-                        [['value' => '', 'label' => '-- Pilih Laboratorium --']],
-                        $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->nama_lab . ' (' . $l->no_lab . ')'])->toArray()
-                    )" />
+                            [['value' => '', 'label' => '-- Pilih Laboratorium --']],
+                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
+                        )" />
             </div>
 
             <div class="space-y-1.5">

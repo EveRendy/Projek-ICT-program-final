@@ -44,9 +44,17 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label for="no_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nomor / Nama Lab</label>
+                    <label for="no_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nomor Lab</label>
                     <input type="text" id="no_lab" name="no_lab" value="{{ old('no_lab', $lab->no_lab) }}" readonly
-                        class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-500 cursor-not-allowed opacity-75 focus:outline-none">
+                        class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-500 cursor-not-allowed opacity-75 focus:outline-none"
+                        style="text-transform: uppercase; letter-spacing: 0.5px;">
+                    <p class="mt-1 text-xs text-slate-400">Nomor lab tidak dapat diubah.</p>
+                </div>
+                <div>
+                    <label for="nama_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nama Lab <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama_lab" name="nama_lab" value="{{ old('nama_lab', $lab->nama_lab) }}" required
+                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                        placeholder="Contoh: Laboratorium Teknik Informatika">
                 </div>
                 @if(auth()->user()->role === 'supervisor')
                 <div>

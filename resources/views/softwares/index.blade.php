@@ -10,9 +10,9 @@
 
     $levelMeta = function ($level) {
         return match ((int) $level) {
-            1 => ['label' => 'Level 1', 'desc' => 'Low Spec', 'class' => 'bg-red-50 text-red-700 ring-red-100'],
-            2 => ['label' => 'Level 2', 'desc' => 'Medium Spec', 'class' => 'bg-amber-50 text-amber-700 ring-amber-100'],
-            default => ['label' => 'Level 3', 'desc' => 'High Spec', 'class' => 'bg-emerald-50 text-emerald-700 ring-emerald-100'],
+            1 => ['label' => 'Level 1', 'desc' => 'Spek Rendah', 'class' => 'bg-red-50 text-red-700 ring-red-100'],
+            2 => ['label' => 'Level 2', 'desc' => 'Spek Sedang', 'class' => 'bg-amber-50 text-amber-700 ring-amber-100'],
+            default => ['label' => 'Level 3', 'desc' => 'Spek Tinggi', 'class' => 'bg-emerald-50 text-emerald-700 ring-emerald-100'],
         };
     };
 @endphp
@@ -24,9 +24,9 @@
                 <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
                     <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
                     <span>/</span>
-                    <span class="text-slate-950">List Software</span>
+                    <span class="text-slate-950">Daftar Software</span>
                 </nav>
-                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">List Software</h2>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Daftar Software</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                     Daftar master software yang tersedia untuk kebutuhan instalasi laboratorium ICT.
                 </p>
@@ -58,28 +58,34 @@
                 </div>
 
                 {{-- 2. Dropdown Kategori --}}
-                <select name="kategori" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
-                    <option value="">Semua Kategori</option>
-                    <option value="1" {{ request('kategori') == '1' ? 'selected' : '' }}>Level 1 (Low Spec)</option>
-                    <option value="2" {{ request('kategori') == '2' ? 'selected' : '' }}>Level 2 (Med Spec)</option>
-                    <option value="3" {{ request('kategori') == '3' ? 'selected' : '' }}>Level 3 (High Spec)</option>
-                </select>
+                <x-custom-select
+                    name="kategori"
+                    label="Semua Kategori"
+                    :selected="request('kategori')"
+                    :autosubmit="true"
+                    :options="[
+                        ['value' => '',  'label' => 'Semua Kategori'],
+                        ['value' => '1', 'label' => 'Level 1 (Spek Rendah)'],
+                        ['value' => '2', 'label' => 'Level 2 (Spek Sedang)'],
+                        ['value' => '3', 'label' => 'Level 3 (Spek Tinggi)'],
+                    ]" />
 
                 {{-- 3. Dropdown Filter Laboratorium & Tombol Cetak PDF --}}
                 <div class="flex items-center gap-2">
-                    <select name="laboratorium" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 transition cursor-pointer">
-                        <option value="">Semua Laboratorium</option>
-                        @foreach($laboratoriums as $lab)
-                            <option value="{{ $lab->no_lab }}" {{ request('laboratorium') == $lab->no_lab ? 'selected' : '' }}>
-                                Lab {{ $lab->no_lab }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <x-custom-select
+                        name="laboratorium"
+                        label="Semua Laboratorium"
+                        :selected="request('laboratorium')"
+                        :autosubmit="true"
+                        :options="array_merge(
+                            [['value' => '', 'label' => 'Semua Laboratorium']],
+                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
+                        )" />
 
                     {{-- Proteksi Tombol Cetak dari Sisi UI --}}
                     @if($canPrint)
                         @if(request()->filled('laboratorium'))
-                            <a href="{{ route('cetak.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak PDF Lab {{ request('laboratorium') }}">
+                            <a href="{{ route('preview.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak/Pratinjau Laporan Lab {{ request('laboratorium') }}">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                 </svg>
@@ -101,7 +107,7 @@
                     </button>
                     @if(request('search') || request('kategori') || request('laboratorium'))
                         <a href="{{ route('softwares.index') }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-500 transition hover:bg-slate-50">
-                            Reset
+                            Atur Ulang
                         </a>
                     @endif
                 </div>
@@ -115,7 +121,7 @@
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Software</th>
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Versi</th>
                         <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Kategori</th>
-                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Status Lisensi</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-500">Status Instalasi</th>
                         @if($isSupervisor)
                             <th class="px-5 py-4 text-right text-xs font-black uppercase tracking-[0.14em] text-slate-500">Aksi</th>
                         @endif
@@ -130,8 +136,16 @@
                                     <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-950 text-sm font-black text-white shadow-sm">
                                         {{ substr($item->nama_software, 0, 1) }}
                                     </div>
-                                    <div>
-                                        <p class="font-bold text-slate-950">{{ $item->nama_software }}</p>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-bold text-slate-950">{{ $item->nama_software }}</p>
+                                            @if($item->instalasis->isEmpty())
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-md">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                                    Belum Terinstal
+                                                </span>
+                                            @endif
+                                        </div>
                                         <p class="mt-0.5 text-xs font-medium text-slate-500">{{ $item->id_software }}</p>
                                     </div>
                                 </div>
@@ -161,29 +175,40 @@
                             <td class="px-5 py-4">
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
                                     @if($item->instalasis && $item->instalasis->count() > 0)
-                                        Terpasang di: {{ implode(', ', $item->instalasis->pluck('no_lab')->unique()->toArray()) }}
+                                        @php
+                                            $labList = $item->instalasis->pluck('no_lab')->unique();
+                                            $labListWithName = $labList->map(function($no_lab) use ($laboratoriums) {
+                                                $lab = $laboratoriums->firstWhere('no_lab', $no_lab);
+                                                return $no_lab . ($lab && $lab->nama_lab ? ' : ' . $lab->nama_lab : '');
+                                            })->toArray();
+                                        @endphp
+                                        Terpasang di: {{ implode(', ', $labListWithName) }}
                                     @else
-                                        Master Data
+                                        Belum Terinstal di Lab Manapun
                                     @endif
                                 </span>
                             </td>
                             @if($isSupervisor)
-                                <td class="px-5 py-4">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <a href="{{ route('softwares.edit', $item->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Edit {{ $item->nama_software }}">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.86 3.49a2.1 2.1 0 112.97 2.97L8.5 17.8 4 19l1.2-4.5z"></path></svg>
-                                        </a>
-                                        
-                                        <form id="delete-form-{{ $item->id }}" action="{{ route('softwares.destroy', $item->id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id }}')" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30" aria-label="Hapus {{ $item->nama_software }}">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7v13h8V7"></path></svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            @endif
+                <td class="px-5 py-4">
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{{ route('softwares.edit', $item->id) }}"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            title="Edit {{ $item->nama_software }}">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </a>
+
+                        <form id="delete-form-{{ $item->id }}" action="{{ route('softwares.destroy', $item->id) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" onclick="openDeleteModal('delete-form-{{ $item->id }}')"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                                title="Hapus {{ $item->nama_software }}">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            @endif
                         </tr>
                     @empty
                         <tr>

@@ -29,12 +29,19 @@ class InstalasiController extends Controller
             $query->where('id_software', $request->software);
         }
 
-        // 4. Ambil data final dengan Pagination (diurutkan dari yang terbaru)
-        // DISESUAIKAN: Mengganti ->get() menjadi ->paginate(10) agar kompatibel dengan Blade Pagination
+        // 4. Ambil data final dengan Pagination (KEMBALI MENGGUNAKAN $instalasis AGAR BLADE TIDAK ERROR)
         $instalasis = $query->latest()->paginate(10);
         
-        // 5. Return ke view dengan menyertakan semua data yang dibutuhkan
-        return view('instalasi.index', compact('instalasis', 'softwares', 'laboratoriums'));
+        // 5. Perhitungan Card Summary (Disinkronkan dengan kolom status_lisensi di database)
+        $summary = [
+            'total'      => (clone $query)->count(),
+            'terkendala' => (clone $query)->where('status_lisensi', 'license_expired')->count(),
+            'progress'   => (clone $query)->where('status_lisensi', 'license_active')->count(),
+            'selesai'    => (clone $query)->where('status_lisensi', 'free_license')->count(),
+        ];
+        
+        // 6. Return ke view dengan variabel yang sudah diseragamkan
+        return view('instalasi.index', compact('instalasis', 'softwares', 'laboratoriums', 'summary'));
     }
 
     public function create()

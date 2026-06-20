@@ -3,302 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Request Instalasi Software</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <title>Masuk - Request Instalasi Software</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
-
-        body{
-            height:100vh;
-            overflow:hidden;
-            font-family:'Segoe UI', sans-serif;
-        }
-
-        .main-container{
-            height:100vh;
-        }
-
-        /* =========================
-           PANEL KIRI
-        ========================= */
-
-        .left-side{
-            background:#dceef5;
-            height:100vh;
-            display:flex;
-            flex-direction:column;
-        }
-
-        .left-header{
-        height:32%;
-        padding:10px 45px 0 45px;
-        display:flex;
-        flex-direction:column;
-    }
-
-        .title-login{
-            flex:1;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            flex-direction:column;
-            text-align:center;
-            padding-top:0;
-            margin-top:-10px;
-        }
-
-        .title-login h1{
-            margin:0;
-            font-size:3rem;
-            font-weight:500;
-            color:#2f3136;
-            line-height:1.25;
-            letter-spacing:1px;
-            text-shadow:none;
-        }
-
-        .left-image{
-            height:68%;
-            margin-top:-15px;
-            overflow:hidden;
-        }
-
-        .left-image img{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            object-position:center top;
-        }
-
-        /* =========================
-           PANEL KANAN
-        ========================= */
-
-        .right-side{
-            background:#f5f5f5;
-            height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-        }
-
-        .login-box{
-            width:70%;
-            max-width:550px;
-            margin-top:-20px;
-        }
-
-        .login-brand{
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            gap:15px;
-            margin-bottom:30px;
-        }
-
-        .login-brand-logo{
-            width:85px;
-            height:85px;
-            object-fit:contain;
-        }
-
-        .login-brand-text h5{
-            margin:0;
-            font-size:16px;
-            font-weight:500;
-            color:#444;
-        }
-
-        .login-brand-text h3{
-            margin:0;
-            font-size:30px;
-            font-weight:700;
-            color:#1d2f3a;
-        }
-
-        .login-brand-text p{
-            margin:0;
-            font-size:13px;
-            color:#666;
-        }
-
-        .login-title{
-            text-align:center;
-            font-size:3.5rem;
-            font-weight:500;
-            color:#333;
-            margin-bottom:50px;
-        }
-
-        .form-label{
-            color:#666;
-            font-size:15px;
-            margin-bottom:8px;
-        }
-
-        .form-control{
-            height:55px;
-            border-radius:14px;
-            font-size:16px;
-        }
-
-        .btn-login{
-            width:100%;
-            height:55px;
-            border:none;
-            border-radius:30px;
-            background:#000;
-            color:#fff;
-            font-size:18px;
-            margin-top:20px;
-            transition:0.3s;
-        }
-
-        .btn-login:hover{
-            background:#222;
-        }
-
-        @media(max-width:992px){
-
-            .left-side{
-                display:none;
-            }
-
-            .right-side{
-                width:100%;
-            }
-
-            .login-box{
-                width:90%;
-                margin-top:0;
-            }
-
-            .login-title{
-                font-size:3rem;
-            }
-
-            .login-brand{
-                flex-direction:column;
-                text-align:center;
-            }
-        }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
+<body class="min-h-screen bg-white">
 
-<div class="container-fluid">
-    <div class="row main-container">
-
-        <div class="col-md-6 p-0 left-side">
-
-            <div class="left-header">
-
-                <div class="title-login">
-                    <h1>
-                        REQUEST INSTALASI<br>
-                        SOFTWARE
-                    </h1>
-                </div>
-
-            </div>
-
-            <div class="left-image">
-                <img
-                    src="{{ asset('images/instalimages.jpg') }}"
-                    alt="Lab Komputer">
-            </div>
-
+<div class="min-h-screen lg:grid lg:grid-cols-2">
+    {{-- Left Side --}}
+    <div class="hidden lg:flex flex-col relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute -top-20 -left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
+            <div class="absolute -bottom-20 -right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
         </div>
-
-        <div class="col-md-6 right-side">
-
-            <div class="login-box">
-
-                <div class="login-brand">
-
+        
+        <div class="relative z-10 flex flex-col h-full p-12">
+            <div class="flex items-center justify-center gap-4 mb-12 w-full">
+                <div class="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center p-2 box-border">
                     <img
                         src="{{ asset('images/image.png') }}"
                         alt="Logo ICT"
-                        class="login-brand-logo">
-
-                    <div class="login-brand-text">
-                        <h5>Laboratorium</h5>
-                        <h3>ICT TERPADU</h3>
-                        <p>Universitas Budi Luhur</p>
-                    </div>
-
+                        class="w-full h-full max-w-[72px] max-h-[72px] object-contain block mx-auto">
                 </div>
+                <div>
+                    <h5 class="text-sm font-medium text-slate-300">Laboratorium</h5>
+                    <h3 class="text-2xl font-bold text-white">ICT TERPADU</h3>
+                </div>
+            </div>
+            
+            <div class="flex-1 flex flex-col justify-center">
+                <h1 class="text-5xl font-bold text-white mb-6 leading-tight">
+                    Sistem Request<br>
+                    Instalasi Software
+                </h1>
+                <p class="text-lg text-slate-300 max-w-md">
+                    Kelola permintaan instalasi software di laboratorium dengan mudah dan terstruktur.
+                </p>
+            </div>
+            
+            <div class="mt-auto">
+                <p class="text-sm text-slate-400">
+                    © 2026 Universitas Budi Luhur. All rights reserved.
+                </p>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 w-full h-1/2">
+            <img
+                src="{{ asset('images/instalimages.jpg') }}"
+                alt="Lab Komputer"
+                class="w-full h-full object-cover opacity-30">
+        </div>
+    </div>
 
-                <h1 class="login-title">Login</h1>
+    {{-- Right Side --}}
+    <div class="flex items-center justify-center p-6 lg:p-12 bg-slate-50">
+        <div class="w-full max-w-md">
+            {{-- Mobile Brand --}}
+            <div class="lg:hidden flex flex-col items-center mb-8">
+                <div class="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center p-2 box-border mb-4">
+                    <img
+                        src="{{ asset('images/image.png') }}"
+                        alt="Logo ICT"
+                        class="w-full h-full max-w-[72px] max-h-[72px] object-contain block mx-auto">
+                </div>
+                <div class="text-center">
+                    <h5 class="text-sm font-medium text-slate-600">Laboratorium</h5>
+                    <h3 class="text-2xl font-bold text-slate-800">ICT TERPADU</h3>
+                    <p class="text-xs text-slate-500">Universitas Budi Luhur</p>
+                </div>
+            </div>
+            
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-bold text-slate-900 mb-2">Selamat Datang</h1>
+                <p class="text-slate-500">Masuk ke akun Anda untuk melanjutkan</p>
+            </div>
 
-                @if($errors->has('loginError'))
-                    <div class="alert alert-danger">
-                        {{ $errors->first('loginError') }}
-                    </div>
-                @endif
+            @if($errors->has('loginError'))
+                <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold flex items-center gap-3">
+                    <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{ $errors->first('loginError') }}
+                </div>
+            @endif
 
-                <form action="{{ url('/login') }}" method="POST">
-                    @csrf
+            <form action="{{ url('/login') }}" method="POST" class="space-y-5">
+                @csrf
 
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Email
-                        </label>
-
+                {{-- Email --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Email
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                        </div>
                         <input
                             type="email"
                             name="email"
-                            class="form-control @error('email') is-invalid @enderror"
+                            class="w-full h-14 pl-12 pr-4 rounded-2xl border border-slate-200 bg-white text-slate-800 text-base placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition hover:border-slate-300"
                             value="{{ old('email') }}"
+                            placeholder="name@example.com"
                             required>
-
-                        @error('email')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
                     </div>
+                    @error('email')
+                        <p class="mt-2 text-sm text-rose-600 font-semibold">{{ $message }}</p>
+                    @enderror
+                </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">
-                            Password
-                        </label>
-
-                        <div style="position: relative;">
-                            <input
-                                type="password"
-                                name="password"
-                                id="passwordInput"
-                                class="form-control"
-                                style="padding-right: 45px;"
-                                required>
-                            
-                            <button type="button" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
-                                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
-                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
-                                </svg>
-                            </button>
+                {{-- Password --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Kata Sandi
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
                         </div>
+                        <input
+                            type="password"
+                            name="password"
+                            id="passwordInput"
+                            class="w-full h-14 pl-12 pr-14 rounded-2xl border border-slate-200 bg-white text-slate-800 text-base placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition hover:border-slate-300"
+                            placeholder="••••••••"
+                            required>
+                        
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
                     </div>
+                </div>
 
-                    <button type="submit" class="btn-login">
-                        Login
-                    </button>
+                <button
+                    type="submit"
+                    class="w-full h-14 rounded-2xl bg-slate-900 text-white text-lg font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20 active:scale-[0.98]">
+                    Masuk
+                </button>
 
-                </form>
-
-            </div>
+            </form>
 
         </div>
-
     </div>
+
 </div>
 
 <script>
@@ -306,15 +170,13 @@
     const passwordInput = document.getElementById('passwordInput');
 
     togglePassword.addEventListener('click', function () {
-        // Toggle tipe input antara password dan text
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
 
-        // Ubah SVG ikon (mata terbuka vs dicoret)
         if (type === 'text') {
-            this.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755l-.733-.733z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>`;
+            this.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908l3.59 3.59"></path></svg>`;
         } else {
-            this.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>`;
+            this.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>`;
         }
     });
 </script>

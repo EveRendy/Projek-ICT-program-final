@@ -14,7 +14,7 @@ class DashboardController extends Controller
     public function index()
     {
         // 1. Total Pengajuan: Menghitung seluruh baris data di tabel pengajuan
-        $totalPengajuan = Pengajuan::count();
+        $totalPengajuan = Pengajuan::count();   
         
         // 2. Menunggu Instalasi: Berdasarkan acuan method store() Anda, 
         // status awal saat dosen membuat pengajuan adalah 'pending'
@@ -33,15 +33,20 @@ class DashboardController extends Controller
 
         $pengajuanDisetujui = Pengajuan::where('status_persetujuan', 'disetujui')->count();
         $pengajuanDitolak = Pengajuan::where('status_persetujuan', 'ditolak')->count();
+        
+        // DIUBAH: Menghapus 'laboratorium'
         $pengajuanDitolakDetail = Pengajuan::where('status_persetujuan', 'ditolak')
-            ->with(['dosen', 'laboratorium', 'software'])
+            ->with(['dosen', 'software'])
             ->latest()
             ->get();
+            
         $totalSoftware = Software::count();
         $totalLaboratorium = Laboratorium::count();
         $totalUser = User::count();
         $totalInstalasi = Instalasi::count();
-        $aktivitasTerbaru = Pengajuan::with(['dosen', 'laboratorium', 'software'])
+        
+        // DIUBAH: Menghapus 'laboratorium'
+        $aktivitasTerbaru = Pengajuan::with(['dosen', 'software'])
             ->latest()
             ->take(5)
             ->get();
@@ -58,8 +63,10 @@ class DashboardController extends Controller
             ->where('status_persetujuan', 'disetujui')
             ->whereNull('status_progress')
             ->count();
+            
+        // DIUBAH: Menghapus 'laboratorium'
         $tugasTerbaru = Pengajuan::where('tugaskan_admin', $user->id)
-            ->with(['dosen', 'laboratorium', 'software'])
+            ->with(['dosen', 'software'])
             ->latest()
             ->take(5)
             ->get();
@@ -68,8 +75,10 @@ class DashboardController extends Controller
         $dosenPengajuanDisetujui = (clone $pengajuanDosen)->where('status_persetujuan', 'disetujui')->count();
         $dosenPengajuanPending = (clone $pengajuanDosen)->where('status_persetujuan', 'pending')->count();
         $dosenPengajuanDitolak = (clone $pengajuanDosen)->where('status_persetujuan', 'ditolak')->count();
+        
+        // DIUBAH: Menghapus 'laboratorium'
         $pengajuanTerbaruDosen = Pengajuan::where('user_id', $user->id)
-            ->with(['laboratorium', 'software'])
+            ->with(['software'])
             ->latest()
             ->take(5)
             ->get();

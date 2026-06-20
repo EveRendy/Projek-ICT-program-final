@@ -49,11 +49,11 @@ class RiwayatController extends Controller
         ];
 
         // Ambil data untuk opsi dropdown di View
-        $list_laboratorium = Laboratorium::all();
+        $list_laboratorium = Laboratorium::orderBy('no_lab')->get();
         $list_software = Software::all();
 
-        // 3. Eager loading relasi resmi dari Model Pengajuan dengan menerapkan Filter & Search
-        $query = Pengajuan::with(['laboratorium', 'software', 'dosen', 'admin']);
+        // 3. Eager loading untuk semua relasi yang dibutuhkan
+        $query = Pengajuan::with(['software', 'dosen', 'admin']);
 
         // Logika Fitur Pencarian (Mata Kuliah, Nama Pemohon/Dosen, atau Nama Software Lain)
         if ($request->filled('search')) {
@@ -70,20 +70,49 @@ class RiwayatController extends Controller
             });
         }
 
-        // Logika Fitur Filter Laboratorium
-        if ($request->filled('laboratorium')) {
-            $query->where('laboratorium_id', $request->laboratorium);
-        }
-
-        // Logika Fitur Filter Software
+        // Logika Fitur Filter Software — harus diterapkan SEBELUM eksekusi query
         if ($request->filled('software')) {
             $query->where('software_id', $request->software);
         }
 
-        // Eksekusi query dengan pagination dan mempertahankan query string di URL pagination
-        $pengajuans = $query->latest()->paginate(10)->withQueryString();
+        // Logika Fitur Filter Laboratorium
+        // lab_ids menyimpan array of ID (integer), filter menggunakan ID laboratorium
+        if ($request->filled('laboratorium') && $request->laboratorium !== '') {
+            $labId = (string) $request->laboratorium;
+            
+            // Ambil semua data yang sudah difilter search & software, lalu filter lab di PHP
+            $allFiltered = $query->latest()->get();
+            $filtered = $allFiltered->filter(function($item) use ($labId) {
+                $labIdsArray = $item->lab_ids; // sudah di-cast ke array oleh model
+                if (!is_array($labIdsArray)) return false;
+                
+                foreach ($labIdsArray as $id) {
+                    if ((string)$id === $labId) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            
+            // Manual pagination
+            $perPage = 10;
+            $page = request()->get('page', 1);
+            $offset = ($page - 1) * $perPage;
+            $paginatedData = $filtered->slice($offset, $perPage)->values();
+            
+            $pengajuans = new \Illuminate\Pagination\LengthAwarePaginator(
+                $paginatedData,
+                $filtered->count(),
+                $perPage,
+                $page,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        } else {
+            // Tanpa filter laboratorium: eksekusi langsung dengan pagination
+            $pengajuans = $query->latest()->paginate(10)->withQueryString();
+        }
 
-        // 4. Kirim data ke view (Menambahkan list_laboratorium dan list_software)
+        // 4. Kirim data ke view
         return view('riwayat.index', compact('pengajuans', 'summary', 'role', 'canPrint', 'list_laboratorium', 'list_software'));
     }
 }

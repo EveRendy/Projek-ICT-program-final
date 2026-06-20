@@ -26,14 +26,32 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // =========================================================================
 // 2. Route Proteksi (Wajib Login)
 // =========================================================================
+// =========================================================================
+// Route khusus: Dosen yang baru pertama kali login (hanya butuh auth, bukan check.first.login)
+// =========================================================================
 Route::middleware(['auth'])->group(function () {
+    Route::get('/dosen/complete-profile', [AuthController::class, 'showCompleteProfile'])->name('dosen.complete-profile');
+    Route::post('/dosen/complete-profile', [AuthController::class, 'saveCompleteProfile'])->name('dosen.complete-profile.save');
+});
+
+// =========================================================================
+// Route Proteksi (Wajib Login + Profil Harus Sudah Dilengkapi)
+// =========================================================================
+Route::middleware(['auth', 'check.first.login'])->group(function () {
     
     // Halaman Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+    // Route Update Password User
+    Route::put('/password/update', [AuthController::class, 'updatePassword'])->name('password.update');
+    
     // Route CRUD Master Data (Resource)
     Route::resource('users', UserController::class);
+    
+    // Route kustom untuk update status laboratorium oleh Supervisor sebelum resource labs
+    Route::patch('/labs/{id}/update-status', [LaboratoriumController::class, 'updateStatus'])->name('labs.updateStatus');
     Route::resource('labs', LaboratoriumController::class);
+    
     Route::resource('softwares', SoftwareController::class);
     Route::resource('instalasi', InstalasiController::class); 
 
@@ -49,11 +67,12 @@ Route::middleware(['auth'])->group(function () {
     // -------------------------------------------------------------------------
     Route::get('/status-pengajuan', [PengajuanController::class, 'statusPengajuanDosen'])->name('pengajuan.status');
     Route::get('/status-pengajuan/{id}', [PengajuanController::class, 'detailPengajuan'])->name('pengajuan.showStatus');
+    Route::get('/cek-instalasi', [PengajuanController::class, 'cekInstalasi'])->name('pengajuan.cek.instalasi');
 
     // -------------------------------------------------------------------------
     // MENU UNTUK SEMUA ROLE: RIWAYAT PENGAJUAN & PENGERJAAN GLOBAL
     // -------------------------------------------------------------------------
-    // PERBAIKAN: Diarahkan ke RiwayatController::class agar menggunakan logic baru kita
+    // PERBAIKAN: Tanda komentar (//) sudah dihapus agar route ini aktif kembali
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 
     // -------------------------------------------------------------------------
@@ -64,16 +83,32 @@ Route::middleware(['auth'])->group(function () {
     // Tombol Aksi di halaman Supervisor
     Route::post('/pengajuan/{id}/setujui', [PengajuanController::class, 'setujui'])->name('pengajuan.approve');
     Route::post('/pengajuan/{id}/tolak', [PengajuanController::class, 'tolak'])->name('pengajuan.reject');
-    
+
+    // Penugasan admin secara manual oleh supervisor setelah approval
+    Route::post('/pengajuan/{id}/assign-admin', [PengajuanController::class, 'updateAdminAssignment'])->name('pengajuan.assign.admin');
+
+    // Bulk assignment admin ke semua pengajuan tertahan
+    Route::post('/supervisor/bulk-assign-admin', [PengajuanController::class, 'bulkAssignAdmin'])->name('supervisor.bulk.assign.admin');
+
     // Alias backup rute lama agar tidak ada error di view lama
     Route::patch('/pengajuan/{pengajuan}/setujui', [PengajuanController::class, 'setujui'])->name('supervisor.pengajuan.setujui');
     Route::patch('/pengajuan/{pengajuan}/tolak', [PengajuanController::class, 'tolak'])->name('supervisor.pengajuan.tolak');
+
+    // Edit pengajuan oleh supervisor sebelum disetujui (untuk koreksi typo dosen)
+    Route::patch('/supervisor/pengajuan/{id}/edit', [PengajuanController::class, 'editSebelumSetujui'])->name('supervisor.pengajuan.edit');
 
     // -------------------------------------------------------------------------
     // MENU: ADMIN / TEKNISI (Update Status Jalannya Instalasi)
     // -------------------------------------------------------------------------
     Route::get('/admin/instalasi', [PengajuanController::class, 'indexAdmin'])->name('admin.instalasi.index');
     Route::put('/admin/instalasi/{id}/update', [PengajuanController::class, 'updateProgressTugas'])->name('admin.instalasi.update');
+
+    // Upload foto bukti instalasi oleh admin
+    Route::post('/admin/instalasi/{id}/foto-bukti', [PengajuanController::class, 'uploadFotoBukti'])->name('admin.foto.upload');
+
+    // Verifikasi foto bukti oleh supervisor
+    Route::patch('/supervisor/foto/{id}/approve', [PengajuanController::class, 'approveFotoBukti'])->name('supervisor.foto.approve');
+    Route::patch('/supervisor/foto/{id}/tolak', [PengajuanController::class, 'tolakFotoBukti'])->name('supervisor.foto.tolak');
 
     // [ALIAS SECURITY] Pengaman rute lama agar link di view Admin tidak error
     Route::get('/update-pengerjaan', [PengajuanController::class, 'indexAdmin'])->name('pengerjaan.index');
@@ -93,4 +128,5 @@ Route::middleware(['auth'])->group(function () {
     // MENU: CETAK LAPORAN
     // -------------------------------------------------------------------------
     Route::get('/cetak-laporan-lab/{no_lab}', [CetakController::class, 'cetakLaporanLab'])->name('cetak.laporan.lab');
+    Route::get('/preview-laporan-lab/{no_lab}', [CetakController::class, 'previewLaporanLab'])->name('preview.laporan.lab');
 });

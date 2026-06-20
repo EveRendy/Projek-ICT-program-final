@@ -6,7 +6,7 @@
         <nav class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
             <a href="{{ route('dashboard') }}" class="transition hover:text-blue-700">Dashboard</a>
             <span>/</span>
-            <a href="{{ route('softwares.index') }}" class="transition hover:text-blue-700">List Software</a>
+            <a href="{{ route('softwares.index') }}" class="transition hover:text-blue-700">Daftar Software</a>
             <span>/</span>
             <span class="text-slate-950">Tambah</span>
         </nav>
@@ -25,13 +25,21 @@
         </div>
     @endif
 
+    @php
+        // Generate next ID otomatis dengan format capital SOFT001, SOFT002, dll
+        $lastSoftware = \App\Models\Software::orderBy('id', 'desc')->first();
+        $lastIdNum = $lastSoftware ? intval(substr($lastSoftware->id_software ?? 'SOFT000', -3)) : 0;
+        $nextIdSoftware = 'SOFT' . str_pad($lastIdNum + 1, 3, '0', STR_PAD_LEFT);
+    @endphp
+
     <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <form action="{{ route('softwares.store') }}" method="POST" class="space-y-5">
             @csrf
 
             <div>
-                <label class="mb-2 block text-sm font-bold text-slate-700">ID Software</label>
-                <input type="text" name="id_software" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10" placeholder="Contoh: ADB01" value="{{ old('id_software') }}" required>
+                <label class="mb-2 block text-sm font-bold text-slate-700">ID Software (Otomatis)</label>
+                <input type="text" name="id_software" value="{{ $nextIdSoftware }}" readonly class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-900 outline-none cursor-not-allowed" placeholder="Contoh: SOFT001">
+                <p class="mt-2 text-xs font-medium text-slate-500">ID Software di-generate otomatis oleh sistem (tidak bisa diubah)</p>
             </div>
 
             <div>
@@ -47,10 +55,15 @@
 
             <div>
                 <label class="mb-2 block text-sm font-bold text-slate-700">Level Kompatibilitas Spek Lab</label>
-                <select name="keterangan" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10" required>
-                    <option value="1">Level 1 - PC Spek Standar / Low</option>
-                    <option value="2">Level 2 - PC Spek Menengah</option>
-                    <option value="3">Level 3 - PC Spek Tinggi / Multimedia</option>
+                <x-custom-select
+                    name="keterangan"
+                    label="Pilih Level"
+                    :selected="old('keterangan', '1')"
+                    :options="[
+                        ['value' => '1', 'label' => 'Level 1 — PC Spek Standar / Rendah'],
+                        ['value' => '2', 'label' => 'Level 2 — PC Spek Menengah'],
+                        ['value' => '3', 'label' => 'Level 3 — PC Spek Tinggi / Multimedia'],
+                    ]" />
                 </select>
             </div>
 

@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Daftarkan alias middleware CheckFirstLogin
+        $middleware->alias([
+            'check.first.login' => \App\Http\Middleware\CheckFirstLogin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

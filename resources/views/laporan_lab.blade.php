@@ -140,7 +140,7 @@
         <tr>
             <td class="meta-label">Laboratorium</td>
             <td style="width: 1%;">:</td>
-            <td class="meta-value font-bold">{{ $no_lab }}</td>
+            <td class="meta-value font-bold">{{ $no_lab }}{{ $lab && $lab->nama_lab ? ' : ' . $lab->nama_lab : '' }}</td>
             <td class="text-right meta-value" style="font-style: italic; color: #718096;">
                 Tanggal Cetak: {{ \Carbon\Carbon::parse($tanggal_cetak)->translatedFormat('d F Y') }}
             </td>

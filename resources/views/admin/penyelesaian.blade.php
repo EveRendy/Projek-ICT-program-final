@@ -27,17 +27,16 @@
                 <div class="w-1/4 pl-6">Software</div>
                 <div class="w-1/6 text-center">Laboratorium</div>
                 <div class="w-1/5 text-center">Status Akhir</div>
-                <div class="w-1/5 text-center">Tgl Penugasan</div>
+                <div class="w-1/5 text-center">Tgl Ditugaskan</div>
                 <div class="flex-1 text-right">Aksi</div>
             </div>
 
-            {{-- FIX: Filter koleksi untuk mengambil status selain 'progress' --}}
+            {{-- FIX: Menambahkan 'disetujui' agar data dari supervisor langsung tampil di sini --}}
             @php
-                $tugasSelesai = $tugas->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
                 $no = 1;
             @endphp
 
-            @forelse($tugasSelesai as $item)
+            @forelse($tugas as $item)
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row md:items-center transition hover:border-slate-300">
                     
                     <div class="w-full md:w-12 text-left md:text-center text-lg font-black text-slate-900 mb-2 md:mb-0">
@@ -53,27 +52,46 @@
                                 {{ $item->software_id ? $item->software->nama_software : $item->software_lain }}
                             </h4>
                             <p class="text-xs text-slate-400 font-mono mt-0.5">
-                                v.{{ $item->software_id ? ($item->versi_requested ?? 'Default') : ($item->versi_lain ?? '-') }}
+                                v.{{ $item->software_id ? ($item->versi_requested ?? 'Bawaan') : ($item->versi_lain ?? '-') }}
                             </p>
                         </div>
                     </div>
 
+                    {{-- FIX: Menampilkan nama lab menggunakan pencocokan Array ID --}}
                     <div class="w-full md:w-1/6 flex md:justify-center mb-3 md:mb-0">
-                        <span class="inline-block bg-slate-100 text-slate-700 font-extrabold text-xs px-3 py-1 rounded-full border border-slate-200/50">
-                            {{ $item->laboratorium->nama_lab ?? 'LAB ' . ($item->laboratorium->no_lab ?? '-') }}
+                        <span class="inline-block bg-slate-100 text-slate-700 font-extrabold text-xs px-3 py-1 rounded-full border border-slate-200/50 text-center">
+                            @php
+                                $labIdsArray = is_string($item->lab_ids) ? json_decode($item->lab_ids, true) : ($item->lab_ids ?? []);
+                                $labNames = collect($laboratoriums ?? [])
+                                    ->whereIn('id', $labIdsArray)
+                                    ->map(fn($l) => $l->nama_lab ?? $l->no_lab)
+                                    ->implode(', ');
+                            @endphp
+                            {{ $labNames ?: '-' }}
                         </span>
                     </div>
 
+                    {{-- Badge status_progress --}}
                     <div class="w-full md:w-1/5 flex md:justify-center mb-3 md:mb-0">
                         @if($item->status_progress == 'terinstal')
                             <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
                                 Terinstal
                             </span>
-                        @else
+                        @elseif($item->status_progress == 'progress')
+                            <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                                <span class="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                                Sedang Dikerjakan
+                            </span>
+                        @elseif($item->status_progress == 'gagal_terinstal')
                             <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
                                 <span class="h-1.5 w-1.5 rounded-full bg-rose-600"></span>
                                 Gagal Terinstal
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500">
+                                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                {{ $item->status_progress ?? '-' }}
                             </span>
                         @endif
                     </div>
@@ -89,6 +107,7 @@
                     </div>
                 </div>
 
+                {{-- MODAL DETAIL DATA --}}
                 <div id="modalDetail{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
                     <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="toggleModal('modalDetail{{ $item->id }}', false)"></div>
                     <div class="flex min-h-full items-center justify-center p-4">
@@ -106,22 +125,32 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Software</span>
-                                        <span class="font-extrabold text-slate-900">{{ $item->software_id ? $item->software->nama_software : $item->software_lain }}</span>
+                                        <span class="font-extrabold text-slate-900 uppercase">{{ $item->software_id ? $item->software->nama_software : $item->software_lain }}</span>
                                     </div>
                                     <div>
                                         <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Versi</span>
-                                        <span class="font-mono text-slate-600">v.{{ $item->software_id ? ($item->versi_requested ?? 'Default') : ($item->versi_lain ?? '-') }}</span>
+                                        <span class="font-mono text-slate-600">v.{{ $item->software_id ? ($item->versi_requested ?? 'Bawaan') : ($item->versi_lain ?? '-') }}</span>
                                     </div>
                                 </div>
                                 <hr class="border-slate-100">
                                 <div class="grid grid-cols-2 gap-4">
+                                    {{-- FIX: Menampilkan nama lab di dalam modal menggunakan Array ID --}}
                                     <div>
                                         <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Laboratorium Tujuan</span>
-                                        <span class="font-bold text-slate-800">{{ $item->laboratorium->nama_lab ?? 'LAB ' . ($item->laboratorium->no_lab ?? '-') }}</span>
+                                        <span class="font-bold text-slate-800">
+                                            @php
+                                                $labIdsArrayModal = is_string($item->lab_ids) ? json_decode($item->lab_ids, true) : ($item->lab_ids ?? []);
+                                                $labNamesModal = collect($laboratoriums ?? [])
+                                                    ->whereIn('id', $labIdsArrayModal)
+                                                    ->map(fn($l) => $l->nama_lab ?? $l->no_lab)
+                                                    ->implode(', ');
+                                            @endphp
+                                            {{ $labNamesModal ?: '-' }}
+                                        </span>
                                     </div>
                                     <div>
                                         <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Dosen Pengaju</span>
-                                        <span class="font-bold text-slate-800">{{ $item->dosen->name ?? '-' }}</span>
+                                        <span class="font-bold text-slate-800">{{ $item->dosen->nama ?? '-' }}</span>
                                     </div>
                                 </div>
                                 <hr class="border-slate-100">
@@ -140,8 +169,15 @@
                                     <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Pengerjaan</span>
                                     @if($item->status_progress == 'terinstal')
                                         <span class="inline-block bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-md font-bold">Terinstal Sukses</span>
-                                    @else
+                                    @elseif($item->status_progress == 'progress')
+                                        <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-md font-bold">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                                            Sedang Dikerjakan
+                                        </span>
+                                    @elseif($item->status_progress == 'gagal_terinstal')
                                         <span class="inline-block bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-md font-bold">Gagal Terinstal</span>
+                                    @else
+                                        <span class="inline-block bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-bold">{{ $item->status_progress ?? '-' }}</span>
                                     @endif
                                 </div>
                                 <hr class="border-slate-100">
@@ -156,6 +192,23 @@
                                         <span class="text-xs font-semibold text-slate-400 italic">Tidak ada link dokumentasi.</span>
                                     @endif
                                 </div>
+
+                                {{-- Foto bukti instalasi: hanya tampil jika sudah diverifikasi supervisor --}}
+                                @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
+                                    <hr class="border-slate-100">
+                                    <div>
+                                        <span class="block text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                            Foto Bukti Instalasi (Terverifikasi)
+                                        </span>
+                                        <button type="button" onclick="toggleModal('modalFotoPenyelesaian{{ $item->id }}', true)" class="block w-full group">
+                                            <img src="{{ asset('storage/' . $item->foto_bukti) }}"
+                                                 alt="Foto Bukti Instalasi"
+                                                 class="w-full max-h-48 object-cover rounded-xl border border-emerald-100 shadow-sm group-hover:opacity-90 transition cursor-zoom-in">
+                                            <p class="text-center text-xs font-semibold text-slate-400 mt-1">Klik untuk perbesar</p>
+                                        </button>
+                                    </div>
+                                @endif
                                 @if($item->catatan_admin)
                                     <hr class="border-slate-100">
                                     <div>
@@ -177,6 +230,25 @@
                     Belum ada riwayat pengerjaan instalasi yang diselesaikan.
                 </div>
             @endforelse
+
+            {{-- Modal foto full — dirender di luar modal detail agar z-index tidak konflik --}}
+            @foreach($tugas as $item)
+                @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
+                <div id="modalFotoPenyelesaian{{ $item->id }}" class="fixed inset-0 z-[60] hidden overflow-y-auto" role="dialog" aria-modal="true">
+                    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="toggleModal('modalFotoPenyelesaian{{ $item->id }}', false)"></div>
+                    <div class="flex min-h-full items-center justify-center p-4">
+                        <div class="relative z-10 max-w-3xl w-full">
+                            <button type="button" onclick="toggleModal('modalFotoPenyelesaian{{ $item->id }}', false)"
+                                class="absolute -top-10 right-0 rounded-xl p-1.5 text-white hover:bg-white/20 transition">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                            <img src="{{ asset('storage/' . $item->foto_bukti) }}" alt="Bukti Foto Instalasi"
+                                 class="w-full rounded-2xl shadow-2xl border border-white/20">
+                        </div>
+                    </div>
+                </div>
+                @endif
+            @endforeach
         </div>
     </div>
 </div>
@@ -184,6 +256,8 @@
 <script>
     function toggleModal(modalId, show) {
         const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
         if (show) {
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';

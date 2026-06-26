@@ -124,7 +124,8 @@
         </form>
 
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="overflow-x-auto">
+            {{-- Table for large screens --}}
+            <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full border-collapse text-left text-sm text-slate-600">
                     <thead class="bg-slate-50 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 border-b border-slate-200">
                         <tr>
@@ -230,6 +231,102 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Cards for small screens --}}
+            <div class="sm:hidden p-4 space-y-4">
+                @forelse($users as $item)
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50/70 transition">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex-1">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No Induk</div>
+                                <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 border border-slate-200 font-mono text-xs font-bold text-slate-700">
+                                    {{ $item->no_induk ?? $item->username ?? '-' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Nama Lengkap</div>
+                            <div class="font-semibold text-slate-950">
+                                @if($item->nama)
+                                    {{ $item->nama }}
+                                @else
+                                    <span class="italic text-slate-400 font-medium">— Belum diisi —</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Email</div>
+                            <div class="text-slate-600 font-medium text-sm">{{ $item->email }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No HP</div>
+                            <div class="text-slate-500 font-medium text-sm">{{ $item->no_hp ?? '-' }}</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hak Akses / Peran</div>
+                            <div class="flex flex-col items-start gap-1">
+                                @if($item->role === 'supervisor')
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 shadow-sm">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                                        Supervisor
+                                    </span>
+                                @elseif($item->role === 'dosen')
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 shadow-sm">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                                        Dosen
+                                    </span>
+                                    @if($item->is_first_login)
+                                        <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 mt-0.5">
+                                            ⏳ Profil Belum Dilengkapi
+                                        </span>
+                                    @endif
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 shadow-sm">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-600"></span>
+                                        Admin
+                                    </span>
+                                    
+                                    @if($item->laboratoriums && $item->laboratoriums->count() > 0)
+                                        <span class="text-[11px] font-medium text-slate-500 mt-0.5">
+                                            Tugas: <strong class="text-slate-700 font-semibold">{{ $item->laboratoriums->pluck('no_lab')->implode(', ') }}</strong>
+                                        </span>
+                                    @else
+                                        <span class="text-[11px] font-medium text-red-500 italic mt-0.5">
+                                            Belum ada lab
+                                        </span>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            {{-- Button Edit --}}
+                            <a href="{{ route('users.edit', $item->no_induk) }}" class="flex-1 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit User">
+                                Edit
+                            </a>
+                            
+                            {{-- Button Hapus --}}
+                            <form id="delete-form-sm-{{ $item->no_induk }}" action="{{ route('users.destroy', $item->no_induk) }}" method="POST" class="flex-1">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" onclick="openDeleteModal('delete-form-sm-{{ $item->no_induk }}')" class="w-full inline-flex items-center justify-center rounded-lg border border-red-200 bg-white py-2 text-sm font-bold text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20" title="Hapus User">
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-10">
+                        <svg class="h-8 w-8 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <p class="text-sm font-bold text-slate-900">Belum Ada Data User</p>
+                        <p class="text-xs text-slate-500">Silakan tambahkan data pengguna baru sistem terlebih dahulu atau sesuaikan kata kunci dan filter pencarian Anda.</p>
+                    </div>
+                @endforelse
             </div>
 
             @if($users->hasPages())

@@ -131,6 +131,28 @@
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
+                {{-- Proteksi Tombol Cetak dari Sisi UI --}}
+                @if($canPrint)
+                    @if(request()->filled('laboratorium') && isset($list_laboratorium))
+                        @php
+                            $selectedLab = $list_laboratorium->firstWhere('id', request('laboratorium'));
+                        @endphp
+                        @if($selectedLab)
+                            <a href="{{ route('preview.laporan.lab', $selectedLab->no_lab) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30 z-10" title="Cetak/Pratinjau Laporan Lab {{ $selectedLab->no_lab }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                            </a>
+                        @endif
+                    @else
+                        <button type="button" disabled class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed z-10" title="Silakan pilih laboratorium terlebih dahulu">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                        </button>
+                    @endif
+                @endif
+
                 <button type="submit" class="w-full md:w-auto rounded-xl bg-blue-950 px-5 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-900 transition cursor-pointer">
                     Cari
                 </button>
@@ -144,7 +166,8 @@
     </section>
 
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
+        {{-- Tabel untuk layar besar --}}
+        <div class="hidden sm:block overflow-x-auto">
             <table class="w-full border-collapse text-left text-sm">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -161,23 +184,14 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($pengajuans as $item)
                         @php
-                            // Logika baru untuk membaca multi-laboratorium (array lab_ids)
                             $rawLabIds = $item->lab_ids;
                             $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
-
-                            // Debug: Tampilkan struktur lab_ids untuk item pertama saja
-                            if ($loop->first) {
-                                // echo '<!-- DEBUG: lab_ids structure: ' . json_encode($rawLabIds) . ' -->';
-                                // echo '<!-- DEBUG: lab_ids array: ' . json_encode($labIdsArray) . ' -->';
-                            }
-
-                            // Gunakan data list_laboratorium dari controller (sama dengan tugas.blade.php)
                             $labNames = collect($list_laboratorium ?? [])
                                 ->whereIn('id', $labIdsArray)
-                                ->map(fn($l) => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : ''))
+                                ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
                                 ->implode(', ');
-
                             $labDisplay = $labNames ?: 'Belum Ditentukan';
+                            $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
                         @endphp
                         
                         <tr class="transition hover:bg-slate-50/50">
@@ -209,9 +223,6 @@
                             </td>
 
                             <td class="whitespace-nowrap px-6 py-4 text-center">
-                                @php 
-                                    $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
-                                @endphp
                                 <span class="inline-block rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass($currentStatus) }} capitalize">
                                     {{ str_replace('_', ' ', $currentStatus) }}
                                 </span>
@@ -223,148 +234,6 @@
                                 </button>
                             </td>
                         </tr>
-
-                        <div id="modalDetailHistory{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-                            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)"></div>
-                            <div class="flex min-h-full items-center justify-center p-4">
-                                <div class="relative transform overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-2xl transition-all w-full max-w-xl">
-                                    
-                                    <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-slate-50">
-                                        <div>
-                                            <h3 class="text-base font-black text-slate-950">Rincian Lengkap Instalasi</h3>
-                                            <p class="text-xs text-slate-400">Detail rekam jejak pemasangan software di laboratorium.</p>
-                                        </div>
-                                        <button type="button" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-200 transition">
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        </button>
-                                    </div>
-                                    
-                                    <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Software</span>
-                                                <span class="font-extrabold text-slate-900">
-                                                    {{ $item->software->nama_software ?? $item->software_lain ?? 'Software Tidak Diketahui' }}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Versi yang Diminta</span>
-                                                <span class="font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                                                    v.{{ $item->versi_requested ?? $item->versi_lain ?? '-' }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <hr class="border-slate-100">
-                                        
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Laboratorium</span>
-                                                <span class="font-bold text-slate-800">
-                                                    {{ $labDisplay }}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mata Kuliah / Kelompok</span>
-                                                <span class="font-medium text-slate-800">
-                                                    {{ $item->mata_kuliah ?? '-' }} ({{ $item->kelompok_matkul ?? '-' }})
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <hr class="border-slate-100">
-                                        
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Pengajuan</span>
-                                                <span class="font-medium text-slate-800">
-                                                    {{ $item->tgl_pengajuan ? $item->tgl_pengajuan->format('d F Y') : '-' }}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Penugasan</span>
-                                                <span class="font-medium text-slate-800">
-                                                    {{ $item->tgl_penugasan ? $item->tgl_penugasan->format('d F Y') : 'Belum Ditugaskan' }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        @if($item->catatan_spv || $item->catatan_admin)
-                                            <hr class="border-slate-100">
-                                            <div class="space-y-2">
-                                                @if($item->catatan_spv)
-                                                    <div>
-                                                        <span class="block text-[11px] font-bold text-red-500 uppercase tracking-wider">Catatan Supervisor</span>
-                                                        <p class="text-xs text-slate-600 italic bg-red-50/50 p-2 rounded-lg border border-red-100">{{ $item->catatan_spv }}</p>
-                                                    </div>
-                                                @endif
-                                                @if($item->catatan_admin)
-                                                    <div>
-                                                        <span class="block text-[11px] font-bold text-amber-600 uppercase tracking-wider">Catatan Admin / Kendala</span>
-                                                        <p class="text-xs text-slate-600 italic bg-amber-50/50 p-2 rounded-lg border border-amber-100">{{ $item->catatan_admin }}</p>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        @endif
-
-                                        <hr class="border-slate-100">
-                                        
-                                        <div>
-                                            <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Pengerjaan</span>
-                                            <span class="inline-block rounded-full px-3 py-0.5 text-xs font-bold ring-1 {{ $statusClass($currentStatus) }} capitalize">
-                                                {{ str_replace('_', ' ', $currentStatus) }}
-                                            </span>
-                                        </div>
-
-                                        <hr class="border-slate-100">
-
-                                        <div>
-                                            <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Link Dokumentasi Hasil Instalasi</span>
-                                            @if($item->dokumentasi)
-                                                <a href="{{ $item->dokumentasi }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 break-all">
-                                                    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                                    {{ $item->dokumentasi }}
-                                                </a>
-                                            @else
-                                                <span class="text-xs font-semibold text-slate-400 italic">Belum ada link dokumentasi yang diunggah.</span>
-                                            @endif
-                                        </div>
-
-                                        {{-- Foto bukti instalasi — hanya tampil jika sudah diverifikasi supervisor --}}
-                                        @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
-                                            <hr class="border-slate-100">
-                                            <div>
-                                                <span class="block text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-1">
-                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                                                    Foto Bukti Instalasi (Terverifikasi)
-                                                </span>
-                                                <button type="button" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', true)" class="block w-full group">
-                                                    <img src="{{ asset('storage/' . $item->foto_bukti) }}"
-                                                         alt="Foto Bukti Instalasi"
-                                                         class="w-full max-h-48 object-cover rounded-xl border border-emerald-100 shadow-sm group-hover:opacity-90 transition cursor-zoom-in">
-                                                    <p class="text-center text-xs font-semibold text-slate-400 mt-1">Klik untuk perbesar</p>
-                                                </button>
-                                            </div>
-                                        @endif
-                                        
-                                        <hr class="border-slate-100">
-                                        
-                                        <div>
-                                            <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Penanggung Jawab / Eksekutor</span>
-                                            <div class="flex items-center gap-2 text-slate-800 font-semibold bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                                <span>{{ $item->admin->nama ?? $item->admin->name ?? 'Belum Ditugaskan' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end">
-                                        <button type="button" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 cursor-pointer">
-                                            Tutup
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     @empty
                         <tr>
                             <td colspan="{{ $role === 'supervisor' || $role === 'admin' ? 6 : 5 }}" class="px-6 py-10 text-center">
@@ -375,32 +244,237 @@
                             </td>
                         </tr>
                     @endforelse
-
-                    {{-- Modal lihat foto full — di luar tbody, dirender per item --}}
-                    @foreach($pengajuans as $item)
-                        @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
-                        <tr class="hidden">
-                            <td>
-                                <div id="modalFotoRiwayat{{ $item->id }}" class="fixed inset-0 z-[60] hidden overflow-y-auto" role="dialog" aria-modal="true">
-                                    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', false)"></div>
-                                    <div class="flex min-h-full items-center justify-center p-4">
-                                        <div class="relative z-10 max-w-3xl w-full">
-                                            <button type="button" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', false)"
-                                                class="absolute -top-10 right-0 rounded-xl p-1.5 text-white hover:bg-white/20 transition">
-                                                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            </button>
-                                            <img src="{{ asset('storage/' . $item->foto_bukti) }}" alt="Bukti Foto Instalasi"
-                                                 class="w-full rounded-2xl shadow-2xl border border-white/20">
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        @endif
-                    @endforeach
                 </tbody>
             </table>
         </div>
+
+        {{-- Kartu untuk layar kecil --}}
+        <div class="sm:hidden p-4 space-y-4">
+            @forelse($pengajuans as $item)
+                @php
+                    $rawLabIds = $item->lab_ids;
+                    $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
+                    $labNames = collect($list_laboratorium ?? [])
+                        ->whereIn('id', $labIdsArray)
+                        ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
+                        ->implode(', ');
+                    $labDisplay = $labNames ?: 'Belum Ditentukan';
+                    $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
+                @endphp
+                
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50/50 transition">
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div class="flex-1">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Tanggal</div>
+                            <div class="text-sm font-medium text-slate-900">{{ $item->created_at ? $item->created_at->format('d M Y, H:i') : '-' }}</div>
+                        </div>
+                        <span class="inline-block rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass($currentStatus) }} capitalize">
+                            {{ str_replace('_', ' ', $currentStatus) }}
+                        </span>
+                    </div>
+
+                    @if($role === 'supervisor' || $role === 'admin')
+                        <div class="mb-3">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Pemohon</div>
+                            <div class="text-sm font-bold text-slate-900">{{ $item->dosen->nama ?? 'Dosen' }}</div>
+                            <div class="text-xs text-slate-500">ID: {{ $item->dosen->no_induk ?? '-' }}</div>
+                        </div>
+                    @endif
+
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Software / Mata Kuliah</div>
+                        <div class="text-sm font-bold text-slate-900">{{ $item->software->nama_software ?? $item->software_lain ?? 'Software Tidak Diketahui' }}</div>
+                        <div class="text-xs text-slate-500 font-medium">Mata Kuliah: {{ $item->mata_kuliah ?? '-' }}</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Laboratorium</div>
+                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800 break-words">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            {{ $labDisplay }}
+                        </span>
+                    </div>
+
+                    <button type="button" onclick="toggleModal('modalDetailHistory{{ $item->id }}', true)" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 text-center cursor-pointer transition">
+                        Lihat Detail
+                    </button>
+                </div>
+            @empty
+                <div class="text-center py-10">
+                    <svg class="h-8 w-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="text-sm font-semibold text-slate-500">Belum ada rekaman riwayat aktivitas pengerjaan.</p>
+                </div>
+            @endforelse
+        </div>
+
+        {{-- Modals dan Pagination --}}
+        @foreach($pengajuans as $item)
+            @php
+                $rawLabIds = $item->lab_ids;
+                $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
+                $labNames = collect($list_laboratorium ?? [])
+                    ->whereIn('id', $labIdsArray)
+                    ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
+                    ->implode(', ');
+                $labDisplay = $labNames ?: 'Belum Ditentukan';
+                $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
+            @endphp
+            <div id="modalDetailHistory{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)"></div>
+                <div class="flex min-h-full items-center justify-center p-4">
+                    <div class="relative transform overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-2xl transition-all w-full max-w-xl">
+                        <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-slate-50">
+                            <div>
+                                <h3 class="text-base font-black text-slate-950">Rincian Lengkap Instalasi</h3>
+                                <p class="text-xs text-slate-400">Detail rekam jejak pemasangan software di laboratorium.</p>
+                            </div>
+                            <button type="button" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-200 transition">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Software</span>
+                                    <span class="font-extrabold text-slate-900">
+                                        {{ $item->software->nama_software ?? $item->software_lain ?? 'Software Tidak Diketahui' }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Versi yang Diminta</span>
+                                    <span class="font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                                        v.{{ $item->versi_requested ?? $item->versi_lain ?? '-' }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <hr class="border-slate-100">
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Laboratorium</span>
+                                    <span class="font-bold text-slate-800">
+                                        {{ $labDisplay }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mata Kuliah / Kelompok</span>
+                                    <span class="font-medium text-slate-800">
+                                        {{ $item->mata_kuliah ?? '-' }} ({{ $item->kelompok_matkul ?? '-' }})
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <hr class="border-slate-100">
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Pengajuan</span>
+                                    <span class="font-medium text-slate-800">
+                                        {{ $item->tgl_pengajuan ? $item->tgl_pengajuan->format('d F Y') : '-' }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Penugasan</span>
+                                    <span class="font-medium text-slate-800">
+                                        {{ $item->tgl_penugasan ? $item->tgl_penugasan->format('d F Y') : 'Belum Ditugaskan' }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            @if($item->catatan_spv || $item->catatan_admin)
+                                <hr class="border-slate-100">
+                                <div class="space-y-2">
+                                    @if($item->catatan_spv)
+                                        <div>
+                                            <span class="block text-[11px] font-bold text-red-500 uppercase tracking-wider">Catatan Supervisor</span>
+                                            <p class="text-xs text-slate-600 italic bg-red-50/50 p-2 rounded-lg border border-red-100">{{ $item->catatan_spv }}</p>
+                                        </div>
+                                    @endif
+                                    @if($item->catatan_admin)
+                                        <div>
+                                            <span class="block text-[11px] font-bold text-amber-600 uppercase tracking-wider">Catatan Admin / Kendala</span>
+                                            <p class="text-xs text-slate-600 italic bg-amber-50/50 p-2 rounded-lg border border-amber-100">{{ $item->catatan_admin }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
+                            <hr class="border-slate-100">
+                            
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Pengerjaan</span>
+                                <span class="inline-block rounded-full px-3 py-0.5 text-xs font-bold ring-1 {{ $statusClass($currentStatus) }} capitalize">
+                                    {{ str_replace('_', ' ', $currentStatus) }}
+                                </span>
+                            </div>
+
+                            <hr class="border-slate-100">
+
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Link Dokumentasi Hasil Instalasi</span>
+                                @if($item->dokumentasi)
+                                    <a href="{{ $item->dokumentasi }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 break-all">
+                                        <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        {{ $item->dokumentasi }}
+                                    </a>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-400 italic">Belum ada link dokumentasi yang diunggah.</span>
+                                @endif
+                            </div>
+
+                            @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
+                                <hr class="border-slate-100">
+                                <div>
+                                    <span class="block text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                        Foto Bukti Instalasi (Terverifikasi)
+                                    </span>
+                                    <button type="button" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', true)" class="block w-full group">
+                                        <img src="{{ asset('storage/' . $item->foto_bukti) }}"
+                                             alt="Foto Bukti Instalasi"
+                                             class="w-full max-h-48 object-cover rounded-xl border border-emerald-100 shadow-sm group-hover:opacity-90 transition cursor-zoom-in">
+                                        <p class="text-center text-xs font-semibold text-slate-400 mt-1">Klik untuk perbesar</p>
+                                    </button>
+                                </div>
+                            @endif
+                            
+                            <hr class="border-slate-100">
+                            
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Penanggung Jawab / Eksekutor</span>
+                                <div class="flex items-center gap-2 text-slate-800 font-semibold bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    <span>{{ $item->admin->nama ?? $item->admin->name ?? 'Belum Ditugaskan' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end">
+                            <button type="button" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 cursor-pointer">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if($item->foto_bukti && $item->status_verifikasi === 'disetujui')
+                <div id="modalFotoRiwayat{{ $item->id }}" class="fixed inset-0 z-[60] hidden overflow-y-auto" role="dialog" aria-modal="true">
+                    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', false)"></div>
+                    <div class="flex min-h-full items-center justify-center p-4">
+                        <div class="relative z-10 max-w-3xl w-full">
+                            <button type="button" onclick="toggleModal('modalFotoRiwayat{{ $item->id }}', false)"
+                                class="absolute -top-10 right-0 rounded-xl p-1.5 text-white hover:bg-white/20 transition">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                            <img src="{{ asset('storage/' . $item->foto_bukti) }}" alt="Bukti Foto Instalasi"
+                                 class="w-full rounded-2xl shadow-2xl border border-white/20">
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
         
         @if($pengajuans->hasPages())
             <div class="border-t border-slate-200 bg-white px-6 py-4">

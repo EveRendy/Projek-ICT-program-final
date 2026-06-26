@@ -7,9 +7,12 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\LaboratoriumController;
 use App\Http\Controllers\SoftwareController;
 use App\Http\Controllers\PengajuanController;
-use App\Http\Controllers\InstalasiController;
 use App\Http\Controllers\RiwayatController; 
 use App\Http\Controllers\CetakController;
+use App\Http\Controllers\HardwareController;
+use App\Http\Controllers\LicenseController;
+use App\Http\Controllers\ForgotPasswordController;
+
 
 // =========================================================================
 // 1. Route Publik & Autentikasi
@@ -21,6 +24,13 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update.action');
+});
 
 
 // =========================================================================
@@ -47,13 +57,27 @@ Route::middleware(['auth', 'check.first.login'])->group(function () {
     
     // Route CRUD Master Data (Resource)
     Route::resource('users', UserController::class);
+
+    // Route Hardware
+    Route::resource('hardware', HardwareController::class)->only(['index', 'store', 'update', 'destroy']);
+    
+
     
     // Route kustom untuk update status laboratorium oleh Supervisor sebelum resource labs
     Route::patch('/labs/{id}/update-status', [LaboratoriumController::class, 'updateStatus'])->name('labs.updateStatus');
+    Route::patch('/labs/{id}/toggle-active', [LaboratoriumController::class, 'toggleActive'])->name('labs.toggleActive');
     Route::resource('labs', LaboratoriumController::class);
     
     Route::resource('softwares', SoftwareController::class);
-    Route::resource('instalasi', InstalasiController::class); 
+    
+    // Route Pelacak Lisensi
+    Route::get('/license', [LicenseController::class, 'index'])->name('license.index');
+    Route::get('/license/{labId}', [LicenseController::class, 'showLab'])->name('license.show-lab');
+    Route::get('/license/{labId}/software/{softwareId}', [LicenseController::class, 'showSoftware'])->name('license.show-software');
+    Route::post('/license/store', [LicenseController::class, 'store'])->name('license.store');
+    Route::put('/license/{id}/update', [LicenseController::class, 'update'])->name('license.update');
+    Route::delete('/license/{id}/destroy', [LicenseController::class, 'destroy'])->name('license.destroy');
+    Route::delete('/license/{labId}/software/{softwareId}/destroy', [LicenseController::class, 'destroySoftware'])->name('license.destroy-software');
 
     // -------------------------------------------------------------------------
     // MENU DOSEN: 1. PENGAJUAN (Langsung Menampilkan Formulir Input)

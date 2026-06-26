@@ -20,6 +20,7 @@ class Software extends Model
     protected $fillable = [
         'id_software',
         'nama_software',
+        'category',
         'versi',
         'keterangan',
     ];
@@ -37,8 +38,9 @@ class Software extends Model
         return $this->hasMany(Pengajuan::class, 'software_id');
     }
 
-    public function instalasis()
+
+    public function licenseTrackings()
     {
-        return $this->hasMany(Instalasi::class, 'id_software', 'id_software');
+        return $this->hasMany(LicenseTracking::class);
     }
 }

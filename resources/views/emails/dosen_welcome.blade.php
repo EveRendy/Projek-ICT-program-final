@@ -20,7 +20,7 @@
         <!-- Body Section -->
         <tr>
             <td style="padding: 40px 40px;">
-                <h2 style="color: #0f172a; font-size: 20px; font-weight: 800; margin-top: 0; margin-bottom: 15px;">Halo, Dosen Universitas Bandar Lampung</h2>
+                <h2 style="color: #0f172a; font-size: 20px; font-weight: 800; margin-top: 0; margin-bottom: 15px;">Halo, Dosen Universitas Budi Luhur</h2>
                 
                 <p style="font-size: 15px; line-height: 1.7; color: #475569; margin-bottom: 25px;">Akun Anda untuk <strong style="color: #0f172a;">Sistem Instalasi Software Laboratorium ICT</strong> telah berhasil dibuat. Anda sekarang dapat masuk dan mulai mengajukan instalasi software untuk kebutuhan perkuliahan Anda.</p>
                 

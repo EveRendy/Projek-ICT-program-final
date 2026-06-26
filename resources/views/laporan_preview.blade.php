@@ -432,16 +432,73 @@
                 background-color: inherit;
             }
         }
+
+        /* ====================================================
+           PDF STYLES — when rendering for PDF
+           ==================================================== */
+        body.pdf-mode {
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        body.pdf-mode .toolbar { display: none !important; }
+        body.pdf-mode .page-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        body.pdf-mode .document {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        body.pdf-mode .data-table tbody tr:hover {
+            background-color: inherit !important;
+        }
+        body.pdf-mode .doc-header {
+            padding: 0 10px !important;
+        }
+        body.pdf-mode .header-rule {
+            margin-left: 10px !important;
+            margin-right: 10px !important;
+        }
+        body.pdf-mode .meta-bar {
+            margin: 0 10px 20px 10px !important;
+        }
+        body.pdf-mode .section-title {
+            padding: 0 10px !important;
+        }
+        body.pdf-mode .data-table {
+            width: calc(100% - 20px) !important;
+            margin: 0 10px !important;
+        }
+        body.pdf-mode .summary-bar {
+            margin: 20px 10px !important;
+        }
+        body.pdf-mode .signature-section {
+            margin: 40px 10px !important;
+        }
+        body.pdf-mode .doc-footer {
+            left: 10px !important;
+            right: 10px !important;
+            bottom: 20px !important;
+        }
     </style>
 </head>
-<body>
+<body class="{{ isset($is_pdf) && $is_pdf ? 'pdf-mode' : '' }}">
 
+    @if(!isset($is_pdf) || !$is_pdf)
     <!-- ==========================================
          TOOLBAR (Screen only)
          ========================================== -->
     <div class="toolbar">
         <div class="toolbar-brand">
-            <img src="{{ asset('images/image.png') }}" alt="Logo ICT">
+            <img src="{{ isset($is_pdf) && $is_pdf ? public_path('images/image.png') : asset('images/image.png') }}" alt="Logo ICT">
             <div class="toolbar-brand-text">
                 <h2>Laboratorium ICT Terpadu</h2>
                 <p>Pratinjau Laporan Instalasi Software</p>
@@ -467,6 +524,7 @@
             </button>
         </div>
     </div>
+    @endif
 
     <!-- ==========================================
          DOCUMENT (A4 Paper)
@@ -476,7 +534,7 @@
 
             <!-- Kop Surat -->
             <div class="doc-header">
-                <img class="doc-header-logo" src="{{ asset('images/image.png') }}" alt="Logo ICT">
+                <img class="doc-header-logo" src="{{ isset($is_pdf) && $is_pdf ? public_path('images/image.png') : asset('images/image.png') }}" alt="Logo ICT">
                 <div class="doc-header-divider"></div>
                 <div class="doc-header-text">
                     <div class="institution">Laboratorium ICT Terpadu</div>

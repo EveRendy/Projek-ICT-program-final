@@ -14,12 +14,11 @@
         };
     };
 
-    $maxPengajuan = max($totalPengajuan ?? 0, $menungguInstalasi ?? 0, $pengajuanDisetujui ?? 0, $pengajuanDitolak ?? 0, 1);
+    $maxPengajuan = max($totalPengajuan ?? 0, $menungguTinjauanPengajuan ?? 0, $menungguTinjauanInstalasi ?? 0, $sedangDiinstal ?? 0, 1);
     $chartRows = [
-        ['label' => 'Menunggu', 'value' => $menungguInstalasi ?? 0, 'color' => 'bg-amber-500'],
-        ['label' => 'Disetujui', 'value' => $pengajuanDisetujui ?? 0, 'color' => 'bg-emerald-500'],
-        ['label' => 'Ditolak', 'value' => $pengajuanDitolak ?? 0, 'color' => 'bg-red-500'],
-        ['label' => 'Progress', 'value' => $sedangDiinstal ?? 0, 'color' => 'bg-blue-500'],
+        ['label' => 'Menunggu Tinjauan Pengajuan', 'value' => $menungguTinjauanPengajuan ?? 0, 'color' => 'bg-amber-500'],
+        ['label' => 'Menunggu Tinjauan Instalasi', 'value' => $menungguTinjauanInstalasi ?? 0, 'color' => 'bg-purple-500'],
+        ['label' => 'Sedang Diinstal', 'value' => $sedangDiinstal ?? 0, 'color' => 'bg-blue-500'],
     ];
 @endphp
 
@@ -58,26 +57,21 @@
     </section>
 
     @if($role === 'supervisor')
-        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-500">Total Pengajuan</p>
-                <p class="mt-3 text-3xl font-black text-slate-950">{{ $totalPengajuan ?? 0 }}</p>
-                <p class="mt-3 text-sm text-slate-500">Semua request dosen</p>
+                <p class="text-sm font-bold text-slate-950">Menunggu Tinjauan Pengajuan</p>
+                <p class="mt-3 text-3xl font-black text-slate-950">{{ $menungguTinjauanPengajuan ?? 0 }}</p>
+                <p class="mt-3 text-sm font-bold text-slate-700">Pengajuan baru yang perlu disetujui</p>
             </article>
-            <article class="rounded-2xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-amber-700">Pengajuan Menunggu</p>
-                <p class="mt-3 text-3xl font-black text-amber-950">{{ $menungguInstalasi ?? 0 }}</p>
-                <p class="mt-3 text-sm text-amber-700">Butuh persetujuan</p>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-bold text-slate-950">Menunggu Tinjauan Instalasi</p>
+                <p class="mt-3 text-3xl font-black text-slate-950">{{ $menungguTinjauanInstalasi ?? 0 }}</p>
+                <p class="mt-3 text-sm font-bold text-slate-700">Foto bukti instalasi yang perlu diverifikasi</p>
             </article>
-            <article class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-emerald-700">Pengajuan Disetujui</p>
-                <p class="mt-3 text-3xl font-black text-emerald-950">{{ $pengajuanDisetujui ?? 0 }}</p>
-                <p class="mt-3 text-sm text-emerald-700">Sudah masuk proses</p>
-            </article>
-            <article class="rounded-2xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
-                <p class="text-sm font-bold text-blue-700">Sedang Diinstal</p>
-                <p class="mt-3 text-3xl font-black text-blue-950">{{ $sedangDiinstal ?? 0 }}</p>
-                <p class="mt-3 text-sm text-blue-700">Pekerjaan berjalan</p>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-bold text-slate-950">Sedang Diinstal</p>
+                <p class="mt-3 text-3xl font-black text-slate-950">{{ $sedangDiinstal ?? 0 }}</p>
+                <p class="mt-3 text-sm font-bold text-slate-700">Instalasi sedang berlangsung</p>
             </article>
         </section>
 

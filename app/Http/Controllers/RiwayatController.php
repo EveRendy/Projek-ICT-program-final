@@ -48,8 +48,8 @@ class RiwayatController extends Controller
             })->count(),
         ];
 
-        // Ambil data untuk opsi dropdown di View
-        $list_laboratorium = Laboratorium::orderBy('no_lab')->get();
+        // Ambil data untuk opsi dropdown di View (hanya yang aktif)
+        $list_laboratorium = Laboratorium::where('is_active', true)->orderBy('no_lab')->get();
         $list_software = Software::all();
 
         // 3. Eager loading untuk semua relasi yang dibutuhkan

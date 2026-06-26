@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Instalasi;
 use App\Models\Laboratorium;
 use App\Models\Pengajuan;
 use App\Models\Software;
@@ -16,18 +15,19 @@ class DashboardController extends Controller
         // 1. Total Pengajuan: Menghitung seluruh baris data di tabel pengajuan
         $totalPengajuan = Pengajuan::count();   
         
-        // 2. Menunggu Instalasi: Berdasarkan acuan method store() Anda, 
-        // status awal saat dosen membuat pengajuan adalah 'pending'
-        $menungguInstalasi = Pengajuan::where('status_persetujuan', 'pending')->count();
+        // 2. Menunggu tinjauan pengajuan: status_persetujuan = 'pending'
+        $menungguTinjauanPengajuan = Pengajuan::where('status_persetujuan', 'pending')->count();
         
-        // 3. Sedang Diinstal: Berdasarkan acuan method setujui() Anda, 
-        // saat disetujui SPV, 'status_progress' otomatis di-update menjadi 'progress'
+        // 3. Menunggu tinjauan instalasi: status_verifikasi = 'menunggu'
+        $menungguTinjauanInstalasi = Pengajuan::where('status_verifikasi', 'menunggu')->count();
+        
+        // 4. Sedang diinstal: status_progress = 'progress'
         $sedangDiinstal = Pengajuan::where('status_progress', 'progress')->count();
         
-        // 4. Selesai: sesuai enum migration, status selesai instalasi adalah 'terinstal'
+        // 5. Selesai: sesuai enum migration, status selesai instalasi adalah 'terinstal'
         $selesai = Pengajuan::where('status_progress', 'terinstal')->count();
         
-        // 5. Hari Ini: Menggunakan kolom 'tgl_pengajuan' sesuai format format data 
+        // 6. Hari Ini: Menggunakan kolom 'tgl_pengajuan' sesuai format format data 
         // yang Anda set di method store() yaitu now()->toDateString()
         $pengajuanHariIni = Pengajuan::where('tgl_pengajuan', now()->toDateString())->count();
 
@@ -43,7 +43,7 @@ class DashboardController extends Controller
         $totalSoftware = Software::count();
         $totalLaboratorium = Laboratorium::count();
         $totalUser = User::count();
-        $totalInstalasi = Instalasi::count();
+        $totalInstalasi = \App\Models\LicenseTracking::count();
         
         // DIUBAH: Menghapus 'laboratorium'
         $aktivitasTerbaru = Pengajuan::with(['dosen', 'software'])
@@ -86,7 +86,8 @@ class DashboardController extends Controller
         // Mengirimkan semua data penghitungan ke view dashboard
         return view('dashboard', compact(
             'totalPengajuan',
-            'menungguInstalasi',
+            'menungguTinjauanPengajuan',
+            'menungguTinjauanInstalasi',
             'sedangDiinstal',
             'selesai',
             'pengajuanHariIni',

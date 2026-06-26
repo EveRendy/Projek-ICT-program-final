@@ -49,7 +49,7 @@
 
     <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 p-4 sm:p-5">
-            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_180px_260px_auto]">
+            <form method="GET" action="{{ route('softwares.index') }}" class="grid gap-3 lg:grid-cols-[1fr_180px_320px_auto]">
                 
                 {{-- 1. Input Search --}}
                 <div class="relative">
@@ -72,26 +72,28 @@
 
                 {{-- 3. Dropdown Filter Laboratorium & Tombol Cetak PDF --}}
                 <div class="flex items-center gap-2">
-                    <x-custom-select
-                        name="laboratorium"
-                        label="Semua Laboratorium"
-                        :selected="request('laboratorium')"
-                        :autosubmit="true"
-                        :options="array_merge(
-                            [['value' => '', 'label' => 'Semua Laboratorium']],
-                            $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
-                        )" />
+                    <div class="flex-1 min-w-0">
+                        <x-custom-select
+                            name="laboratorium"
+                            label="Semua Laboratorium"
+                            :selected="request('laboratorium')"
+                            :autosubmit="true"
+                            :options="array_merge(
+                                [['value' => '', 'label' => 'Semua Laboratorium']],
+                                $laboratoriums->map(fn($l) => ['value' => $l->no_lab, 'label' => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : '')])->toArray()
+                            )" />
+                    </div>
 
                     {{-- Proteksi Tombol Cetak dari Sisi UI --}}
                     @if($canPrint)
                         @if(request()->filled('laboratorium'))
-                            <a href="{{ route('preview.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30" title="Cetak/Pratinjau Laporan Lab {{ request('laboratorium') }}">
+                            <a href="{{ route('preview.laporan.lab', request('laboratorium')) }}" target="_blank" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30 z-10" title="Cetak/Pratinjau Laporan Lab {{ request('laboratorium') }}">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                 </svg>
                             </a>
                         @else
-                            <button type="button" disabled class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed" title="Silakan pilih laboratorium terlebih dahulu">
+                            <button type="button" disabled class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed z-10" title="Silakan pilih laboratorium terlebih dahulu">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                 </svg>
@@ -114,7 +116,8 @@
             </form>
         </div>
 
-        <div class="overflow-x-auto">
+        {{-- Table for large screens --}}
+        <div class="hidden sm:block overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100">
                 <thead class="bg-slate-50">
                     <tr>
@@ -139,7 +142,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2">
                                             <p class="font-bold text-slate-950">{{ $item->nama_software }}</p>
-                                            @if($item->instalasis->isEmpty())
+                                            @if($item->licenseTrackings->isEmpty())
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-md">
                                                     <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                                     Belum Terinstal
@@ -154,13 +157,13 @@
                             <td class="px-5 py-4">
                                 <div class="flex max-w-xs flex-wrap gap-1.5">
                                     @if(request()->filled('laboratorium'))
-                                        @forelse($item->instalasis as $inst)
+                                        @if($item->licenseTrackings->isNotEmpty())
                                             <span class="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-1 text-xs font-bold text-blue-700">
-                                                v{{ $inst->versi_terinstall }}
+                                                Lisensi: {{ $item->licenseTrackings->first()->license_type_label ?? 'Aktif' }}
                                             </span>
-                                        @empty
+                                        @else
                                             <span class="text-xs italic text-slate-400">Belum terinstal</span>
-                                        @endforelse
+                                        @endif
                                     @else
                                         @foreach($item->versi as $v)
                                             <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
@@ -174,15 +177,11 @@
                             </td>
                             <td class="px-5 py-4">
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
-                                    @if($item->instalasis && $item->instalasis->count() > 0)
+                                    @if($item->licenseTrackings && $item->licenseTrackings->count() > 0)
                                         @php
-                                            $labList = $item->instalasis->pluck('no_lab')->unique();
-                                            $labListWithName = $labList->map(function($no_lab) use ($laboratoriums) {
-                                                $lab = $laboratoriums->firstWhere('no_lab', $no_lab);
-                                                return $no_lab . ($lab && $lab->nama_lab ? ' : ' . $lab->nama_lab : '');
-                                            })->toArray();
+                                            $labList = $item->licenseTrackings->map(fn($l) => $l->laboratorium->no_lab ?? null)->filter()->unique()->toArray();
                                         @endphp
-                                        Terpasang di: {{ implode(', ', $labListWithName) }}
+                                        Terpasang di: {{ implode(', ', $labList) }}
                                     @else
                                         Belum Terinstal di Lab Manapun
                                     @endif
@@ -228,6 +227,105 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        {{-- Cards for small screens --}}
+        <div class="sm:hidden p-4 space-y-4">
+            @forelse($softwares as $item)
+                @php $meta = $levelMeta($item->keterangan); @endphp
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50">
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-950 text-sm font-black text-white shadow-sm shrink-0">
+                            {{ substr($item->nama_software, 0, 1) }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <p class="font-bold text-slate-950">{{ $item->nama_software }}</p>
+                                @if($item->licenseTrackings->isEmpty())
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-md">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                        Belum Terinstal
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="mt-0.5 text-xs font-medium text-slate-500">{{ $item->id_software }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Versi</span>
+                        <div class="mt-1 flex flex-wrap gap-1.5">
+                            @if(request()->filled('laboratorium'))
+                                @if($item->licenseTrackings->isNotEmpty())
+                                    <span class="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                                        Lisensi: {{ $item->licenseTrackings->first()->license_type_label ?? 'Aktif' }}
+                                    </span>
+                                @else
+                                    <span class="text-xs italic text-slate-400">Belum terinstal</span>
+                                @endif
+                            @else
+                                @foreach($item->versi as $v)
+                                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{{ $v }}</span>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Kategori</span>
+                        <div class="mt-1">
+                            <span class="rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ $meta['class'] }}">{{ $meta['label'] }} · {{ $meta['desc'] }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Status Instalasi</span>
+                        <div class="mt-1">
+                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                                @if($item->licenseTrackings && $item->licenseTrackings->count() > 0)
+                                    @php
+                                        $labList = $item->licenseTrackings->map(fn($l) => $l->laboratorium->no_lab ?? null)->filter()->unique()->toArray();
+                                    @endphp
+                                    Terpasang di: {{ implode(', ', $labList) }}
+                                @else
+                                    Belum Terinstal di Lab Manapun
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+
+                    @if($isSupervisor)
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('softwares.edit', $item->id) }}"
+                                class="flex-1 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                title="Edit {{ $item->nama_software }}">
+                                Edit
+                            </a>
+
+                            <form id="delete-form-sm-{{ $item->id }}" action="{{ route('softwares.destroy', $item->id) }}" method="POST" class="flex-1">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" onclick="openDeleteModal('delete-form-sm-{{ $item->id }}')"
+                                    class="w-full inline-flex items-center justify-center rounded-lg border border-red-200 bg-white py-2 text-sm font-bold text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                                    title="Hapus {{ $item->nama_software }}">
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="text-center py-10">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 mb-4">
+                                        <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+                                    </div>
+                                    <h3 class="text-lg font-black text-slate-950">Belum ada software / Tidak ditemukan</h3>
+                                    <p class="mt-2 text-sm leading-6 text-slate-500">Data master software kosong atau kata kunci pencarian tidak cocok.</p>
+                                    @if($isSupervisor)
+                                        <a href="{{ route('softwares.create') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-900">Tambah Software</a>
+                                    @endif
+                </div>
+            @endforelse
         </div>
 
         <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">

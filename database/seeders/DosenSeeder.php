@@ -14,14 +14,17 @@ class DosenSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'no_induk' => 'DSN001', // Sesuaikan format nomor induk kamu
-            'nama'     => 'Dosen',
-            'email'    => 'dosen@lab.com',
-            'password' => Hash::make('dosen'), // Mengamankan password
-            'no_hp'    => '081234567892',
-            'role'     => 'dosen', // Harus pas dengan salah satu isi ENUM
-        ]);
+        $dosens = [
+            ['no_induk' => 'DSN001', 'nama' => 'Rudi Hartono', 'email' => 'rudi.hartono@lab.com', 'password' => Hash::make('dosen'), 'no_hp' => '081312345671'],
+            ['no_induk' => 'DSN002', 'nama' => 'Siti Nurhaliza', 'email' => 'siti.nurhaliza@lab.com', 'password' => Hash::make('dosen'), 'no_hp' => '081312345672'],
+            ['no_induk' => 'DSN003', 'nama' => 'Agus Supriyanto', 'email' => 'agus.supriyanto@lab.com', 'password' => Hash::make('dosen'), 'no_hp' => '081312345673'],
+            ['no_induk' => 'DSN004', 'nama' => 'Tri Handayani', 'email' => 'tri.handayani@lab.com', 'password' => Hash::make('dosen'), 'no_hp' => '081312345674'],
+            ['no_induk' => 'DSN005', 'nama' => 'Yusuf Maulana', 'email' => 'yusuf.maulana@lab.com', 'password' => Hash::make('dosen'), 'no_hp' => '081312345675'],
+        ];
+
+        foreach ($dosens as $dosen) {
+            User::create(array_merge($dosen, ['role' => 'dosen']));
+        }
     }
     
 }

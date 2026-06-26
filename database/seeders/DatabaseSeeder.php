@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             SupervisorSeeder::class,
             AdminSeeder::class,
             DosenSeeder::class,
+            LaboratoriumSeeder::class,
+            SoftwareSeeder::class,
+            HardwareSeeder::class,
         ]);
     }
 }

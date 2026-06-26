@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,11 @@
     <link rel="icon" type="image/jpeg" href="{{ asset('img/ict.jpg.png') }}">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -16,9 +21,90 @@
         body { font-family: 'Inter', sans-serif; }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
+
+        /* ===== DARK MODE GLOBAL OVERRIDES ===== */
+        /* Background colors */
+        .dark .bg-white { background-color: #1e293b !important; }
+        .dark .bg-slate-50 { background-color: #0f172a !important; }
+        .dark .bg-slate-100 { background-color: #1e293b !important; }
+
+        /* Border colors */
+        .dark .border-slate-200,
+        .dark .border-slate-100 { border-color: #334155 !important; }
+        .dark .border-blue-100 { border-color: #1e3a5f !important; }
+
+        /* Text colors */
+        .dark .text-slate-950,
+        .dark .text-slate-900,
+        .dark .text-slate-800 { color: #f1f5f9 !important; }
+        .dark .text-slate-700 { color: #cbd5e1 !important; }
+        .dark .text-slate-600 { color: #94a3b8 !important; }
+        .dark .text-slate-500 { color: #64748b !important; }
+        .dark .text-slate-400 { color: #64748b !important; }
+        .dark .text-blue-950 { color: #93c5fd !important; }
+        .dark .text-blue-700 { color: #60a5fa !important; }
+        .dark .text-black { color: #e2e8f0 !important; }
+
+        /* Card & section backgrounds */
+        .dark .bg-blue-50 { background-color: #1e293b !important; }
+        .dark .bg-amber-50 { background-color: #1e293b !important; }
+        .dark .bg-purple-50 { background-color: #1e293b !important; }
+        .dark .bg-red-50 { background-color: #1e293b !important; }
+        .dark .bg-emerald-50 { background-color: #1e293b !important; }
+        .dark .bg-green-50 { background-color: #1e293b !important; }
+
+        /* Ring colors */
+        .dark .ring-emerald-100 { --tw-ring-color: #065f46 !important; }
+        .dark .ring-red-100 { --tw-ring-color: #7f1d1d !important; }
+        .dark .ring-blue-100 { --tw-ring-color: #1e3a5f !important; }
+        .dark .ring-amber-100 { --tw-ring-color: #78350f !important; }
+
+        /* Hover states */
+        .dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
+        .dark .hover\:bg-slate-50:hover { background-color: #1e293b !important; }
+
+        /* Backdrop / overlay */
+        .dark .bg-white\/90 { background-color: rgba(30, 41, 59, 0.9) !important; }
+        .dark .bg-slate-900\/50 { background-color: rgba(0, 0, 0, 0.6) !important; }
+
+        /* Form inputs */
+        .dark input,
+        .dark select,
+        .dark textarea {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        .dark input::placeholder,
+        .dark textarea::placeholder {
+            color: #64748b !important;
+        }
+        .dark input:focus,
+        .dark select:focus,
+        .dark textarea:focus {
+            border-color: #3b82f6 !important;
+            --tw-ring-color: rgba(59, 130, 246, 0.3) !important;
+        }
+
+        /* Tables */
+        .dark table { border-color: #334155 !important; }
+        .dark thead { background-color: #1e293b !important; }
+        .dark th { color: #cbd5e1 !important; border-color: #334155 !important; }
+        .dark td { border-color: #334155 !important; color: #e2e8f0 !important; }
+        .dark tbody tr:hover { background-color: #1e293b !important; }
+        .dark .divide-slate-200 > * + * { border-color: #334155 !important; }
+
+        /* Smooth transition */
+        * { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease; }
     </style>
+    <script>
+        // Apply dark mode BEFORE page renders to prevent flash
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased dark:bg-slate-900 dark:text-slate-200 transition-colors duration-300">
 @php
     $user = Auth::user();
     $role = $user->role ?? 'user';
@@ -36,9 +122,10 @@
             ['label' => 'Pengajuan', 'route' => 'supervisor.pengajuan.*', 'href' => route('supervisor.pengajuan.index'), 'icon' => 'request'],
             ['label' => 'Update Pengerjaan', 'route' => 'admin.tugas.*', 'href' => route('admin.tugas.index'), 'icon' => 'refresh'],
             ['label' => 'Riwayat', 'route' => 'riwayat.index', 'href' => route('riwayat.index'), 'icon' => 'history'],
-            ['label' => 'Pelacak Lisensi', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
+            ['label' => 'Pelacak Lisensi', 'route' => 'license.*', 'href' => route('license.index'), 'icon' => 'shield'],
             ['label' => 'Kelola Pengguna', 'route' => 'users.*', 'href' => route('users.index'), 'icon' => 'users'],
             ['label' => 'Manajemen Lab', 'route' => 'labs.*', 'href' => route('labs.index'), 'icon' => 'building'],
+            ['label' => 'CPU dan VGA', 'route' => 'hardware.*', 'href' => route('hardware.index'), 'icon' => 'default'],
         ]);
     } elseif ($role === 'admin') {
         $menuItems = array_merge($menuItems, [
@@ -51,7 +138,7 @@
             // 2. DATA YANG SUDAH SELESAI/GAGAL 
             ['label' => 'Riwayat Penyelesaian', 'route' => 'admin.penyelesaian.*', 'href' => route('admin.penyelesaian.index'), 'icon' => 'status'],
             
-            ['label' => 'Pelacak Lisensi', 'route' => 'instalasi.*', 'href' => route('instalasi.index'), 'icon' => 'shield'],
+            ['label' => 'Pelacak Lisensi', 'route' => 'license.*', 'href' => route('license.index'), 'icon' => 'shield'],
             
             // 3. TAMBAHAN MENU MANAJEMEN LAB UNTUK ADMIN
             ['label' => 'Manajemen Lab', 'route' => 'labs.*', 'href' => route('labs.index'), 'icon' => 'building'],
@@ -87,47 +174,54 @@
 @endphp
 
 <div class="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
-    <aside class="fixed inset-y-0 left-0 z-30 hidden w-[280px] border-r border-slate-200 bg-white lg:flex lg:flex-col">
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-sidebar-overlay" class="fixed inset-0 z-40 hidden bg-slate-900/50 dark:bg-black/60 lg:hidden" onclick="toggleMobileSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] -translate-x-full border-r border-slate-200 bg-white transition-transform duration-300 lg:translate-x-0 lg:static lg:flex lg:flex-col dark:border-slate-700 dark:bg-slate-800">
         <div class="flex h-full flex-col">
-            <div class="border-b border-slate-100 p-5">
+            <div class="border-b border-slate-100 p-5 flex items-center justify-between dark:border-slate-700">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('img/ict.jpg.png') }}" alt="Logo Lab ICT" class="h-11 w-11 rounded-xl object-contain bg-white p-0.5 border border-slate-100 shadow-sm">
+                    <img src="{{ asset('img/ict.jpg.png') }}" alt="Logo Lab ICT" class="h-11 w-11 rounded-xl object-contain bg-white p-0.5 border border-slate-100 shadow-sm dark:border-slate-600 dark:bg-slate-700">
                     <div>
-                        <p class="text-sm font-black tracking-tight text-slate-950">Laboratorium ICT</p>
-                        <p class="text-xs font-medium text-slate-500">Request Instalasi Software</p>
+                        <p class="text-sm font-black tracking-tight text-slate-950 dark:text-white">Laboratorium ICT</p>
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Request Instalasi Software</p>
                     </div>
                 </div>
+                <button onclick="toggleMobileSidebar()" class="lg:hidden rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
 
             <nav class="flex-1 space-y-1.5 overflow-y-auto p-4">
-                <p class="px-3 pb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Menu</p>
+                <p class="px-3 pb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Menu</p>
                 @foreach($menuItems as $item)
                     @php
                         $isActive = $item['route'] ? request()->routeIs($item['route']) : false;
                     @endphp
-                    <a href="{{ $item['href'] }}" class="{{ $baseItem }} {{ $isActive ? $activeItem : $inactiveItem }}">
+                    <a href="{{ $item['href'] }}" class="{{ $baseItem }} {{ $isActive ? $activeItem : $inactiveItem }}" onclick="closeMobileSidebar()">
                         <span class="{{ $isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-900' }}">{!! $renderIcon($item['icon']) !!}</span>
                         <span>{{ $item['label'] }}</span>
                     </a>
                 @endforeach
             </nav>
 
-            <div class="border-t border-slate-100 p-4">
+            <div class="border-t border-slate-100 p-4 dark:border-slate-700">
                 <details class="relative">
-                    <summary class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100">
+                    <summary class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600">
                         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20a8 8 0 0116 0"></path>
                             </svg>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-bold capitalize text-slate-950">{{ $user->nama ?? $role }}</p>
-                            <p class="truncate text-xs font-medium capitalize text-slate-500">{{ $role }}</p>
+                            <p class="truncate text-sm font-bold capitalize text-slate-950 dark:text-white">{{ $user->nama ?? $role }}</p>
+                            <p class="truncate text-xs font-medium capitalize text-slate-500 dark:text-slate-400">{{ $role }}</p>
                         </div>
                         <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"></path></svg>
                     </summary>
-                    <div class="mt-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-                        <p class="truncate px-3 py-2 text-xs text-slate-500">{{ $user->email }}</p>
+                    <div class="mt-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-600 dark:bg-slate-700">
+                        <p class="truncate px-3 py-2 text-xs text-slate-500 dark:text-slate-400">{{ $user->email }}</p>
                         @if($role === 'dosen' || $role === 'user')
                         <div class="px-1 pb-1">
                             <button type="button" onclick="document.getElementById('modal-ubah-password').classList.remove('hidden')" class="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
@@ -148,30 +242,25 @@
     </aside>
 
     <div class="min-w-0 lg:col-start-2">
-        <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+        <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-700 dark:bg-slate-800/90">
             <div class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-                <details class="relative lg:hidden">
-                    <summary class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        Menu
-                    </summary>
-                    <div class="absolute left-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
-                        @foreach($menuItems as $item)
-                            @php
-                                $isActive = $item['route'] ? request()->routeIs($item['route']) : false;
-                            @endphp
-                            <a href="{{ $item['href'] }}" class="{{ $baseItem }} {{ $isActive ? $activeItem : $inactiveItem }}">
-                                <span>{!! $renderIcon($item['icon']) !!}</span>
-                                <span>{{ $item['label'] }}</span>
-                            </a>
-                        @endforeach
-                    </div>
-                </details>
+                <button onclick="toggleMobileSidebar()" class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm lg:hidden dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    Menu
+                </button>
 
                 <div class="min-w-0">
-                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Dashboard</p>
-                    <h1 class="truncate text-lg font-black text-slate-950">Sistem Request Instalasi Software</h1>
+                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Dashboard</p>
+                    <h1 class="truncate text-lg font-black text-slate-950 dark:text-white">Sistem Request Instalasi Software</h1>
                 </div>
+
+                {{-- Dark Mode Toggle Button --}}
+                <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:text-yellow-400 dark:hover:bg-slate-600" title="Toggle Dark Mode">
+                    {{-- Sun icon (visible in dark mode) --}}
+                    <svg id="icon-sun" class="h-5 w-5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.66 7.66l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    {{-- Moon icon (visible in light mode) --}}
+                    <svg id="icon-moon" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"></path></svg>
+                </button>
             </div>
         </header>
 
@@ -182,9 +271,9 @@
 </div>
 
 <!-- Modal Ubah Password -->
-<div id="modal-ubah-password" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/50 backdrop-blur-sm transition-all">
+<div id="modal-ubah-password" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/50 backdrop-blur-sm transition-all dark:bg-black/60">
     <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8">
+        <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 dark:bg-slate-800">
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -254,6 +343,36 @@
 
 <script>
 /* =====================================================
+   MOBILE SIDEBAR TOGGLE
+   ===================================================== */
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('mobile-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
+    const isOpen = sidebar.classList.contains('translate-x-0');
+
+    if (isOpen) {
+        sidebar.classList.remove('translate-x-0');
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    } else {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('mobile-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
+    sidebar.classList.remove('translate-x-0');
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+/* =====================================================
    CUSTOM SELECT GLOBAL — dipakai oleh semua halaman
    yang menggunakan komponen custom-select
    ===================================================== */
@@ -275,21 +394,25 @@ function toggleCustomSelect(uid) {
     chevron.classList.toggle('rotate-180', !isOpen);
 }
 
-function pickCustomSelect(uid, value, label, autosubmit) {
-    document.getElementById('val_'     + uid).value    = value;
+function pickCustomSelect(uid, value, label, autosubmit, customOnChange = null) {
+    const input = document.getElementById('val_' + uid);
+    input.value = value;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
     document.getElementById('lbl_'     + uid).textContent = label;
     document.getElementById('menu_'    + uid).classList.add('hidden');
     document.getElementById('chevron_' + uid).classList.remove('rotate-180');
 
     // Tandai item aktif secara visual
     const menu = document.getElementById('menu_' + uid);
+    let selectedElement = null;
     menu.querySelectorAll('[onclick]').forEach(el => {
         const isThis = el.getAttribute('onclick').includes("'" + value + "'");
         el.classList.toggle('bg-blue-50',    isThis);
         el.classList.toggle('text-blue-700', isThis);
         el.classList.toggle('font-bold',     isThis);
         el.classList.toggle('text-slate-700',!isThis);
-        el.classList.toggle('font-semibold', !isThis);
+        el.classList.toggle('font-semibold',!isThis);
+        if (isThis) selectedElement = el;
     });
 
     if (autosubmit) {
@@ -297,6 +420,10 @@ function pickCustomSelect(uid, value, label, autosubmit) {
         const input = document.getElementById('val_' + uid);
         const form  = input ? input.closest('form') : null;
         if (form) form.submit();
+    }
+
+    if (customOnChange && typeof window[customOnChange] === 'function') {
+        window[customOnChange](value, selectedElement);
     }
 }
 
@@ -309,6 +436,33 @@ document.addEventListener('click', function(e) {
             if (c) c.classList.remove('rotate-180');
         });
     }
+});
+/* =====================================================
+   DARK MODE TOGGLE
+   ===================================================== */
+function toggleDarkMode() {
+    const html = document.documentElement;
+    const isDark = html.classList.toggle('dark');
+    localStorage.setItem('darkMode', isDark);
+    updateDarkModeIcons(isDark);
+}
+
+function updateDarkModeIcons(isDark) {
+    const sunIcon = document.getElementById('icon-sun');
+    const moonIcon = document.getElementById('icon-moon');
+    if (isDark) {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+    } else {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+    }
+}
+
+// Set correct icon on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.classList.contains('dark');
+    updateDarkModeIcons(isDark);
 });
 </script>
 

@@ -54,7 +54,8 @@
     </section>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="overflow-x-auto rounded-xl border border-slate-100">
+        {{-- Table for large screens --}}
+        <div class="hidden sm:block overflow-x-auto rounded-xl border border-slate-100">
             <table class="w-full border-collapse text-left whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/70 text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -72,8 +73,15 @@
                     @forelse($labs as $lab)
                         <tr class="hover:bg-slate-50/50 transition">
                             <td class="px-6 py-4">
-                                <div class="text-sm font-bold text-slate-950">{{ $lab->no_lab }}</div>
-                                <div class="text-xs font-medium text-slate-500">{{ $lab->nama_lab ?? 'Laboratorium' }}</div>
+                                <div class="flex items-center gap-2">
+                                    <div>
+                                        <div class="text-sm font-bold {{ $lab->is_active ? 'text-slate-950' : 'text-slate-400' }}">{{ $lab->no_lab }}</div>
+                                        <div class="text-xs font-medium {{ $lab->is_active ? 'text-slate-500' : 'text-slate-400' }}">{{ $lab->nama_lab ?? 'Laboratorium' }}</div>
+                                    </div>
+                                    @if(!$lab->is_active)
+                                        <span class="inline-flex items-center rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Tidak Aktif</span>
+                                    @endif
+                                </div>
                             </td>
 
                             @if(auth()->user()->role === 'supervisor')
@@ -93,7 +101,10 @@
                                     <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Level 3 (Spek Tinggi)</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-slate-600 font-medium">{{ $lab->jumlah_pc }} Unit</td>
+                            <td class="px-6 py-4">
+                                <div class="text-slate-900 font-bold">{{ $lab->jumlah_pc }} Unit</div>
+                                <div class="text-xs text-slate-500 font-medium">1 PC Dosen, {{ max(0, $lab->jumlah_pc - 1) }} PC Mhs</div>
+                            </td>
                             
                             <td class="px-6 py-4">
                                 @if($lab->status === 'approved')
@@ -113,16 +124,39 @@
                             
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2">
-                                    {{-- TOMBOL EDIT --}}
-                                    @if(auth()->user()->role === 'admin' || (auth()->user()->role === 'supervisor' && $lab->status === 'approved'))
+                                    {{-- TOMBOL TOGGLE AKTIF - HANYA SUPERVISOR, HANYA JIKA LAB TIDAK PENDING --}}
+                                    @if(auth()->user()->role === 'supervisor' && $lab->status !== 'pending' && $lab->status !== null)
+                                        <form action="{{ route('labs.toggleActive', $lab->id) }}" method="POST" class="inline-block">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500/20" title="{{ $lab->is_active ? 'Sembunyikan Lab' : 'Tampilkan Lab' }}">
+                                                @if($lab->is_active)
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0012 4c4.72 0 8.985 2.473 10.998 6.223a1 1 0 010 1.554A10.477 10.477 0 0112 20c-4.72 0-8.985-2.473-10.998-6.223a1 1 0 010-1.554zM15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                @else
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.72 0-8.985-2.473-10.998-6.223a1 1 0 010-1.554A10.05 10.05 0 0112 5c.936 0 1.846.118 2.714.343M19.615 14.142a4.004 4.004 0 00-5.259-5.259M4 4l16 16"></path></svg>
+                                                @endif
+                                            </button>
+                                        </form>
+                                    @endif
+                                    
+                                    {{-- TOMBOL EDIT - Supervisor bisa edit semua, Admin bisa edit sendiri (bahkan jika pending) --}}
+                                    @if(auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin')
                                         <a href="{{ route('labs.edit', $lab->id) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit Lab">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                         </a>
                                     @endif
 
-                                    {{-- TOMBOL HAPUS --}}
-                                    @if(auth()->user()->role === 'admin' || (auth()->user()->role === 'supervisor' && $lab->status === 'approved'))
-                                        @if(auth()->user()->role === 'supervisor' || $lab->status !== 'approved')
+                                    {{-- TOMBOL HAPUS - Supervisor bisa hapus semua, Admin hanya bisa hapus sendiri yang belum disetujui --}}
+                                    @if(auth()->user()->role === 'supervisor')
+                                        <form id="delete-form-{{ $lab->id }}" action="{{ route('labs.destroy', $lab->id) }}" method="POST" class="inline-block">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" onclick="openDeleteModal('delete-form-{{ $lab->id }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </form>
+                                    @elseif(auth()->user()->role === 'admin')
+                                        @if($lab->status !== 'approved')
                                             <form id="delete-form-{{ $lab->id }}" action="{{ route('labs.destroy', $lab->id) }}" method="POST" class="inline-block">
                                                 @csrf
                                                 @method('DELETE')
@@ -138,13 +172,16 @@
                                     @endif
 
                                     {{-- AKSI APPROVAL KHUSUS SUPERVISOR --}}
-                                    @if(auth()->user()->role === 'supervisor' && ($lab->status === 'pending' || $lab->status === null))
+                                    @if(auth()->user()->role === 'supervisor')
                                         {{-- Tombol Detail sebelum approve/reject --}}
+                                        @if($lab->status === 'pending' || $lab->status === null)
                                         <button type="button" onclick="toggleModal('modalDetailLab{{ $lab->id }}', true)"
                                             class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none">
                                             Detail
                                         </button>
+                                        @endif
 
+                                        @if($lab->status !== 'approved' && $lab->status !== 'rejected')
                                         <form action="{{ route('labs.updateStatus', $lab->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             @method('PATCH')
@@ -153,7 +190,9 @@
                                                 Setujui
                                             </button>
                                         </form>
+                                        @endif
 
+                                        @if($lab->status !== 'rejected' && $lab->status !== 'approved')
                                         <form action="{{ route('labs.updateStatus', $lab->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             @method('PATCH')
@@ -162,6 +201,7 @@
                                                 Tolak
                                             </button>
                                         </form>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -173,6 +213,150 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        {{-- Cards for small screens --}}
+        <div class="sm:hidden space-y-4">
+            @forelse($labs as $lab)
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50/50 transition">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-2">
+                            <div>
+                                <div class="text-sm font-bold {{ $lab->is_active ? 'text-slate-950' : 'text-slate-400' }}">{{ $lab->no_lab }}</div>
+                                <div class="text-xs font-medium {{ $lab->is_active ? 'text-slate-500' : 'text-slate-400' }}">{{ $lab->nama_lab ?? 'Laboratorium' }}</div>
+                            </div>
+                            @if(!$lab->is_active)
+                                <span class="inline-flex items-center rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Tidak Aktif</span>
+                            @endif
+                        </div>
+
+                        <div>
+                            @if($lab->status === 'approved')
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                                    <div class="h-1.5 w-1.5 rounded-full bg-emerald-500"></div> Disetujui
+                                </span>
+                            @elseif($lab->status === 'rejected')
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700">
+                                    <div class="h-1.5 w-1.5 rounded-full bg-red-500"></div> Ditolak
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                                    <div class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></div> Menunggu Tinjauan
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if(auth()->user()->role === 'supervisor')
+                        <div class="mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Dikelola Oleh</span>
+                            <div class="mt-1">
+                                <span class="inline-flex items-center rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-bold text-blue-700">
+                                    {{ $lab->admin->nama ?? 'Tidak Diketahui' }}
+                                </span>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Level Spesifikasi</span>
+                        <div class="mt-1">
+                            @if($lab->level == 1 || $lab->level == 'Low')
+                                <span class="inline-flex items-center rounded-full border border-slate-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700">Level 1 (Spek Rendah)</span>
+                            @elseif($lab->level == 2 || $lab->level == 'Medium')
+                                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">Level 2 (Spek Sedang)</span>
+                            @else
+                                <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Level 3 (Spek Tinggi)</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Jumlah PC</span>
+                        <div class="mt-1 text-slate-900 font-bold">{{ $lab->jumlah_pc }} Unit</div>
+                        <div class="text-xs text-slate-500 font-medium">1 PC Dosen, {{ max(0, $lab->jumlah_pc - 1) }} PC Mhs</div>
+                    </div>
+
+                    {{-- Aksi buttons --}}
+                    <div class="flex flex-wrap gap-2">
+                        {{-- TOMBOL TOGGLE AKTIF - HANYA SUPERVISOR, HANYA JIKA LAB TIDAK PENDING --}}
+                        @if(auth()->user()->role === 'supervisor' && $lab->status !== 'pending' && $lab->status !== null)
+                            <form action="{{ route('labs.toggleActive', $lab->id) }}" method="POST" class="inline-block">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/20" title="{{ $lab->is_active ? 'Sembunyikan Lab' : 'Tampilkan Lab' }}">
+                                    {{ $lab->is_active ? 'Sembunyikan' : 'Tampilkan' }}
+                                </button>
+                            </form>
+                        @endif
+                        
+                        {{-- TOMBOL EDIT - Supervisor bisa edit semua, Admin bisa edit sendiri (bahkan jika pending) --}}
+                        @if(auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin')
+                            <a href="{{ route('labs.edit', $lab->id) }}" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500/20" title="Edit Lab">
+                                Edit
+                            </a>
+                        @endif
+
+                        {{-- TOMBOL HAPUS - Supervisor bisa hapus semua, Admin hanya bisa hapus sendiri yang belum disetujui --}}
+                        @if(auth()->user()->role === 'supervisor')
+                            <form id="delete-form-sm-{{ $lab->id }}" action="{{ route('labs.destroy', $lab->id) }}" method="POST" class="inline-block">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" onclick="openDeleteModal('delete-form-sm-{{ $lab->id }}')" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20" title="Hapus Lab">
+                                    Hapus
+                                </button>
+                            </form>
+                        @elseif(auth()->user()->role === 'admin')
+                            @if($lab->status !== 'approved')
+                                <form id="delete-form-sm-{{ $lab->id }}" action="{{ route('labs.destroy', $lab->id) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" onclick="openDeleteModal('delete-form-sm-{{ $lab->id }}')" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20" title="Hapus Lab">
+                                        Hapus
+                                    </button>
+                                </form>
+                            @endif
+                        @endif
+
+                        {{-- AKSI APPROVAL KHUSUS SUPERVISOR --}}
+                        @if(auth()->user()->role === 'supervisor')
+                            {{-- Tombol Detail sebelum approve/reject --}}
+                            @if($lab->status === 'pending' || $lab->status === null)
+                            <button type="button" onclick="toggleModal('modalDetailLab{{ $lab->id }}', true)"
+                                class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none">
+                                Detail
+                            </button>
+                            @endif
+
+                            @if($lab->status !== 'approved' && $lab->status !== 'rejected')
+                            <form action="{{ route('labs.updateStatus', $lab->id) }}" method="POST" class="inline-block">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="approved">
+                                <button type="submit" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                    Setujui
+                                </button>
+                            </form>
+                            @endif
+
+                            @if($lab->status !== 'rejected' && $lab->status !== 'approved')
+                            <form action="{{ route('labs.updateStatus', $lab->id) }}" method="POST" class="inline-block">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="rejected">
+                                <button type="submit" class="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                                    Tolak
+                                </button>
+                            </form>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-10 text-sm font-medium text-slate-400">
+                    Belum ada data ruang laboratorium.
+                </div>
+            @endforelse
         </div>
     </div>
 </div>
@@ -210,7 +394,8 @@
                                                         </div>
                                                         <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
                                                             <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah PC</span>
-                                                            <span class="text-base font-black text-slate-900">{{ $lab->jumlah_pc }} <span class="text-xs font-medium text-slate-400">unit</span></span>
+                                                            <span class="text-base font-black text-slate-900">{{ $lab->jumlah_pc }}</span>
+                                                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">1 Dosen, {{ max(0, $lab->jumlah_pc - 1) }} Mhs</div>
                                                         </div>
                                                         <div class="rounded-xl p-3 text-center border
                                                             @if($lab->level == 1) bg-red-50 border-red-100

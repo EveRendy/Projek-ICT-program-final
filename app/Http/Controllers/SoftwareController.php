@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Software;
 use App\Models\Laboratorium; // Tambahan Model Laboratorium
-use App\Models\Instalasi;
+
 use Illuminate\Http\Request;
 
 class SoftwareController extends Controller
@@ -12,12 +12,12 @@ class SoftwareController extends Controller
     // 1. DAFTAR SOFTWARE (Read) dengan Search, Filter, dan Paginasi
     public function index(Request $request)
     {
-        // Ambil data laboratorium untuk dropdown filter (Sesuai kode asli Anda)
-        $laboratoriums = Laboratorium::all();
+        // Ambil data laboratorium untuk dropdown filter (hanya yang aktif)
+        $laboratoriums = Laboratorium::where('is_active', true)->get();
 
         // Menggunakan eager loading agar query pengambilan relasi instalasi di blade lebih efisien
         $labSelected = $request->laboratorium;
-        $query = Software::with('instalasis'); // Load semua instalasi untuk cek status
+        $query = Software::with('licenseTrackings'); // Load semua instalasi untuk cek status
 
         // Logika Pencarian berdasarkan Nama atau ID Software (Sesuai kode asli Anda)
         if ($request->filled('search')) {
@@ -38,8 +38,10 @@ class SoftwareController extends Controller
         // Jika tidak dipilih → tampil semua software
         if ($request->filled('laboratorium')) {
             $labSelected = $request->laboratorium;
-            $query->whereHas('instalasis', function($q) use ($labSelected) {
-                $q->where('no_lab', $labSelected);
+            $query->whereHas('licenseTrackings', function($q) use ($labSelected) {
+                $q->whereHas('laboratorium', function($q2) use ($labSelected) {
+                    $q2->where('no_lab', $labSelected);
+                });
             });
         }
 

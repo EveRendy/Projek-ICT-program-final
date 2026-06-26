@@ -33,9 +33,7 @@
         </div>
     @endif
 
-    @php
-        $selectedSpecs = old('spesifikasi_hardware', is_array($lab->spesifikasi) ? $lab->spesifikasi : []);
-    @endphp
+
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <form action="{{ route('labs.update', $lab->id) }}" method="POST" class="space-y-6">
@@ -56,20 +54,6 @@
                         class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
                         placeholder="Contoh: Laboratorium Teknik Informatika">
                 </div>
-                @if(auth()->user()->role === 'supervisor')
-                <div>
-                    <label for="user_id" class="mb-2 block text-sm font-semibold text-slate-700">Admin Penanggung Jawab</label>
-                    @php $admins = \App\Models\User::where('role', 'admin')->get(); @endphp
-                    <x-custom-select
-                        name="user_id"
-                        label="-- Pilih Admin --"
-                        :selected="$lab->user_id"
-                        :options="array_merge(
-                            [['value' => '', 'label' => '-- Pilih Admin --']],
-                            $admins->map(fn($a) => ['value' => $a->no_induk, 'label' => $a->nama . ' (' . $a->no_induk . ')'])->toArray()
-                        )" />
-                </div>
-                @endif
                 <div>
                     <label for="jumlah_pc" class="mb-2 block text-sm font-semibold text-slate-700">Jumlah PC</label>
                     <input type="number" id="jumlah_pc" name="jumlah_pc" value="{{ old('jumlah_pc', $lab->jumlah_pc) }}" required min="1"
@@ -77,7 +61,7 @@
                 </div>
             </div>
 
-            @include('labs.partials.hardware-form', ['selectedSpecs' => $selectedSpecs, 'labLevel' => $lab->level])
+            @include('labs.partials.hardware-form', ['lab' => $lab, 'hardware' => $hardware, 'selectedSpecs' => $selectedSpecs, 'labLevel' => $lab->level])
 
             <hr class="border-slate-100">
 

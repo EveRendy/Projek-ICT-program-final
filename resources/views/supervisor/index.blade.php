@@ -67,7 +67,8 @@
     {{-- VERIFIKASI FOTO DIHAPUS DARI SINI (Pindah ke Update Pengerjaan) --}}
 
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
+        {{-- Table for large screens --}}
+        <div class="hidden sm:block overflow-x-auto">
             <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -274,17 +275,23 @@
                                                 
                                                 <div>
                                                     <label class="block text-xs font-bold text-slate-500 mb-1.5">Pilih Versi Software</label>
-                                                    <select name="versi_requested" id="versi_requested_{{ $item->id }}" onchange="toggleVersiLainEdit({{ $item->id }})"
-                                                        class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                                        @php
-                                                            $versionsList = $item->software->versi ?? [];
-                                                            $isCustomVersion = !empty($item->versi_lain) || (!empty($item->versi_requested) && !in_array($item->versi_requested, $versionsList));
-                                                        @endphp
-                                                        @foreach($versionsList as $v)
-                                                            <option value="{{ $v }}" {{ (!$isCustomVersion && $item->versi_requested === $v) ? 'selected' : '' }}>{{ $v }}</option>
-                                                        @endforeach
-                                                        <option value="lainnya" {{ $isCustomVersion ? 'selected' : '' }}>Lainnya (Isi Manual)</option>
-                                                    </select>
+                                                    @php
+                                                        $versionsList = $item->software->versi ?? [];
+                                                        $isCustomVersion = !empty($item->versi_lain) || (!empty($item->versi_requested) && !in_array($item->versi_requested, $versionsList));
+                                                        $versionOptions = array_merge(
+                                                            collect($versionsList)->map(fn($v) => ['value' => $v, 'label' => $v])->toArray(),
+                                                            [['value' => 'lainnya', 'label' => 'Lainnya (Isi Manual)']]
+                                                        );
+                                                        $selectedVersion = $isCustomVersion ? 'lainnya' : $item->versi_requested;
+                                                    @endphp
+                                                    <x-custom-select
+                                                        name="versi_requested"
+                                                        id="versi_requested_{{ $item->id }}"
+                                                        label="-- Pilih Versi --"
+                                                        :options="$versionOptions"
+                                                        :selected="$selectedVersion"
+                                                        onchange="handleVersiChange_{{ $item->id }}"
+                                                    />
                                                 </div>
 
                                                 <div id="container_versi_lain_edit_{{ $item->id }}" class="{{ $isCustomVersion ? '' : 'hidden' }}">
@@ -322,6 +329,74 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        {{-- Cards for small screens --}}
+        <div class="sm:hidden p-4 space-y-4">
+            @forelse($tugas as $index => $item)
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50/70">
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No</div>
+                            <div class="text-slate-400 font-normal">{{ $index + 1 }}</div>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span> Menunggu Persetujuan
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Dosen</div>
+                        <div class="text-slate-900 font-semibold">{{ $item->dosen->name ?? $item->dosen->nama ?? 'Nama tidak ditemukan' }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Mata Kuliah</div>
+                        <div class="font-semibold text-slate-900">{{ $item->mata_kuliah }}</div>
+                        <div class="text-xs text-slate-400 font-normal">Kelompok: {{ $item->kelompok_matkul }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Laboratorium</div>
+                        <div class="text-slate-600">
+                            @php
+                                $rawLabIds = $item->lab_ids;
+                                $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
+                                $labs = \App\Models\Laboratorium::whereIn('id', $labIdsArray ?? [])->get();
+                            @endphp
+                            @if($labs && $labs->count() > 0)
+                                {{ $labs->map(function($lab) { return $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : ''); })->implode(', ') }}
+                            @else
+                                <span class="italic text-slate-400">Tidak ada lab</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Software Diminta</div>
+                        <div>
+                            @if($item->software_id)
+                                <span class="text-slate-900 font-semibold">{{ $item->software->nama_software }}</span>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono ml-1">v{{ $item->versi_requested ?? 'Bawaan' }}</span>
+                            @else
+                                <span class="text-slate-900 font-semibold">{{ $item->software_lain }}</span>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono ml-1">v{{ $item->versi_lain ?? '-' }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="openApproveModal({{ $item->id }})" class="flex-1 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none">
+                            Setujui
+                        </button>
+                        <button type="button" onclick="toggleModal('modalEdit{{ $item->id }}', true)" class="flex-1 inline-flex items-center justify-center rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none">
+                            Edit
+                        </button>
+                        <button type="button" onclick="toggleModal('modalTolak{{ $item->id }}', true)" class="flex-1 inline-flex items-center justify-center rounded-xl bg-rose-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none">
+                            Tolak
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-10 text-sm font-medium text-slate-400">
+                    Tidak ada pengajuan baru yang membutuhkan persetujuan Anda saat ini.
+                </div>
+            @endforelse
         </div>
     </div>
 
@@ -370,7 +445,8 @@
             </form>
         </div>
 
-        <div class="overflow-x-auto">
+        {{-- Table for large screens --}}
+        <div class="hidden sm:block overflow-x-auto">
             <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -491,6 +567,64 @@
                 </tbody>
             </table>
         </div>
+
+        {{-- Cards for small screens --}}
+        <div class="sm:hidden p-4 space-y-4">
+            @foreach($tugasTanpaAdmin as $index => $item)
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50/70">
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No</div>
+                            <div class="text-slate-400 font-normal">{{ $index + 1 }}</div>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                            Disetujui
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Dosen</div>
+                        <div class="text-slate-900 font-semibold">{{ $item->dosen->name ?? $item->dosen->nama ?? 'Nama tidak ditemukan' }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Mata Kuliah</div>
+                        <div class="font-semibold text-slate-900">{{ $item->mata_kuliah }}</div>
+                        <div class="text-xs text-slate-400 font-normal">Kelompok: {{ $item->kelompok_matkul }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Laboratorium</div>
+                        <div class="text-slate-600">
+                            @php
+                                $rawLabIds = $item->lab_ids;
+                                $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
+                                $labs = \App\Models\Laboratorium::whereIn('id', $labIdsArray ?? [])->get();
+                            @endphp
+                            @if($labs && $labs->count() > 0)
+                                {{ $labs->map(function($lab) { return $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : ''); })->implode(', ') }}
+                            @else
+                                <span class="italic text-slate-400">Tidak ada lab</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Software Diminta</div>
+                        <div>
+                            @if($item->software_id)
+                                <span class="text-slate-900 font-semibold">{{ $item->software->nama_software }}</span>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono ml-1">v{{ $item->versi_requested ?? 'Bawaan' }}</span>
+                            @else
+                                <span class="text-slate-900 font-semibold">{{ $item->software_lain }}</span>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono ml-1">v{{ $item->versi_lain ?? '-' }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="toggleModal('modalAssignAdmin{{ $item->id }}', true)" class="flex-1 inline-flex items-center justify-center rounded-xl bg-slate-800 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-slate-700 focus:outline-none">
+                            Tugaskan Admin
+                        </button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
     </div>
     @endif
     {{-- END SECTION PENGAJUAN TANPA ADMIN --}}
@@ -552,12 +686,12 @@
         }
     }
 
-    function toggleVersiLainEdit(id) {
-        const select = document.getElementById('versi_requested_' + id);
-        const container = document.getElementById('container_versi_lain_edit_' + id);
-        const input = document.getElementById('versi_lain_edit_' + id);
-        if (select && container) {
-            if (select.value === 'lainnya') {
+    @foreach($tugas as $item)
+    function handleVersiChange_{{ $item->id }}(value, element) {
+        const container = document.getElementById('container_versi_lain_edit_{{ $item->id }}');
+        const input = document.getElementById('versi_lain_edit_{{ $item->id }}');
+        if (container) {
+            if (value === 'lainnya') {
                 container.classList.remove('hidden');
                 if (input) input.required = true;
             } else {
@@ -569,5 +703,6 @@
             }
         }
     }
+    @endforeach
 </script>
 @endsection

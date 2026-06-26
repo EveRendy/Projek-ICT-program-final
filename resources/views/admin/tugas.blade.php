@@ -80,7 +80,8 @@
         {{-- Akhir dari Card Summary --}}
 
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="overflow-x-auto">
+            {{-- Table for larger screens --}}
+            <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                         <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -120,11 +121,9 @@
                                     @endif
                                 </td>
                                 
-                                {{-- PERBAIKAN: Menampilkan Laboratorium dari Array lab_ids --}}
                                 <td class="px-6 py-4 text-center text-slate-600 font-semibold">
                                     <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 border border-slate-200">
                                         @php
-                                            // Memastikan formatnya adalah array, lalu mencocokkan ID dengan data Master Laboratorium
                                             $labIdsArray = is_string($item->lab_ids) ? json_decode($item->lab_ids, true) : ($item->lab_ids ?? []);
                                             $labNames = collect($laboratoriums)
                                                 ->whereIn('id', $labIdsArray)
@@ -137,12 +136,10 @@
 
                                 <td class="px-6 py-4 text-center">
                                     @if($item->status_verifikasi == 'menunggu')
-                                        {{-- Foto sudah dikirim, menunggu review supervisor --}}
                                         <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
                                             <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span> Menunggu Verif. SPV
                                         </span>
                                     @elseif($item->status_verifikasi == 'ditolak')
-                                        {{-- Foto ditolak supervisor --}}
                                         <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
                                             <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Foto Ditolak SPV
                                         </span>
@@ -169,7 +166,6 @@
                                             Detail
                                         </button>
 
-                                        {{-- Tombol Tinjau khusus Supervisor — muncul jika ada foto menunggu verifikasi --}}
                                         @if(Auth::user()->role === 'supervisor' && $item->status_verifikasi === 'menunggu')
                                             <button type="button" onclick="toggleModal('modalTinjau{{ $item->id }}', true)"
                                                 class="inline-flex w-full items-center justify-center rounded-full bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none animate-pulse">
@@ -180,7 +176,7 @@
                                                 Menunggu Supervisor
                                             </span>
                                         @elseif($item->status_verifikasi == 'ditolak')
-                                            <button type="button" onclick="toggleModal('modalFotoBukti{{ $item->id }}', true)" class="inline-flex w-full items-center justify-center rounded-full bg-rose-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none">
+                                            <button type="button" onclick="toggleModal('{{ $item->status_progress == 'gagal_terinstal' ? 'modalGagal' : 'modalFotoBukti' }}{{ $item->id }}', true)" class="inline-flex w-full items-center justify-center rounded-full bg-rose-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none">
                                                 Unggah Ulang
                                             </button>
                                         @else
@@ -203,6 +199,103 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Cards for small screens --}}
+            <div class="sm:hidden p-4 space-y-4">
+                @forelse($tugas as $index => $item)
+                    @php
+                        $labIdsArray = is_string($item->lab_ids) ? json_decode($item->lab_ids, true) : ($item->lab_ids ?? []);
+                        $labNames = collect($laboratoriums)
+                            ->whereIn('id', $labIdsArray)
+                            ->map(fn($l) => $l->no_lab . ($l->nama_lab ? ' : ' . $l->nama_lab : ''))
+                            ->implode(', ');
+                    @endphp
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50/50 transition">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex-1">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Software</div>
+                                <div class="text-sm font-extrabold text-slate-900 uppercase">
+                                    {{ $item->software_id ? $item->software->nama_software : $item->software_lain }}
+                                </div>
+                                <div class="text-xs text-slate-400 font-mono">v{{ $item->versi_requested ?? $item->versi_lain ?? 'Bawaan' }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No</div>
+                                <div class="text-sm font-bold text-slate-700">{{ $index + 1 }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Laboratorium</div>
+                            <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 border border-slate-200">
+                                {{ $labNames ?: '-' }}
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Status Progress</div>
+                            @if($item->status_verifikasi == 'ditolak')
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Foto Ditolak SPV
+                                </span>
+                            @elseif($item->status_verifikasi == 'menunggu')
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span> Menunggu Verif. SPV
+                                </span>
+                            @elseif($item->status_progress == 'terinstal')
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Terinstal
+                                </span>
+                            @elseif($item->status_progress == 'gagal_terinstal')
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Gagal Terinstal
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                                    <svg class="h-3 w-3 text-blue-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Dalam Proses
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Tgl Penugasan</div>
+                            <div class="text-sm font-bold text-slate-600">
+                                {{ $item->tgl_penugasan ? \Carbon\Carbon::parse($item->tgl_penugasan)->format('d F Y') : '-' }}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <button type="button" onclick="toggleModal('modalDetail{{ $item->id }}', true)" class="w-full inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none">
+                                Detail
+                            </button>
+
+                            @if(Auth::user()->role === 'supervisor' && $item->status_verifikasi === 'menunggu')
+                                <button type="button" onclick="toggleModal('modalTinjau{{ $item->id }}', true)"
+                                    class="w-full inline-flex items-center justify-center rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none animate-pulse">
+                                    Tinjau
+                                </button>
+                            @elseif($item->status_verifikasi == 'menunggu')
+                                <span class="w-full inline-flex items-center justify-center rounded-full bg-amber-100 px-4 py-2 text-xs font-bold text-amber-700 cursor-not-allowed">
+                                    Menunggu Supervisor
+                                </span>
+                            @elseif($item->status_verifikasi == 'ditolak')
+                                <button type="button" onclick="toggleModal('{{ $item->status_progress == 'gagal_terinstal' ? 'modalGagal' : 'modalFotoBukti' }}{{ $item->id }}', true)" class="w-full inline-flex items-center justify-center rounded-full bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none">
+                                    Unggah Ulang
+                                </button>
+                            @else
+                                <button type="button" onclick="toggleModal('modalProgress{{ $item->id }}', true)" class="w-full inline-flex items-center justify-center rounded-full bg-[#1e293b] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-slate-700 focus:outline-none">
+                                    Update
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-10">
+                        <svg class="h-10 w-10 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        <p class="text-sm font-semibold text-slate-500">Belum ada tugas pengerjaan instalasi yang dialokasikan berdasarkan filter ini.</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div> 
@@ -265,15 +358,19 @@
 
     {{-- MODAL UPLOAD FOTO BUKTI --}}
     <div id="modalFotoBukti{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleModal('modalFotoBukti{{ $item->id }}', false)"></div>
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleModal('modalFotoBukti{{ $item->id }}', false); toggleModal('modalProgress{{ $item->id }}', true)"></div>
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
             <div class="relative transform overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg z-10">
                 <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
                     <div>
                         <h3 class="text-base font-bold text-slate-950">Unggah Foto Bukti Instalasi</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Foto akan dikompres otomatis lalu dikirim ke supervisor untuk diverifikasi.</p>
+                        @if(Auth::user()->role === 'supervisor')
+                            <p class="text-xs text-slate-400 mt-0.5">Foto akan dikompres otomatis dan instalasi akan langsung dinyatakan selesai.</p>
+                        @else
+                            <p class="text-xs text-slate-400 mt-0.5">Foto akan dikompres otomatis lalu dikirim ke supervisor untuk diverifikasi.</p>
+                        @endif
                     </div>
-                    <button type="button" onclick="toggleModal('modalFotoBukti{{ $item->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-50 transition">
+                    <button type="button" onclick="toggleModal('modalFotoBukti{{ $item->id }}', false); toggleModal('modalProgress{{ $item->id }}', true)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-50 transition">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
@@ -317,10 +414,14 @@
                         </div>
                     </div>
                     <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-end gap-2">
-                        <button type="button" onclick="toggleModal('modalFotoBukti{{ $item->id }}', false)" class="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+                        <button type="button" onclick="toggleModal('modalFotoBukti{{ $item->id }}', false); toggleModal('modalProgress{{ $item->id }}', true)" class="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
                         <button type="submit" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 flex items-center gap-2">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"></path></svg>
-                            Kirim ke Supervisor
+                            @if(Auth::user()->role === 'supervisor')
+                                Simpan dan Selesaikan
+                            @else
+                                Kirim ke Supervisor
+                            @endif
                         </button>
                     </div>
                 </form>
@@ -330,23 +431,39 @@
 
     {{-- MODAL LAPORAN GAGAL / KENDALA --}}
     <div id="modalGagal{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleModal('modalGagal{{ $item->id }}', false)"></div>
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleModal('modalGagal{{ $item->id }}', false); toggleModal('modalProgress{{ $item->id }}', true)"></div>
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
             <div class="relative transform overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg z-10">
                 <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
                     <h3 class="text-base font-bold text-slate-950">Laporkan Kendala Instalasi</h3>
-                    <button type="button" onclick="toggleModal('modalGagal{{ $item->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-50 transition">
+                    <button type="button" onclick="toggleModal('modalGagal{{ $item->id }}', false); toggleModal('modalProgress{{ $item->id }}', true)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-50 transition">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <form action="{{ route('admin.instalasi.update', $item->id) }}" method="POST">
+                <form action="{{ route('admin.instalasi.update', $item->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="status_progress" value="gagal_terinstal">
                     <div class="px-6 py-5 space-y-4">
                         <div class="rounded-xl bg-rose-50 border border-rose-100 p-3.5 text-xs text-rose-700 font-medium">
-                            Tandai tugas ini sebagai <strong>Gagal Terinstal</strong>. Supervisor akan diberitahu dan pengajuan bisa ditinjau ulang.
+                            Tandai tugas ini sebagai <strong>Gagal Terinstal</strong>. Supervisor dan dosen akan diberitahu.
                         </div>
+                        
+                        {{-- Upload area foto --}}
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Foto Bukti Kendala <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <input type="file" name="foto_bukti" id="fotoInputGagal{{ $item->id }}" accept="image/jpeg,image/png,image/jpg"
+                                    class="w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-rose-600 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-rose-700 focus:outline-none focus:border-rose-400 cursor-pointer transition"
+                                    onchange="previewFotoGagal(this, '{{ $item->id }}')" required>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5">Format: JPG/PNG. Maks 10MB. Foto akan dikompres otomatis sebelum disimpan.</p>
+                            {{-- Preview foto --}}
+                            <div id="fotoPreviewGagal{{ $item->id }}" class="hidden mt-3">
+                                <img id="fotoPreviewImgGagal{{ $item->id }}" src="" alt="Preview" class="w-full max-h-48 object-contain rounded-xl border border-slate-200 bg-slate-50">
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5">Alasan / Deskripsi Kendala <span class="text-rose-500">*</span></label>
                             <textarea name="catatan_admin" rows="4" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none" placeholder="Jelaskan secara detail mengapa instalasi gagal (misal: spesifikasi PC tidak memadai, lisensi error, konflik software, dll)." required>{{ $item->catatan_admin }}</textarea>
@@ -357,7 +474,7 @@
                         </div>
                     </div>
                     <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-end gap-2">
-                        <button type="button" onclick="toggleModal('modalGagal{{ $item->id }}', false)" class="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+                        <button type="button" onclick="toggleModal('modalGagal{{ $item->id }}', false); toggleModal('modalProgress{{ $item->id }}', true)" class="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
                         <button type="submit" class="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-rose-700">Laporkan Gagal</button>
                     </div>
                 </form>
@@ -570,7 +687,13 @@
                             <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
                             Menunggu Tinjauan Anda
                         </p>
-                        <h3 class="text-base font-black text-slate-950 mt-0.5">Tinjau Foto Bukti Instalasi</h3>
+                        <h3 class="text-base font-black text-slate-950 mt-0.5">
+                            @if($item->status_progress == 'gagal_terinstal')
+                                Tinjau Laporan Gagal Instalasi
+                            @else
+                                Tinjau Foto Bukti Instalasi
+                            @endif
+                        </h3>
                     </div>
                     <button type="button" onclick="toggleModal('modalTinjau{{ $item->id }}', false)" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 transition">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -624,7 +747,13 @@
 
                     {{-- Foto bukti --}}
                     <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Foto Bukti Instalasi</span>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                            @if($item->status_progress == 'gagal_terinstal')
+                                Foto Bukti Kendala
+                            @else
+                                Foto Bukti Instalasi
+                            @endif
+                        </span>
                         <button type="button" onclick="toggleModal('modalFotoFullTinjau{{ $item->id }}', true)" class="block w-full group">
                             <img src="{{ asset('storage/' . $item->foto_bukti) }}"
                                  alt="Foto Bukti"
@@ -745,6 +874,23 @@
     window.previewFoto = function(input, itemId) {
         const preview = document.getElementById('fotoPreview' + itemId);
         const previewImg = document.getElementById('fotoPreviewImg' + itemId);
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.classList.add('hidden');
+        }
+    };
+
+    // Fungsi preview foto gagal sebelum upload
+    window.previewFotoGagal = function(input, itemId) {
+        const preview = document.getElementById('fotoPreviewGagal' + itemId);
+        const previewImg = document.getElementById('fotoPreviewImgGagal' + itemId);
 
         if (input.files && input.files[0]) {
             const reader = new FileReader();

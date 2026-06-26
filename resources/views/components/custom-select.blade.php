@@ -2,11 +2,12 @@
     'name',           // nama field untuk form (hidden input)
     'id'    => null,  // id unik, default dari name
     'label' => null,  // label teks yang tampil di tombol saat belum ada pilihan
-    'options' => [],  // array of ['value' => ..., 'label' => ...]
+    'options' => [],  // array of ['value' => ..., 'label' => ..., 'data' => [...]]
     'selected' => '', // nilai yang sedang terpilih
     'autosubmit' => false, // true = langsung submit form saat pilih
     'required' => false, // true = hidden input wajib diisi
     'class' => '',    // class tambahan untuk wrapper
+    'onchange' => null, // custom onchange handler
 ])
 
 @php
@@ -47,9 +48,16 @@
         @foreach ($options as $opt)
             @php
                 $isActive = (string)($opt['value'] ?? '') === (string)$selected;
+                $dataAttributes = '';
+                if (isset($opt['data']) && is_array($opt['data'])) {
+                    foreach ($opt['data'] as $key => $value) {
+                        $dataAttributes .= " data-{$key}='{$value}'";
+                    }
+                }
             @endphp
             <div
-                onclick="pickCustomSelect('{{ $uid }}', '{{ addslashes($opt['value'] ?? '') }}', '{{ addslashes($opt['label'] ?? '') }}', {{ $autosubmit ? 'true' : 'false' }})"
+                {!! $dataAttributes !!}
+                onclick="pickCustomSelect('{{ $uid }}', '{{ addslashes($opt['value'] ?? '') }}', '{{ addslashes($opt['label'] ?? '') }}', {{ $autosubmit ? 'true' : 'false' }}{{ $onchange ? ", '{$onchange}'" : '' }})"
                 class="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2 text-sm transition
                        {{ $isActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700 font-semibold hover:bg-slate-50 hover:text-slate-950' }}">
                 @if($isActive)

@@ -32,7 +32,27 @@
 return [
 
     // -------------------------------------------------------------------------
-    // CPU TIER SCORES
+    // UI HARDWARE OPTIONS
+    // -------------------------------------------------------------------------
+    'ui' => [
+        'cpu_brands' => ['Intel', 'AMD'],
+        'intel_tiers' => ['Core i3', 'Core i5', 'Core i7', 'Core i9', 'Core Ultra 5', 'Core Ultra 7', 'Core Ultra 9'],
+        'amd_tiers' => ['Ryzen 3', 'Ryzen 5', 'Ryzen 7', 'Ryzen 9'],
+        'intel_generations' => ['Gen 3', 'Gen 4', 'Gen 5', 'Gen 6', 'Gen 7', 'Gen 8', 'Gen 9', 'Gen 10', 'Gen 11', 'Gen 12', 'Gen 13', 'Gen 14'],
+        'amd_series' => ['Zen 1', 'Zen 2', 'Zen 3', 'Zen 4', 'Zen 5'],
+        'vga_brands' => ['NVIDIA', 'AMD', 'Intel Arc'],
+        'nvidia_series' => ['GT Series', 'GTX Series', 'RTX Series'],
+        'amd_series_vga' => ['Radeon RX'],
+        'intel_arc_series' => ['Arc A Series'],
+        'gt_models' => ['GT 210', 'GT 710', 'GT 730', 'GT 1030'],
+        'gtx_models' => ['GTX 750 Ti', 'GTX 950', 'GTX 960', 'GTX 970', 'GTX 980', 'GTX 1050', 'GTX 1050 Ti', 'GTX 1060', 'GTX 1070', 'GTX 1080', 'GTX 1080 Ti', 'GTX 1650', 'GTX 1660', 'GTX 1660 Super', 'GTX 1660 Ti'],
+        'rtx_models' => ['RTX 2060', 'RTX 2070', 'RTX 2080', 'RTX 3050', 'RTX 3060', 'RTX 3060 Ti', 'RTX 3070', 'RTX 3080', 'RTX 4060', 'RTX 4060 Ti', 'RTX 4070', 'RTX 4080', 'RTX 4090'],
+        'radeon_rx_models' => ['RX 550', 'RX 570', 'RX 580', 'RX 6500 XT', 'RX 6600', 'RX 6600 XT', 'RX 6700 XT', 'RX 6800 XT', 'RX 7600', 'RX 7700 XT', 'RX 7900 XT'],
+        'arc_a_models' => ['Arc A380', 'Arc A750', 'Arc A770'],
+    ],
+
+    // -------------------------------------------------------------------------
+    // CPU TIER SCORES (original scoring)
     // -------------------------------------------------------------------------
     'intel_tiers' => [
         'Intel Core i3'       => 0,

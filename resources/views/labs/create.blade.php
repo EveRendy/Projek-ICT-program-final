@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            @include('labs.partials.hardware-form')
+            @include('labs.partials.hardware-form', ['hardware' => $hardware, 'selectedSpecs' => [], 'labLevel' => ''])
 
             <hr class="border-slate-100">
 

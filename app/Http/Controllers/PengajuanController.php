@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Pengajuan;
 use App\Models\Laboratorium;
 use App\Models\Software;
-use App\Models\Instalasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -62,8 +61,8 @@ class PengajuanController extends Controller
             ->latest()
             ->get();
 
-        // Daftar laboratorium untuk modal edit
-        $list_laboratorium = Laboratorium::orderBy('no_lab')->get();
+        // Daftar laboratorium untuk modal edit (hanya yang aktif)
+        $list_laboratorium = Laboratorium::where('is_active', true)->orderBy('no_lab')->get();
 
         return view('supervisor.index', compact('tugas', 'tugasTanpaAdmin', 'summary', 'list_laboratorium'));
     }
@@ -77,7 +76,7 @@ class PengajuanController extends Controller
         $role = $user->role ?? 'user';
         
         $labNo = $request->get('lab'); // Menggunakan parameter 'lab' sesuai view
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = Laboratorium::where('is_active', true)->get();
 
         $query = Pengajuan::where('status_persetujuan', 'disetujui')
             ->with(['dosen', 'software']);
@@ -120,7 +119,7 @@ public function indexPenyelesaian(Request $request)
         $role = $user->role ?? 'user';
         
         $labId = $request->get('lab_id');
-        $laboratoriums = Laboratorium::all();
+        $laboratoriums = Laboratorium::where('is_active', true)->get();
 
         $query = Pengajuan::where('status_persetujuan', 'disetujui')
             ->with(['dosen', 'software']);
@@ -182,7 +181,7 @@ public function indexPenyelesaian(Request $request)
     // =========================================================================
     public function create()
     {
-        $laboratoriums = Laboratorium::orderBy('no_lab')->get();
+        $laboratoriums = Laboratorium::where('is_active', true)->orderBy('no_lab')->get();
         $softwares = Software::all();
         
         return view('pengajuan.create', compact('laboratoriums', 'softwares'));
@@ -211,23 +210,6 @@ public function indexPenyelesaian(Request $request)
         $versiFinal = $request->versi_requested;
         if ($request->versi_requested === 'lainnya' || $request->software_id === 'lainnya') {
             $versiFinal = $request->versi_lain;
-        }
-
-        // Cek apakah software dengan versi yang sama sudah terinstal di lab yang dipilih
-        if ($request->software_id !== 'lainnya') {
-            $software = Software::find($request->software_id);
-            $lab = Laboratorium::find($request->laboratorium_id);
-
-            if ($software && $lab) {
-                $existingInstalasi = Instalasi::where('id_software', $software->id_software)
-                    ->where('no_lab', $lab->no_lab)
-                    ->where('versi_terinstall', $versiFinal)
-                    ->first();
-
-                if ($existingInstalasi) {
-                    return back()->withInput()->with('error', 'Software ' . $software->nama_software . ' versi ' . $versiFinal . ' sudah terinstal di ' . $lab->nama_lab . '. Silakan ajukan versi yang berbeda atau lab yang berbeda.');
-                }
-            }
         }
 
         $lab = Laboratorium::find($request->laboratorium_id);
@@ -340,23 +322,6 @@ public function indexPenyelesaian(Request $request)
                 } else {
                     $updateData['versi_requested'] = $request->versi_requested;
                     $updateData['versi_lain']      = null;
-                }
-            }
-            
-            // Cek duplikasi instalasi untuk software master
-            $software = Software::find($pengajuan->software_id);
-            $lab = Laboratorium::find($request->lab_id);
-
-            if ($software && $lab) {
-                $versiFinalEdit = $updateData['versi_requested'] ?? $pengajuan->versi_requested;
-                
-                $existingInstalasi = Instalasi::where('id_software', $software->id_software)
-                    ->where('no_lab', $lab->no_lab)
-                    ->where('versi_terinstall', $versiFinalEdit)
-                    ->first();
-
-                if ($existingInstalasi) {
-                    return back()->withInput()->with('error', 'Software ' . $software->nama_software . ' versi ' . $versiFinalEdit . ' sudah terinstal di ' . $lab->nama_lab . '. Silakan edit ke versi atau lab yang berbeda.');
                 }
             }
         }
@@ -532,44 +497,127 @@ public function indexPenyelesaian(Request $request)
     // =========================================================================
     public function updateProgressTugas(Request $request, $id)
     {
+        $user = Auth::user();
+        
         $request->validate([
             'status_progress' => 'required|in:progress,terinstal,gagal_terinstal',
             'dokumentasi'     => 'nullable|url|max:255',
             'catatan_admin'   => 'nullable|string|max:500', 
+            'foto_bukti'      => ($request->status_progress == 'gagal_terinstal') ? 'required|image|mimes:jpg,jpeg,png|max:10240' : 'nullable|image|mimes:jpg,jpeg,png|max:10240',
         ]);
 
         $id_pengajuan = is_object($id) ? $id->id : $id;
         $pengajuan = Pengajuan::findOrFail($id_pengajuan);
 
-        // Jika status diubah menjadi 'terinstal', otomatis buat record instalasi
-        if ($request->status_progress == 'terinstal' && $pengajuan->software_id && !empty($pengajuan->lab_ids)) {
-            // Cek apakah instalasi sudah ada untuk software dan lab yang bersangkutan
-            $existingInstalasi = \App\Models\Instalasi::where('id_software', $pengajuan->software->id_software)
-                ->whereIn('no_lab', $pengajuan->lab_ids ?? [])
-                ->first();
+        // Handle foto bukti if status is gagal_terinstal
+        if ($request->status_progress == 'gagal_terinstal' && $request->hasFile('foto_bukti')) {
+            // Hapus foto lama jika ada
+            $this->hapusFotoLama($pengajuan->id);
 
-            // Jika belum ada instalasi, buat record baru di tabel instalasi
-            if (!$existingInstalasi) {
-                foreach ($pengajuan->lab_ids as $labId) {
-                    $lab = Laboratorium::find($labId);
-                    if ($lab) {
-                        \App\Models\Instalasi::create([
-                            'id_software'      => $pengajuan->software->id_software,
-                            'versi_terinstall' => $pengajuan->versi_requested ?? 'Default',
-                            'no_lab'           => $lab->no_lab,
-                            'status_lisensi'   => 'license_active',
-                            'diinstal_oleh'   => $pengajuan->tugaskan_admin,
-                        ]);
+            // Kompres dan simpan foto
+            $file = $request->file('foto_bukti');
+            $originalExt = strtolower($file->getClientOriginalExtension());
+            $fileName = 'bukti_' . $pengajuan->id . '_' . time() . '.jpg';
+            $savePath = storage_path('app/public/foto_bukti/' . $fileName);
+
+            if (!file_exists(storage_path('app/public/foto_bukti'))) {
+                mkdir(storage_path('app/public/foto_bukti'), 0755, true);
+            }
+
+            if ($originalExt === 'png') {
+                $source = imagecreatefrompng($file->getRealPath());
+            } elseif (in_array($originalExt, ['jpeg', 'jpg'])) {
+                $source = imagecreatefromjpeg($file->getRealPath());
+            } else {
+                $source = imagecreatefromstring(file_get_contents($file->getRealPath()));
+            }
+
+            if ($source) {
+                $maxW = 800;
+                $origW = imagesx($source);
+                $origH = imagesy($source);
+                
+                if ($origW > $maxW) {
+                    $newW = $maxW;
+                    $newH = (int) round($origH * ($maxW / $origW));
+                } else {
+                    $newW = $origW;
+                    $newH = $origH;
+                }
+
+                $canvas = imagecreatetruecolor($newW, $newH);
+                $white = imagecolorallocate($canvas, 255, 255, 255);
+                imagefill($canvas, 0, 0, $white);
+                imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+                imagejpeg($canvas, $savePath, 60);
+                imagedestroy($source);
+                imagedestroy($canvas);
+            }
+
+            $dbPath = 'foto_bukti/' . $fileName;
+        } else {
+            $dbPath = $pengajuan->foto_bukti;
+        }
+
+        // Buat record License Tracking
+        if ($request->status_progress == 'terinstal' && $pengajuan->software_id && !empty($pengajuan->lab_ids)) {
+            foreach ($pengajuan->lab_ids as $labId) {
+                $lab = Laboratorium::find($labId);
+                if ($lab) {
+                    // Buat record License Tracking untuk setiap PC di lab ini
+                    $jumlahPc = $lab->jumlah_pc ?? 10;
+                    $pcList = ['PC Dosen'];
+                    for ($i = 1; $i <= max(0, $jumlahPc - 1); $i++) {
+                        $pcList[] = 'PC' . str_pad($i, 2, '0', STR_PAD_LEFT);
+                    }
+                    
+                    \App\Models\LicenseTracking::where('laboratorium_id', $lab->id)
+                        ->where('software_id', $pengajuan->software_id)
+                        ->whereNotIn('pc_number', $pcList)
+                        ->delete();
+                    
+                    foreach ($pcList as $pcNumber) {
+                        $existingLicense = \App\Models\LicenseTracking::where('laboratorium_id', $lab->id)
+                            ->where('software_id', $pengajuan->software_id)
+                            ->where('pc_number', $pcNumber)
+                            ->first();
+                            
+                        if (!$existingLicense) {
+                            \App\Models\LicenseTracking::create([
+                                'laboratorium_id' => $lab->id,
+                                'software_id' => $pengajuan->software_id,
+                                'pc_number' => $pcNumber,
+                                'license_account' => null,
+                                'license_password' => null,
+                                'unique_code' => null,
+                                'license_type' => 'free',
+                                'active_date' => now()->toDateString(),
+                                'expiry_date' => now()->addYear()->toDateString(),
+                            ]);
+                        }
                     }
                 }
             }
         }
 
-        $pengajuan->update([
+        $updateData = [
             'status_progress' => $request->status_progress,
-            'dokumentasi'     => $request->dokumentasi ?? $pengajuan->dokumentasi, 
+            'dokumentasi'     => $request->dokumentasi ?? $pengajuan->dokumentasi,
             'catatan_admin'   => $request->catatan_admin,
-        ]);
+            'foto_bukti'      => $dbPath,
+        ];
+
+        // Jika admin yang mengupdate dan statusnya gagal, set status verifikasi ke menunggu
+        if ($user->role !== 'supervisor' && $request->status_progress == 'gagal_terinstal') {
+            $updateData['status_verifikasi'] = 'menunggu';
+        }
+
+        $pengajuan->update($updateData);
+
+        // Send email if status is gagal_terinstal
+        if ($request->status_progress == 'gagal_terinstal' && $pengajuan->dosen) {
+            \Illuminate\Support\Facades\Mail::to($pengajuan->dosen->email)->send(new \App\Mail\InstalasiGagalMail($pengajuan));
+        }
 
         return back()->with('success', 'Status pengerjaan berhasil diperbarui!');
     }
@@ -586,6 +634,7 @@ public function indexPenyelesaian(Request $request)
         ]);
 
         $pengajuan = Pengajuan::findOrFail($id);
+        $user = Auth::user();
 
         // Hapus semua foto lama milik pengajuan ini untuk mencegah penumpukan file
         $this->hapusFotoLama($pengajuan->id);
@@ -657,15 +706,80 @@ public function indexPenyelesaian(Request $request)
         $dbPath = 'foto_bukti/' . $fileName;
 
         // Update pengajuan
-        $pengajuan->update([
-            'foto_bukti'             => $dbPath,
-            'status_verifikasi'      => 'menunggu',
-            'catatan_penolakan_foto' => null,
-            'catatan_admin'          => $request->catatan_admin ?? $pengajuan->catatan_admin,
-            'dokumentasi'            => $request->dokumentasi ?? $pengajuan->dokumentasi,
-        ]);
+        if ($user->role === 'supervisor') {
+            // Jika supervisor, langsung setujui dan selesaikan instalasi
+            $pengajuan->update([
+                'foto_bukti'             => $dbPath,
+                'status_verifikasi'      => 'disetujui',
+                'status_progress'        => 'terinstal',
+                'catatan_penolakan_foto' => null,
+                'catatan_admin'          => $request->catatan_admin ?? $pengajuan->catatan_admin,
+                'dokumentasi'            => $request->dokumentasi ?? $pengajuan->dokumentasi,
+            ]);
 
-        return back()->with('success', 'Foto bukti instalasi berhasil dikirim! Menunggu verifikasi supervisor.');
+            // Buat record License Tracking
+            if ($pengajuan->software_id && !empty($pengajuan->lab_ids)) {
+                foreach ($pengajuan->lab_ids as $labId) {
+                    $lab = Laboratorium::find($labId);
+                    if ($lab) {
+                        // Buat record License Tracking untuk setiap PC di lab ini
+                        $jumlahPc = $lab->jumlah_pc ?? 10; // Default 10 PC jika tidak ditentukan
+                        $pcList = ['PC Dosen'];
+                        for ($i = 1; $i <= max(0, $jumlahPc - 1); $i++) {
+                            $pcList[] = 'PC' . str_pad($i, 2, '0', STR_PAD_LEFT);
+                        }
+                        
+                        // Hapus license tracking yang tidak sesuai dengan PC yang valid terlebih dahulu
+                        \App\Models\LicenseTracking::where('laboratorium_id', $lab->id)
+                            ->where('software_id', $pengajuan->software_id)
+                            ->whereNotIn('pc_number', $pcList)
+                            ->delete();
+                        
+                        foreach ($pcList as $pcNumber) {
+                            
+                            // Cek apakah license tracking sudah ada untuk PC ini
+                            $existingLicense = \App\Models\LicenseTracking::where('laboratorium_id', $lab->id)
+                                ->where('software_id', $pengajuan->software_id)
+                                ->where('pc_number', $pcNumber)
+                                ->first();
+                                
+                            if (!$existingLicense) {
+                                \App\Models\LicenseTracking::create([
+                                    'laboratorium_id' => $lab->id,
+                                    'software_id' => $pengajuan->software_id,
+                                    'pc_number' => $pcNumber,
+                                    'license_account' => null,
+                                    'license_password' => null,
+                                    'unique_code' => null,
+                                    'license_type' => 'free', // Default gratis
+                                    'active_date' => now()->toDateString(),
+                                    'expiry_date' => now()->addYear()->toDateString(), // Default 1 tahun
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Kirim email pemberitahuan ke dosen bahwa instalasi telah selesai (KECUALI jika pengaju adalah supervisor)
+            if ($pengajuan->dosen && $pengajuan->dosen->email && $pengajuan->dosen->role !== 'supervisor') {
+                \Illuminate\Support\Facades\Mail::to($pengajuan->dosen->email)
+                    ->send(new \App\Mail\InstalasiSelesaiMail($pengajuan));
+            }
+
+            return back()->with('success', 'Foto bukti berhasil diunggah dan instalasi dinyatakan selesai!');
+        } else {
+            // Jika admin biasa, menunggu verifikasi supervisor
+            $pengajuan->update([
+                'foto_bukti'             => $dbPath,
+                'status_verifikasi'      => 'menunggu',
+                'catatan_penolakan_foto' => null,
+                'catatan_admin'          => $request->catatan_admin ?? $pengajuan->catatan_admin,
+                'dokumentasi'            => $request->dokumentasi ?? $pengajuan->dokumentasi,
+            ]);
+
+            return back()->with('success', 'Foto bukti instalasi berhasil dikirim! Menunggu verifikasi supervisor.');
+        }
     }
 
     /**
@@ -696,38 +810,80 @@ public function indexPenyelesaian(Request $request)
         $pengajuan = Pengajuan::findOrFail($id);
 
         // Update status pengajuan
-        $pengajuan->update([
+        $updateData = [
             'status_verifikasi' => 'disetujui',
-            'status_progress'   => 'terinstal',
-        ]);
+        ];
 
-        // Cek apakah instalasi sudah ada untuk software dan lab yang bersangkutan
-        $existingInstalasi = \App\Models\Instalasi::where('id_software', $pengajuan->software->id_software)
-            ->whereIn('no_lab', $pengajuan->lab_ids ?? [])
-            ->first();
+        // Jika sebelumnya bukan gagal, set ke terinstal
+        if ($pengajuan->status_progress != 'gagal_terinstal') {
+            $updateData['status_progress'] = 'terinstal';
+        }
 
-        // Jika belum ada instalasi, buat record baru di tabel instalasi
-        if (!$existingInstalasi && $pengajuan->software_id && !empty($pengajuan->lab_ids)) {
-            foreach ($pengajuan->lab_ids as $labId) {
-                $lab = Laboratorium::find($labId);
-                if ($lab) {
-                    \App\Models\Instalasi::create([
-                        'id_software'      => $pengajuan->software->id_software,
-                        'versi_terinstall' => $pengajuan->versi_requested ?? 'Default',
-                        'no_lab'           => $lab->no_lab,
-                        'status_lisensi'   => 'license_active', // Default active untuk software yang baru terinstal
-                        'diinstal_oleh'   => $pengajuan->tugaskan_admin, // Catat admin yang menginstal
-                    ]);
+        $pengajuan->update($updateData);
+
+        // Hanya buat License Tracking jika bukan gagal terinstal
+        if ($pengajuan->status_progress != 'gagal_terinstal') {
+            if ($pengajuan->software_id && !empty($pengajuan->lab_ids)) {
+                foreach ($pengajuan->lab_ids as $labId) {
+                    $lab = Laboratorium::find($labId);
+                    if ($lab) {
+                        // Buat record License Tracking untuk setiap PC di lab ini
+                        $jumlahPc = $lab->jumlah_pc ?? 10; // Default 10 PC jika tidak ditentukan
+                        $pcList = ['PC Dosen'];
+                        for ($i = 1; $i <= max(0, $jumlahPc - 1); $i++) {
+                            $pcList[] = 'PC' . str_pad($i, 2, '0', STR_PAD_LEFT);
+                        }
+                        
+                        // Hapus license tracking yang tidak sesuai dengan PC yang valid terlebih dahulu
+                        \App\Models\LicenseTracking::where('laboratorium_id', $lab->id)
+                            ->where('software_id', $pengajuan->software_id)
+                            ->whereNotIn('pc_number', $pcList)
+                            ->delete();
+                        
+                        foreach ($pcList as $pcNumber) {
+                            
+                            // Cek apakah license tracking sudah ada untuk PC ini
+                            $existingLicense = \App\Models\LicenseTracking::where('laboratorium_id', $lab->id)
+                                ->where('software_id', $pengajuan->software_id)
+                                ->where('pc_number', $pcNumber)
+                                ->first();
+                                
+                            if (!$existingLicense) {
+                                \App\Models\LicenseTracking::create([
+                                    'laboratorium_id' => $lab->id,
+                                    'software_id' => $pengajuan->software_id,
+                                    'pc_number' => $pcNumber,
+                                    'license_account' => null,
+                                    'license_password' => null,
+                                    'unique_code' => null,
+                                    'license_type' => 'free', // Default gratis
+                                    'active_date' => now()->toDateString(),
+                                    'expiry_date' => now()->addYear()->toDateString(), // Default 1 tahun
+                                ]);
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // Kirim email pemberitahuan ke dosen bahwa instalasi telah selesai (KECUALI jika pengaju adalah supervisor)
+        // Kirim email pemberitahuan ke dosen sesuai status (KECUALI jika pengaju adalah supervisor)
         if ($pengajuan->dosen && $pengajuan->dosen->email && $pengajuan->dosen->role !== 'supervisor') {
-            \Illuminate\Support\Facades\Mail::to($pengajuan->dosen->email)
-                ->send(new \App\Mail\InstalasiSelesaiMail($pengajuan));
-                
-            return back()->with('success', 'Foto bukti diverifikasi. Instalasi dinyatakan selesai dan tercatat di License Tracker! Email pemberitahuan telah dikirim ke Dosen.');
+            if ($pengajuan->status_progress == 'gagal_terinstal') {
+                \Illuminate\Support\Facades\Mail::to($pengajuan->dosen->email)
+                    ->send(new \App\Mail\InstalasiGagalMail($pengajuan));
+                    
+                return back()->with('success', 'Laporan gagal instalasi diverifikasi! Email pemberitahuan telah dikirim ke Dosen.');
+            } else {
+                \Illuminate\Support\Facades\Mail::to($pengajuan->dosen->email)
+                    ->send(new \App\Mail\InstalasiSelesaiMail($pengajuan));
+                    
+                return back()->with('success', 'Foto bukti diverifikasi. Instalasi dinyatakan selesai dan tercatat di License Tracker! Email pemberitahuan telah dikirim ke Dosen.');
+            }
+        }
+
+        if ($pengajuan->status_progress == 'gagal_terinstal') {
+            return back()->with('success', 'Laporan gagal instalasi diverifikasi!');
         }
 
         return back()->with('success', 'Foto bukti diverifikasi. Instalasi dinyatakan selesai dan tercatat di License Tracker!');
@@ -790,25 +946,6 @@ public function indexPenyelesaian(Request $request)
 
         if (!$labId || !$softwareId || !$versi || $softwareId === 'lainnya') {
             return response()->json(['sudah_ada' => false]);
-        }
-
-        $software = Software::find($softwareId);
-        $lab = Laboratorium::find($labId);
-
-        if (!$software || !$lab) {
-            return response()->json(['sudah_ada' => false]);
-        }
-
-        $existingInstalasi = Instalasi::where('id_software', $software->id_software)
-            ->where('no_lab', $lab->no_lab)
-            ->where('versi_terinstall', $versi)
-            ->first();
-
-        if ($existingInstalasi) {
-            return response()->json([
-                'sudah_ada' => true,
-                'pesan' => $software->nama_software . ' versi ' . $versi . ' sudah terinstal di ' . $lab->nama_lab . '. Silakan ajukan versi yang berbeda atau lab yang berbeda.'
-            ]);
         }
 
         return response()->json(['sudah_ada' => false]);

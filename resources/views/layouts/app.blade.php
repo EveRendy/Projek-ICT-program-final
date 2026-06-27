@@ -402,7 +402,8 @@ function closeMobileSidebar() {
    CUSTOM SELECT GLOBAL — dipakai oleh semua halaman
    yang menggunakan komponen custom-select
    ===================================================== */
-function toggleCustomSelect(uid) {
+function toggleCustomSelect(uid, event) {
+    if (event) event.stopPropagation();
     const menu    = document.getElementById('menu_' + uid);
     const chevron = document.getElementById('chevron_' + uid);
     const isOpen  = !menu.classList.contains('hidden');
@@ -420,7 +421,8 @@ function toggleCustomSelect(uid) {
     chevron.classList.toggle('rotate-180', !isOpen);
 }
 
-function pickCustomSelect(uid, value, label, autosubmit, customOnChange = null) {
+function pickCustomSelect(uid, value, label, autosubmit, customOnChange = null, event) {
+    if (event) event.stopPropagation();
     const input = document.getElementById('val_' + uid);
     input.value = value;
     input.dispatchEvent(new Event('change', { bubbles: true }));

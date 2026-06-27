@@ -14,10 +14,6 @@ class PengajuanController extends Controller
 
     public function riwayatPengajuan()
     {
-<<<<<<< HEAD
-        //Ambil data user yg login
-=======
->>>>>>> 03977a52ce854dc49dfad0878537b56ebb316f24
         $user = Auth::user();
         $role = $user->role ?? 'user';
 
@@ -79,18 +75,12 @@ class PengajuanController extends Controller
         $query = Pengajuan::where('status_persetujuan', 'disetujui')
             ->with(['dosen', 'software']);
 
-<<<<<<< HEAD
-        // batasan role
-        if ($role !== 'supervisor') {
-            $query->where('tugaskan_admin', $user->id)
-=======
         if ($role !== 'supervisor') {
             $query->where('tugaskan_admin', $user->no_induk)
->>>>>>> 03977a52ce854dc49dfad0878537b56ebb316f24
-                  ->where('status_progress', 'progress');
+                  ->whereIn('status_progress', ['progress', 'terinstal', 'gagal_terinstal']);
         } else {
-            // Supervisor bisa lihat semua yang masih aktif dikerjakan
-            $query->where('status_progress', 'progress');
+            // Supervisor bisa lihat semua yang masih aktif dikerjakan atau menunggu verifikasi
+            $query->whereIn('status_progress', ['progress', 'terinstal', 'gagal_terinstal']);
         }
 
         if ($labNo) {
@@ -114,14 +104,10 @@ class PengajuanController extends Controller
         return view('admin.tugas', compact('tugas', 'summary', 'role', 'laboratoriums'));
     }
 
-<<<<<<< HEAD
-    public function indexPenyelesaian(Request $request)
-=======
     // =========================================================================
     // NEW METHOD: Menampilkan Riwayat Tugas yang Selesai / Gagal Terinstal
     // =========================================================================
 public function indexPenyelesaian(Request $request)
->>>>>>> 03977a52ce854dc49dfad0878537b56ebb316f24
     {
         $user = Auth::user();
         $role = $user->role ?? 'user';
@@ -134,17 +120,10 @@ public function indexPenyelesaian(Request $request)
 
         // Mengizinkan status 'progress' agar tugas yang baru disetujui muncul di halaman penyelesaian
         if ($role !== 'supervisor') {
-<<<<<<< HEAD
-            $query->where('tugaskan_admin', $user->id)
-                  ->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
-        } else {
-            $query->whereIn('status_progress', ['terinstal', 'gagal_terinstal']);
-=======
             $query->where('tugaskan_admin', $user->no_induk)
                   ->whereIn('status_progress', ['progress', 'terinstal', 'gagal_terinstal']);
         } else {
             $query->whereIn('status_progress', ['progress', 'terinstal', 'gagal_terinstal']);
->>>>>>> 03977a52ce854dc49dfad0878537b56ebb316f24
         }
 
         if ($labId) {
@@ -519,47 +498,64 @@ public function indexPenyelesaian(Request $request)
             // Hapus foto lama jika ada
             $this->hapusFotoLama($pengajuan->id);
 
-            // Kompres dan simpan foto
             $file = $request->file('foto_bukti');
-            $originalExt = strtolower($file->getClientOriginalExtension());
-            $fileName = 'bukti_' . $pengajuan->id . '_' . time() . '.jpg';
-            $savePath = storage_path('app/public/foto_bukti/' . $fileName);
+            $dbPath = '';
 
             if (!file_exists(storage_path('app/public/foto_bukti'))) {
                 mkdir(storage_path('app/public/foto_bukti'), 0755, true);
             }
 
-            if ($originalExt === 'png') {
-                $source = imagecreatefrompng($file->getRealPath());
-            } elseif (in_array($originalExt, ['jpeg', 'jpg'])) {
-                $source = imagecreatefromjpeg($file->getRealPath());
-            } else {
-                $source = imagecreatefromstring(file_get_contents($file->getRealPath()));
-            }
+            if (extension_loaded('gd')) {
+                // Kompres dan simpan foto dengan GD
+                $originalExt = strtolower($file->getClientOriginalExtension());
+                $fileName = 'bukti_' . $pengajuan->id . '_' . time() . '.jpg';
+                $savePath = storage_path('app/public/foto_bukti/' . $fileName);
 
-            if ($source) {
-                $maxW = 800;
-                $origW = imagesx($source);
-                $origH = imagesy($source);
-                
-                if ($origW > $maxW) {
-                    $newW = $maxW;
-                    $newH = (int) round($origH * ($maxW / $origW));
-                } else {
-                    $newW = $origW;
-                    $newH = $origH;
+                $source = null;
+                try {
+                    if ($originalExt === 'png') {
+                        $source = imagecreatefrompng($file->getRealPath());
+                    } elseif (in_array($originalExt, ['jpeg', 'jpg'])) {
+                        $source = imagecreatefromjpeg($file->getRealPath());
+                    } else {
+                        $source = imagecreatefromstring(file_get_contents($file->getRealPath()));
+                    }
+                } catch (\Exception $e) {
+                    $source = null;
                 }
 
-                $canvas = imagecreatetruecolor($newW, $newH);
-                $white = imagecolorallocate($canvas, 255, 255, 255);
-                imagefill($canvas, 0, 0, $white);
-                imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
-                imagejpeg($canvas, $savePath, 60);
-                imagedestroy($source);
-                imagedestroy($canvas);
+                if ($source) {
+                    $maxW = 800;
+                    $origW = imagesx($source);
+                    $origH = imagesy($source);
+                    
+                    if ($origW > $maxW) {
+                        $newW = $maxW;
+                        $newH = (int) round($origH * ($maxW / $origW));
+                    } else {
+                        $newW = $origW;
+                        $newH = $origH;
+                    }
+
+                    $canvas = imagecreatetruecolor($newW, $newH);
+                    $white = imagecolorallocate($canvas, 255, 255, 255);
+                    imagefill($canvas, 0, 0, $white);
+                    imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+                    imagejpeg($canvas, $savePath, 60);
+                    imagedestroy($source);
+                    imagedestroy($canvas);
+
+                    $dbPath = 'foto_bukti/' . $fileName;
+                }
             }
 
-            $dbPath = 'foto_bukti/' . $fileName;
+            // Fallback jika GD tidak available
+            if (empty($dbPath)) {
+                $fileName = 'bukti_' . $pengajuan->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('public/foto_bukti', $fileName);
+                $dbPath = 'foto_bukti/' . $fileName;
+            }
+
         } else {
             $dbPath = $pengajuan->foto_bukti;
         }
@@ -644,71 +640,82 @@ public function indexPenyelesaian(Request $request)
         // Hapus semua foto lama milik pengajuan ini untuk mencegah penumpukan file
         $this->hapusFotoLama($pengajuan->id);
 
-        // --- KOMPRESI FOTO MENGGUNAKAN PHP GD ---
-        $file        = $request->file('foto_bukti');
-        $originalExt = strtolower($file->getClientOriginalExtension());
-        $fileName    = 'bukti_' . $pengajuan->id . '_' . time() . '.jpg';
-        $savePath    = storage_path('app/public/foto_bukti/' . $fileName);
-
+        $file = $request->file('foto_bukti');
+        $dbPath = '';
+        
         // Pastikan direktori ada
         if (!file_exists(storage_path('app/public/foto_bukti'))) {
             mkdir(storage_path('app/public/foto_bukti'), 0755, true);
         }
 
-        // Buat resource GD sesuai tipe file asli
-        if ($originalExt === 'png') {
-            $source = imagecreatefrompng($file->getRealPath());
-        } elseif (in_array($originalExt, ['jpeg', 'jpg'])) {
-            $source = imagecreatefromjpeg($file->getRealPath());
-        } else {
-            // Fallback: coba baca via imagecreatefromstring
-            $source = imagecreatefromstring(file_get_contents($file->getRealPath()));
+        // Coba kompres dengan GD jika available, jika tidak simpan file asli
+        if (extension_loaded('gd')) {
+            // --- KOMPRESI FOTO MENGGUNAKAN PHP GD ---
+            $originalExt = strtolower($file->getClientOriginalExtension());
+            $fileName    = 'bukti_' . $pengajuan->id . '_' . time() . '.jpg';
+            $savePath    = storage_path('app/public/foto_bukti/' . $fileName);
+
+            // Buat resource GD sesuai tipe file asli
+            $source = null;
+            try {
+                if ($originalExt === 'png') {
+                    $source = imagecreatefrompng($file->getRealPath());
+                } elseif (in_array($originalExt, ['jpeg', 'jpg'])) {
+                    $source = imagecreatefromjpeg($file->getRealPath());
+                } else {
+                    // Fallback: coba baca via imagecreatefromstring
+                    $source = imagecreatefromstring(file_get_contents($file->getRealPath()));
+                }
+            } catch (\Exception $e) {
+                $source = null;
+            }
+
+            if ($source) {
+                // --- PARAMETER KOMPRESI ---
+                $maxW = 800;
+
+                $origW = imagesx($source);
+                $origH = imagesy($source);
+
+                if ($origW > $maxW) {
+                    $newW = $maxW;
+                    $newH = (int) round($origH * ($maxW / $origW));
+                } else {
+                    $newW = $origW;
+                    $newH = $origH;
+                }
+
+                // Buat kanvas baru
+                $canvas = imagecreatetruecolor($newW, $newH);
+
+                // Background putih
+                $white = imagecolorallocate($canvas, 255, 255, 255);
+                imagefill($canvas, 0, 0, $white);
+
+                // Salin dan resize
+                imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+
+                // Simpan JPEG kualitas 60%
+                imagejpeg($canvas, $savePath, 60);
+
+                imagedestroy($source);
+                imagedestroy($canvas);
+
+                $dbPath = 'foto_bukti/' . $fileName;
+            }
         }
 
-        if (!$source) {
-            return back()->with('error', 'Gagal memproses gambar. Pastikan file yang diupload adalah gambar valid.');
+        // Fallback: jika GD tidak available, simpan file asli
+        if (empty($dbPath)) {
+            $fileName = 'bukti_' . $pengajuan->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('public/foto_bukti', $fileName);
+            $dbPath = 'foto_bukti/' . $fileName;
         }
-
-        // --- PARAMETER KOMPRESI ---
-        // Max 800px lebar — cukup untuk bukti foto, jauh lebih ringan dari 1200px
-        // Ukuran file turun ~55% dibanding 1200px@75%
-        $maxW = 800;
-
-        $origW = imagesx($source);
-        $origH = imagesy($source);
-
-        if ($origW > $maxW) {
-            $newW = $maxW;
-            $newH = (int) round($origH * ($maxW / $origW));
-        } else {
-            // Gambar sudah kecil, tidak perlu diperbesar
-            $newW = $origW;
-            $newH = $origH;
-        }
-
-        // Buat kanvas baru
-        $canvas = imagecreatetruecolor($newW, $newH);
-
-        // Background putih — penting untuk PNG transparan agar tidak jadi hitam
-        $white = imagecolorallocate($canvas, 255, 255, 255);
-        imagefill($canvas, 0, 0, $white);
-
-        // Salin dan resize dengan resampling berkualitas tinggi
-        imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
-
-        // Simpan JPEG kualitas 60% — optimal untuk foto bukti
-        // (60% sudah cukup tajam untuk dilihat, tapi ukurannya ~40-50% lebih kecil dari 75%)
-        imagejpeg($canvas, $savePath, 60);
-
-        imagedestroy($source);
-        imagedestroy($canvas);
 
         // Verifikasi file berhasil disimpan
-        if (!file_exists($savePath)) {
+        if (!Storage::disk('public')->exists($dbPath)) {
             return back()->with('error', 'Gagal menyimpan foto. Silakan coba lagi.');
         }
-
-        $dbPath = 'foto_bukti/' . $fileName;
 
         // Update pengajuan
         if ($user->role === 'supervisor') {
@@ -778,6 +785,7 @@ public function indexPenyelesaian(Request $request)
             $pengajuan->update([
                 'foto_bukti'             => $dbPath,
                 'status_verifikasi'      => 'menunggu',
+                'status_progress'        => 'terinstal', // <-- TAMBAHKAN INI! penting!
                 'catatan_penolakan_foto' => null,
                 'catatan_admin'          => $request->catatan_admin ?? $pengajuan->catatan_admin,
                 'dokumentasi'            => $request->dokumentasi ?? $pengajuan->dokumentasi,
@@ -796,13 +804,19 @@ public function indexPenyelesaian(Request $request)
         $dir = storage_path('app/public/foto_bukti');
         if (!is_dir($dir)) return;
 
-        // Pola nama file: bukti_{id}_*.jpg
-        $pattern = $dir . '/bukti_' . $pengajuanId . '_*.jpg';
-        $files   = glob($pattern);
-
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                @unlink($file);
+        // Pola nama file: bukti_{id}_*.*
+        $patterns = [
+            $dir . '/bukti_' . $pengajuanId . '_*.jpg',
+            $dir . '/bukti_' . $pengajuanId . '_*.jpeg',
+            $dir . '/bukti_' . $pengajuanId . '_*.png',
+        ];
+        
+        foreach ($patterns as $pattern) {
+            $files = glob($pattern);
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
             }
         }
     }

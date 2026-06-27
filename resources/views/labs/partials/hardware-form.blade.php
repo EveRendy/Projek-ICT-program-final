@@ -41,12 +41,13 @@
     
     $vgaBrand = old('vga_brand', $vgaBrand);
     
-    // Extract Series, Suffix, and VRAM from $vgaSeriesFull
+    // Extract Series, Model, Suffix, and VRAM from $vgaSeriesFull
     // Example: 'RTX 4060 Ti 8GB'
     $vgaSeriesParts = explode(' ', $vgaSeriesFull);
     $vgaVram = '';
     $vgaSuffix = 'Polos';
     $vgaSeries = $vgaSeriesFull;
+    $vgaModel = ''; // New variable for VGA model
     
     if (count($vgaSeriesParts) > 1) {
         $lastPart = end($vgaSeriesParts);
@@ -74,10 +75,14 @@
                 array_pop($vgaSeriesParts);
             }
         }
-        $vgaSeries = implode(' ', $vgaSeriesParts);
+        
+        // Now, extract VGA model: take the rest after the series? Wait, series is like "RTX 4000 Series", but let's look at how CPU does it. Wait the series for VGA is like "RTX 4000 Series (Ada Lovelace)", so model would be like "RTX 4060". Let's just take the remaining parts as model, or separate them? Wait, for CPU, we have gen, model, suffix. For VGA, let's make it series, model, suffix, vram! Let's modify: let's make vgaSeries the series (from radio button), and vgaModel the model input!
+        $vgaModel = implode(' ', $vgaSeriesParts);
+        $vgaSeries = ''; // Since series comes from radio buttons, not from the full string
     }
     
     $vgaSeries = old('vga_series', $vgaSeries);
+    $vgaModel = old('vga_model', $vgaModel); // Get old vga_model or from parsed specs
     $vgaSuffix = old('vga_suffix', $vgaSuffix);
     $vgaVram = old('vga_vram', $vgaVram);
 
@@ -87,14 +92,14 @@
     $cpuData = [];
     foreach ($hardware['cpu_brands'] as $brand) {
         $cpuData[$brand->name] = $brand->children->map(function($child) {
-            return ['name' => $child->name, 'score' => $child->base_score ?? 0];
+            return ['name' => $child->name];
         })->toArray();
     }
-    
+
     $vgaData = [];
     foreach ($hardware['vga_brands'] as $brand) {
         $vgaData[$brand->name] = $brand->children->map(function($child) {
-            return ['name' => $child->name, 'score' => $child->base_score ?? 0];
+            return ['name' => $child->name];
         })->toArray();
     }
 @endphp
@@ -172,12 +177,6 @@
             </optgroup>
         </select>
         </div>
-        <div id="cpu_typo_suggestion" class="hidden mt-1 ml-1">
-            <div class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 font-medium">
-                <span>💡 Mungkin maksud Anda:</span>
-                <button type="button" id="cpu_typo_btn" class="font-bold text-amber-900 underline hover:text-amber-600 transition focus:outline-none"></button>?
-            </div>
-        </div>
     </div>
 </div>
 
@@ -227,38 +226,55 @@
             </div>
         </div>
 
-        {{-- Seri VGA --}}
-        <div id="vga_series_section" class="space-y-2 hidden">
-            <label class="text-sm font-bold text-blue-900">Seri VGA</label>
-            <div id="vga_series_container" class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {{-- Series will be populated by JS --}}
-            </div>
-        </div>
-
-        {{-- Suffix & VRAM VGA --}}
+        {{-- Model, Seri, Suffix & VRAM VGA --}}
         <div id="vga_model_section" class="space-y-2 hidden">
-            <label class="text-sm font-bold text-blue-900">VRAM dan Suffix</label>
-            <div class="flex flex-col sm:flex-row gap-2 max-w-lg">
-                <select id="vga_suffix" name="vga_suffix"
-                        class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white">
-                    <option value="Polos" {{ $vgaSuffix === 'Polos' ? 'selected' : '' }}>Polos (Tanpa Suffix)</option>
-                    <optgroup label="NVIDIA" id="vga_optgroup_nvidia">
-                        <option value="Ti" {{ $vgaSuffix === 'Ti' ? 'selected' : '' }}>Ti</option>
-                        <option value="Super" {{ $vgaSuffix === 'Super' ? 'selected' : '' }}>Super</option>
-                        <option value="Ti Super" {{ $vgaSuffix === 'Ti Super' ? 'selected' : '' }}>Ti Super</option>
-                    </optgroup>
-                    <optgroup label="AMD" id="vga_optgroup_amd">
-                        <option value="XT" {{ $vgaSuffix === 'XT' ? 'selected' : '' }}>XT</option>
-                        <option value="XTX" {{ $vgaSuffix === 'XTX' ? 'selected' : '' }}>XTX</option>
-                        <option value="GRE" {{ $vgaSuffix === 'GRE' ? 'selected' : '' }}>GRE</option>
-                    </optgroup>
-                </select>
-                
-                <div class="flex-1 flex items-center gap-2">
-                    <input type="number" id="vga_vram" name="vga_vram" value="{{ $vgaVram }}"
-                           placeholder="VRAM" min="1" step="1"
-                           class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                    <span class="text-sm font-bold text-slate-700">GB</span>
+            <label class="text-sm font-bold text-blue-900">Model, Seri, Suffix dan VRAM</label>
+            <div class="flex flex-col gap-2 max-w-2xl">
+                {{-- Row with 3 columns: Seri, Model, Suffix --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {{-- Kolom 1: Seri VGA (Dropdown) --}}
+                    <div>
+                        <label class="text-xs font-bold text-blue-900 mb-1 block">Seri VGA</label>
+                        <select id="vga_series" name="vga_series"
+                                class="w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                            <option value="">Pilih Seri</option>
+                        </select>
+                    </div>
+                    {{-- Kolom 2: Model VGA --}}
+                    <div>
+                        <label class="text-xs font-bold text-blue-900 mb-1 block">Model VGA</label>
+                        <input type="text" id="vga_model" name="vga_model" value="{{ $vgaModel }}"
+                               placeholder="Contoh: 4060 atau 6700"
+                               class="w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    </div>
+                    {{-- Kolom 3: Suffix VGA --}}
+                    <div>
+                        <label class="text-xs font-bold text-blue-900 mb-1 block">Suffix VGA</label>
+                        <select id="vga_suffix" name="vga_suffix"
+                                class="w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                            <option value="Polos" {{ $vgaSuffix === 'Polos' ? 'selected' : '' }}>Polos</option>
+                            <optgroup label="NVIDIA" id="vga_optgroup_nvidia">
+                                <option value="Ti" {{ $vgaSuffix === 'Ti' ? 'selected' : '' }}>Ti</option>
+                                <option value="Super" {{ $vgaSuffix === 'Super' ? 'selected' : '' }}>Super</option>
+                                <option value="Ti Super" {{ $vgaSuffix === 'Ti Super' ? 'selected' : '' }}>Ti Super</option>
+                            </optgroup>
+                            <optgroup label="AMD" id="vga_optgroup_amd">
+                                <option value="XT" {{ $vgaSuffix === 'XT' ? 'selected' : '' }}>XT</option>
+                                <option value="XTX" {{ $vgaSuffix === 'XTX' ? 'selected' : '' }}>XTX</option>
+                                <option value="GRE" {{ $vgaSuffix === 'GRE' ? 'selected' : '' }}>GRE</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                {{-- VRAM VGA --}}
+                <div class="mt-2">
+                    <label class="text-xs font-bold text-blue-900 mb-1 block">VRAM VGA (GB)</label>
+                    <div class="flex items-center gap-2 max-w-xs">
+                        <input type="number" id="vga_vram" name="vga_vram" value="{{ $vgaVram }}"
+                               min="2" step="1"
+                               class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                        <span class="text-sm font-bold text-slate-700">GB</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -279,15 +295,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const vgaCheckbox = document.getElementById('vga_tambahan_checkbox');
     const subVgaContainer = document.getElementById('sub_vga_container');
     const vgaBrandRadios = document.querySelectorAll('.vga-brand-radio');
-    const vgaSeriesSection = document.getElementById('vga_series_section');
-    const vgaSeriesContainer = document.getElementById('vga_series_container');
     const vgaModelSection = document.getElementById('vga_model_section');
+    const vgaModelInput = document.getElementById('vga_model'); // New VGA model input
     const vgaSuffixSelect = document.getElementById('vga_suffix');
     const vgaVramInput = document.getElementById('vga_vram');
     const levelInput = document.getElementById('level_input');
     const levelDisplay = document.getElementById('level_display');
     const ramSizeNumber = document.getElementById('ram_size_number');
     const ramSizeHidden = document.getElementById('ram_size');
+    const vgaSeriesSelect = document.getElementById('vga_series');
 
     // Hierarchical data from backend
     const cpuData = @json($cpuData);
@@ -312,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const gens = cpuData[brand] || [];
         cpuGenContainer.innerHTML = gens.map(gen => `
             <label class="cpu-gen-option flex items-center gap-2 rounded-xl border border-slate-200 p-2.5 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50/40">
-                <input type="radio" name="cpu_gen" value="${gen.name}" data-score="${gen.score}"
+                <input type="radio" name="cpu_gen" value="${gen.name}"
                        ${selectedGen === gen.name ? 'checked' : ''}
                        class="cpu-gen-radio h-4 w-4 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20">
                 <span class="text-xs font-bold text-slate-700">${gen.name}</span>
@@ -331,29 +347,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Listener for CPU model text inputs
     // Event listener for input is now combined with fuzzy matching logic below
     cpuSuffixSelect.addEventListener('change', hitungLevelOtomatis);
+    vgaModelInput.addEventListener('input', hitungLevelOtomatis);
     vgaVramInput.addEventListener('input', hitungLevelOtomatis);
     vgaSuffixSelect.addEventListener('change', hitungLevelOtomatis);
 
-    // Render VGA series
+    // Render VGA series into dropdown
     function renderVgaSeries(brand) {
         const seriesList = vgaData[brand] || [];
-        vgaSeriesContainer.innerHTML = seriesList.map(series => `
-            <label class="vga-series-option flex items-center gap-2 rounded-xl bg-white border border-white p-2 cursor-pointer hover:bg-blue-50 transition has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                <input type="radio" name="vga_series" value="${series.name}" data-score="${series.score}"
-                       ${selectedVgaSeries === series.name ? 'checked' : ''}
-                       class="vga-series-radio h-4 w-4 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20">
-                <span class="text-xs font-bold text-slate-700">${series.name}</span>
-            </label>
-        `).join('');
-
-        // Reattach event listeners
-        document.querySelectorAll('.vga-series-radio').forEach(radio => {
-            radio.addEventListener('change', function () {
-                selectedVgaSeries = this.value;
-                vgaModelSection.classList.remove('hidden');
-                hitungLevelOtomatis();
-            });
-        });
+        
+        // Clear and rebuild options
+        vgaSeriesSelect.innerHTML = '<option value="">Pilih Seri</option>' + 
+            seriesList.map(series => `
+                <option value="${series.name}" ${selectedVgaSeries === series.name ? 'selected' : ''}>${series.name}</option>
+            `).join('');
     }
 
     // Update Sections
@@ -409,13 +415,11 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             subVgaContainer.classList.add('hidden');
             vgaBrandRadios.forEach(r => r.checked = false);
-            document.querySelectorAll('.vga-series-radio').forEach(r => r.checked = false);
-            vgaSeriesSection.classList.add('hidden');
             vgaModelSection.classList.add('hidden');
             selectedVgaBrand = null;
             selectedVgaSeries = null;
-            vgaVramInput.value = '';
             vgaSuffixSelect.value = 'Polos';
+            vgaSeriesSelect.value = '';
             updateVgaSuffixOptgroups();
         }
     }
@@ -457,36 +461,73 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let finalLevel = 1;
+        const ramNum = parseInt(ramSizeNumber.value) || 0;
 
-        // 1. Get CPU Score
-        let cpuScore = 0;
-        const selectedCpuRadio = document.querySelector('input[name="cpu_gen"]:checked');
-        if (selectedCpuRadio) {
-            cpuScore = parseInt(selectedCpuRadio.getAttribute('data-score')) || 0;
-        }
-
-        // 2. Get VGA Score
-        let vgaScore = 0;
-        if (vgaCheckbox.checked && selectedVgaSeries) {
-            const selectedVgaRadio = document.querySelector('input[name="vga_series"]:checked');
-            if (selectedVgaRadio) {
-                vgaScore = parseInt(selectedVgaRadio.getAttribute('data-score')) || 0;
-                let vgaVramNum = parseInt(vgaVramInput.value) || 0;
-                vgaScore += vgaVramNum;
-            }
-        }
-
-        // 3. Get RAM Score
-        let ramScore = parseInt(ramSizeNumber.value) || 0;
-
-        let totalScore = cpuScore + vgaScore + ramScore;
-
-        if (totalScore < 40) {
+        // 1. First check RAM: if less than 8GB → ALWAYS Level 1
+        if (ramNum < 8) {
             finalLevel = 1;
-        } else if (totalScore <= 80) {
-            finalLevel = 2;
         } else {
-            finalLevel = 3;
+            // 2. Determine CPU level
+            let cpuLevel = 1;
+
+            // Parse Intel generation: "4th Gen", "1st Gen", etc.
+            const intelGenMatch = selectedGen.match(/(\d+)(st|nd|rd|th) Gen/i);
+            if (intelGenMatch) {
+                const gen = parseInt(intelGenMatch[1]);
+                cpuLevel = gen <= 5 ? 1 : 2;
+            } else if (selectedGen.includes('Ryzen')) {
+                // For AMD Ryzen: check series
+                if (selectedGen.match(/Ryzen (1000|2000) Series/i)) {
+                    // Ryzen 1000 & 2000 Series → Level 1
+                    cpuLevel = 1;
+                } else {
+                    // Ryzen 3000+ → Level 2
+                    cpuLevel = 2;
+                }
+            } else {
+                // For other CPU types: default to level 1 (Core 2 Duo, Athlon, Phenom, FX, A-Series)
+                cpuLevel = 1;
+            }
+
+            const hasVga = vgaCheckbox.checked;
+
+            if (!hasVga) {
+                finalLevel = Math.min(cpuLevel, 2);
+            } else {
+                // 3. Determine VGA level based on VRAM
+                let vgaLevel = 1;
+                let useCpuOnly = false;
+                const vgaVram = parseInt(vgaVramInput?.value) || 0;
+                
+                if (vgaVram > 0) {
+                    if (vgaVram <= 2) {
+                        // VRAM ≤ 2GB: follow CPU level only
+                        useCpuOnly = true;
+                    } else if (vgaVram <= 4) {
+                        vgaLevel = 2;
+                    } else if (vgaVram >= 6) {
+                        vgaLevel = 3;
+                    } else {
+                        // 5GB VRAM: default to level 2
+                        vgaLevel = 2;
+                    }
+                } else {
+                    // If no VRAM specified: default to level 2
+                    vgaLevel = 2;
+                }
+
+                // 4. Final level
+                let tempLevel;
+                if (useCpuOnly) {
+                    tempLevel = cpuLevel;
+                } else {
+                    tempLevel = Math.max(cpuLevel, vgaLevel);
+                }
+                
+                // 5. If CPU level is 1, max overall level is 2
+                const maxLevel = cpuLevel === 1 ? 2 : 3;
+                finalLevel = Math.min(tempLevel, maxLevel);
+            }
         }
 
         const levels = {
@@ -502,128 +543,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Event Listeners
     
-    // Fuzzy Matching for CPU Typo Recommendation
-    const typoSuggestion = document.getElementById('cpu_typo_suggestion');
-    const typoBtn = document.getElementById('cpu_typo_btn');
-    let cpuModelsDict = [];
-
-    // Load Dictionary
-    fetch('/data/cpu_models.json')
-        .then(res => res.json())
-        .then(data => { cpuModelsDict = data; })
-        .catch(err => console.error("Could not load CPU models dictionary", err));
-
-    function levenshtein(a, b) {
-        const matrix = [];
-        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-        for (let i = 1; i <= b.length; i++) {
-            for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i-1) == a.charAt(j-1)) {
-                    matrix[i][j] = matrix[i-1][j-1];
-                } else {
-                    matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
-                }
-            }
-        }
-        return matrix[b.length][a.length];
-    }
-
-    function isModelInGeneration(modelName, generationName) {
-        if (!generationName) return true;
-        let genNameLow = generationName.toLowerCase();
-        let modelLow = modelName.toLowerCase();
-        
-        let match = generationName.match(/(\d+)th Gen/i);
-        if (match) {
-            let genNum = match[1];
-            let regex = new RegExp(`[\\-\\s]?${genNum}\\d{2,3}`, 'i');
-            return regex.test(modelName);
-        }
-        if (genNameLow.includes('core ultra')) return modelLow.includes('ultra');
-
-        match = generationName.match(/Ryzen\s+(\d)000/i);
-        if (match) {
-            let genNum = match[1];
-            let regex = new RegExp(`[\\-\\s]?${genNum}\\d{3}`, 'i');
-            return regex.test(modelName);
-        }
-        
-        if (genNameLow.includes('threadripper')) return modelLow.includes('threadripper');
-        if (genNameLow.includes('athlon')) return modelLow.includes('athlon');
-        if (genNameLow.includes('pentium')) return modelLow.includes('pentium');
-        if (genNameLow.includes('celeron')) return modelLow.includes('celeron');
-
-        return true;
-    }
-
-    let typoTimeout = null;
     cpuModelInput.addEventListener('input', function() {
         hitungLevelOtomatis(); // Normal function
-        
-        clearTimeout(typoTimeout);
-        const val = this.value.trim();
-        typoSuggestion.classList.add('hidden'); // Hide immediately while typing
-
-        if (val.length < 4 || cpuModelsDict.length === 0) return;
-
-        typoTimeout = setTimeout(() => {
-            let bestMatch = '';
-            let minDistance = 999;
-            const valLower = val.toLowerCase();
-            
-            // Filter dictionary based on selected generation and brand
-            const filteredDict = cpuModelsDict.filter(m => {
-                let modelLow = m.toLowerCase();
-                if (selectedBrand) {
-                    if (selectedBrand.toLowerCase() === 'intel' && (modelLow.includes('ryzen') || modelLow.includes('athlon') || modelLow.includes('threadripper'))) return false;
-                    if (selectedBrand.toLowerCase() === 'amd' && (modelLow.includes('i3') || modelLow.includes('i5') || modelLow.includes('i7') || modelLow.includes('i9') || modelLow.includes('core') || modelLow.includes('pentium') || modelLow.includes('celeron'))) return false;
-                }
-                return isModelInGeneration(m, selectedGen);
-            });
-            
-            for(let model of filteredDict) {
-                let modelLow = model.toLowerCase();
-                if(modelLow === valLower) {
-                    return; // Exact match found, no suggestion needed
-                }
-                
-                let currentMinDist = 999;
-                
-                // 1. Full string Levenshtein
-                let distFull = levenshtein(valLower, modelLow);
-                if (distFull < currentMinDist) currentMinDist = distFull;
-
-                // 2. Substring match (e.g. user typed "5600x", model is "ryzen 5 5600x")
-                if(modelLow.includes(valLower) && valLower.length >= 3) {
-                    // Give priority to substring match
-                    currentMinDist = 0.5; // Very close
-                }
-                
-                // 3. Match against the last part only (e.g. "5600X" from "Ryzen 5 5600X" or "13900K" from "i9-13900K")
-                let parts = modelLow.split(/[\s\-]+/);
-                let lastPart = parts[parts.length - 1];
-                let distLastPart = levenshtein(valLower, lastPart);
-                if (distLastPart < currentMinDist) currentMinDist = distLastPart;
-
-                // Update global min distance
-                if(currentMinDist < minDistance) {
-                    minDistance = currentMinDist;
-                    bestMatch = model;
-                }
-            }
-
-            if(minDistance > 0 && minDistance <= 3) {
-                typoBtn.textContent = bestMatch;
-                typoSuggestion.classList.remove('hidden');
-            }
-        }, 600); // 600ms debounce
-    });
-
-    typoBtn.addEventListener('click', function() {
-        cpuModelInput.value = this.textContent;
-        typoSuggestion.classList.add('hidden');
-        hitungLevelOtomatis();
     });
     cpuBrandRadios.forEach(radio => {
         radio.addEventListener('change', function() {
@@ -639,15 +560,21 @@ document.addEventListener('DOMContentLoaded', function () {
     vgaBrandRadios.forEach(radio => {
         radio.addEventListener('change', function () {
             selectedVgaBrand = this.value;
-            vgaSeriesSection.classList.remove('hidden');
             renderVgaSeries(selectedVgaBrand);
-            vgaModelSection.classList.add('hidden');
+            vgaModelSection.classList.remove('hidden');
             selectedVgaSeries = null;
             vgaVramInput.value = '';
             vgaSuffixSelect.value = 'Polos';
+            vgaSeriesSelect.value = '';
             updateVgaSuffixOptgroups();
             hitungLevelOtomatis();
         });
+    });
+
+    // Add listener for vga series dropdown change
+    vgaSeriesSelect.addEventListener('change', function() {
+        selectedVgaSeries = this.value;
+        hitungLevelOtomatis();
     });
 
     // Initial update
@@ -658,12 +585,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedVgaBrandEl = Array.from(vgaBrandRadios).find(r => r.value === selectedVgaBrand);
         if (selectedVgaBrandEl) {
             selectedVgaBrandEl.checked = true;
-            vgaSeriesSection.classList.remove('hidden');
             renderVgaSeries(selectedVgaBrand);
-
+            vgaModelSection.classList.remove('hidden');
+            
             if (selectedVgaSeries) {
-                vgaModelSection.classList.remove('hidden');
+                vgaSeriesSelect.value = selectedVgaSeries;
             }
+            
             updateVgaSuffixOptgroups();
         }
     }

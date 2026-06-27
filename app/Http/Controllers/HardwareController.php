@@ -32,7 +32,6 @@ class HardwareController extends Controller
             'type' => 'required|in:brand,generation,series',
             'name' => 'required|string|max:100',
             'parent_id' => 'nullable|exists:hardware,id',
-            'base_score' => 'nullable|integer|min:1|max:100',
         ]);
 
         Hardware::create([
@@ -40,7 +39,6 @@ class HardwareController extends Controller
             'type' => $request->type,
             'name' => $request->name,
             'parent_id' => $request->parent_id,
-            'base_score' => $request->base_score,
         ]);
 
         return redirect()->route('hardware.index')->with('success', 'Data hardware berhasil ditambahkan!');
@@ -54,12 +52,10 @@ class HardwareController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100',
-            'base_score' => 'nullable|integer|min:1|max:100',
         ]);
 
         $hardware->update([
             'name' => $request->name,
-            'base_score' => $request->base_score,
         ]);
 
         return redirect()->route('hardware.index')->with('success', 'Data hardware berhasil diupdate!');
@@ -85,7 +81,6 @@ class HardwareController extends Controller
         $request->validate([
             'category' => 'required|in:cpu,vga',
             'brand_id' => 'required|exists:hardware,id',
-            'base_score' => 'nullable|integer|min:1|max:100',
         ]);
 
         $brand = Hardware::findOrFail($request->brand_id);
@@ -101,14 +96,7 @@ class HardwareController extends Controller
                 'category' => 'cpu',
                 'type' => 'generation',
                 'name' => $request->cpu_gen
-            ], [
-                'base_score' => $request->base_score
             ]);
-            
-            // If it existed but we want to update the score
-            if ($request->filled('base_score') && !$gen->wasRecentlyCreated) {
-                $gen->update(['base_score' => $request->base_score]);
-            }
 
             return redirect()->route('hardware.index')->with('success', "Generasi CPU {$request->cpu_gen} berhasil ditambahkan/diupdate!");
             
@@ -122,13 +110,7 @@ class HardwareController extends Controller
                 'category' => 'vga',
                 'type' => 'series',
                 'name' => $request->vga_series
-            ], [
-                'base_score' => $request->base_score
             ]);
-
-            if ($request->filled('base_score') && !$series->wasRecentlyCreated) {
-                $series->update(['base_score' => $request->base_score]);
-            }
 
             return redirect()->route('hardware.index')->with('success', "Seri VGA {$request->vga_series} berhasil ditambahkan/diupdate!");
         }

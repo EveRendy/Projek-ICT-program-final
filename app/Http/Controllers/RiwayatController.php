@@ -27,24 +27,27 @@ class RiwayatController extends Controller
             
             'menunggu' => $allData->filter(function($item) {
                 $statusPersetujuan = strtolower($item->status_persetujuan ?? 'pending');
-                return $statusPersetujuan === 'pending';
+                $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                return $statusPersetujuan === 'pending' || $statusVerifikasi === 'menunggu';
             })->count(),
             
             'progress' => $allData->filter(function($item) {
                 $statusProgress = strtolower($item->status_progress ?? '');
-                return $statusProgress === 'progress';
+                $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                return $statusProgress === 'progress' && $statusVerifikasi !== 'menunggu';
             })->count(),
             
             'selesai' => $allData->filter(function($item) {
                 $statusProgress = strtolower($item->status_progress ?? '');
-                $statusPersetujuan = strtolower($item->status_persetujuan ?? '');
-                return $statusProgress === 'terinstal' || ($statusPersetujuan === 'disetujui' && empty($statusProgress));
+                $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                return $statusProgress === 'terinstal' && $statusVerifikasi === 'disetujui';
             })->count(),
             
             'gagal' => $allData->filter(function($item) {
                 $statusProgress = strtolower($item->status_progress ?? '');
                 $statusPersetujuan = strtolower($item->status_persetujuan ?? '');
-                return $statusProgress === 'gagal_terinstal' || $statusPersetujuan === 'ditolak';
+                $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                return ($statusProgress === 'gagal_terinstal' && $statusVerifikasi === 'disetujui') || $statusPersetujuan === 'ditolak';
             })->count(),
         ];
 

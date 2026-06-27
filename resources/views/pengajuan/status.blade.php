@@ -75,7 +75,7 @@
                                             <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                             Terinstal
                                         </span>
-                                    @elseif($p->status_progress === 'gagal_terinstal')
+                                    @elseif($p->status_progress === 'gagal_terinstal' && $p->status_verifikasi === 'disetujui')
                                         <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
                                             Gagal Terinstal
                                         </span>
@@ -150,7 +150,7 @@
                                         <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                         Terinstal
                                     </span>
-                                @elseif($p->status_progress === 'gagal_terinstal')
+                                @elseif($p->status_progress === 'gagal_terinstal' && $p->status_verifikasi === 'disetujui')
                                     <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
                                         Gagal Terinstal
                                     </span>

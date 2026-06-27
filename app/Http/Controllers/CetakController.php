@@ -23,11 +23,20 @@ class CetakController extends Controller
                                 ->get();
         }
 
+        // Kelompokkan berdasarkan nama software dan versi
+        $groupedData = $dataInstalasi->groupBy(function ($item) {
+            return ($item->software->nama_software ?? 'unknown') . '|' . $item->versi_terinstall;
+        })->map(function ($group) {
+            // Ambil item pertama dari grup
+            $firstItem = $group->first();
+            return $firstItem;
+        })->values();
+
         $data = [
             'no_lab'           => $no_lab,
             'lab'              => $lab,
             'tanggal_cetak'    => now(),
-            'daftar_instalasi' => $dataInstalasi,
+            'daftar_instalasi' => $groupedData,
         ];
 
         return view('laporan_preview', $data);
@@ -52,11 +61,20 @@ class CetakController extends Controller
             return redirect()->back()->with('error', 'Tidak ada riwayat instalasi atau lisensi untuk lab ini.');
         }
 
+        // Kelompokkan berdasarkan nama software dan versi
+        $groupedData = $dataInstalasi->groupBy(function ($item) {
+            return ($item->software->nama_software ?? 'unknown') . '|' . $item->versi_terinstall;
+        })->map(function ($group) {
+            // Ambil item pertama dari grup
+            $firstItem = $group->first();
+            return $firstItem;
+        })->values();
+
         $data = [
             'no_lab'           => $no_lab,
             'lab'              => $lab,
             'tanggal_cetak'    => now(),
-            'daftar_instalasi' => $dataInstalasi,
+            'daftar_instalasi' => $groupedData,
         ];
 
         $pdf = Pdf::loadView('laporan_lab', $data)

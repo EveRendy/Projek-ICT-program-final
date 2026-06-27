@@ -33,7 +33,7 @@
 
     {{-- Tombol trigger --}}
     <button type="button" id="{{ $btnId }}"
-        onclick="toggleCustomSelect('{{ $uid }}')"
+        onclick="toggleCustomSelect('{{ $uid }}', event)"
         class="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer text-left">
         <span id="{{ $labelId }}" class="truncate pr-2">{{ $activeLabel ?? $label }}</span>
         <svg id="chevron_{{ $uid }}" class="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200"
@@ -44,6 +44,7 @@
 
     {{-- Dropdown menu --}}
     <div id="{{ $menuId }}"
+         onclick="event.stopPropagation()"
          class="absolute left-0 z-40 mt-1.5 hidden w-full min-w-[160px] rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl max-h-60 overflow-y-auto">
         @foreach ($options as $opt)
             @php
@@ -57,7 +58,7 @@
             @endphp
             <div
                 {!! $dataAttributes !!}
-                onclick="pickCustomSelect('{{ $uid }}', '{{ addslashes($opt['value'] ?? '') }}', '{{ addslashes($opt['label'] ?? '') }}', {{ $autosubmit ? 'true' : 'false' }}{{ $onchange ? ", '{$onchange}'" : '' }})"
+                onclick="event.stopPropagation(); pickCustomSelect('{{ $uid }}', '{{ addslashes($opt['value'] ?? '') }}', '{{ addslashes($opt['label'] ?? '') }}', {{ $autosubmit ? 'true' : 'false' }}{{ $onchange ? ", '{$onchange}'" : '' }}, event)"
                 class="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2 text-sm transition
                        {{ $isActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700 font-semibold hover:bg-slate-50 hover:text-slate-950' }}">
                 @if($isActive)

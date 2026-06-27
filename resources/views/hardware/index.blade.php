@@ -130,10 +130,9 @@
                             <div class="group flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm cpu-type-container">
                                 <div class="flex flex-col">
                                     <span class="text-xs font-bold text-slate-800">{{ $gen->name }}</span>
-                                    <span class="text-[10px] text-black">Base Score: {{ $gen->base_score ?? '-' }}</span>
                                 </div>
                                 <div class="flex gap-1">
-                                    <button onclick="showModal('edit', {{ $gen->id }}, '{{ $gen->category }}', '{{ $gen->type }}', '{{ $gen->name }}', {{ $gen->parent_id }}, '', '{{ $gen->base_score }}')" class="text-blue-600 hover:text-blue-700">
+                                    <button onclick="showModal('edit', {{ $gen->id }}, '{{ $gen->category }}', '{{ $gen->type }}', '{{ $gen->name }}', {{ $gen->parent_id }}, '')" class="text-blue-600 hover:text-blue-700">
                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </button>
                                     <button onclick="confirmDelete({{ $gen->id }})" class="text-red-600 hover:text-red-700">
@@ -279,10 +278,9 @@
                             <div class="group flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm vga-series-container" data-series-id="{{ $series->id }}">
                                 <div class="flex flex-col">
                                     <span class="text-xs font-bold text-slate-800">{{ $series->name }}</span>
-                                    <span class="text-[10px] text-black">Base Score: {{ $series->base_score ?? '-' }}</span>
                                 </div>
                                 <div class="flex gap-1">
-                                    <button onclick="showModal('edit', {{ $series->id }}, '{{ $series->category }}', '{{ $series->type }}', '{{ $series->name }}', {{ $series->parent_id }}, '', '{{ $series->base_score }}')" class="text-blue-600 hover:text-blue-700">
+                                    <button onclick="showModal('edit', {{ $series->id }}, '{{ $series->category }}', '{{ $series->type }}', '{{ $series->name }}', {{ $series->parent_id }}, '')" class="text-blue-600 hover:text-blue-700">
                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </button>
                                     <button onclick="confirmDelete({{ $series->id }})" class="text-red-600 hover:text-red-700">
@@ -393,15 +391,9 @@
                         <input type="text" id="modalName" name="name" required class="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 placeholder-slate-400 shadow-sm transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="Masukkan nama hardware">
                     </div>
                     
-                    <div id="baseScoreField">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Base Score (1-100)</label>
-                        <input type="number" id="modalBaseScore" name="base_score" min="1" max="100" class="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 placeholder-slate-400 shadow-sm transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="Skor Performa">
-                    </div>
+
                     
-                    <div id="vramField" class="hidden">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">VRAM</label>
-                        <input type="text" id="modalVram" name="vram" class="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 placeholder-slate-400 shadow-sm transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="Contoh: 8GB">
-                    </div>
+
                     
                     <input type="hidden" name="parent_id" id="modalParentId">
                 </form>
@@ -579,23 +571,7 @@
     }
 
     function handleTypeChange(value, selectedElement) {
-        const vramField = document.getElementById('vramField');
-        const baseScoreField = document.getElementById('baseScoreField');
-        const modalBaseScore = document.getElementById('modalBaseScore');
-        let category = document.getElementById('val_modalCategorySelect')?.value || document.getElementById('modalCategory')?.value;
-        
-        if (value === 'series' && category === 'vga') {
-            vramField.classList.remove('hidden');
-        } else {
-            vramField.classList.add('hidden');
-        }
-
-        if (value === 'brand') {
-            baseScoreField.classList.add('hidden');
-            modalBaseScore.value = '';
-        } else {
-            baseScoreField.classList.remove('hidden');
-        }
+        // VRAM field removed, no action needed
     }
 
     const hardwareModal = document.getElementById('hardwareModal');
@@ -603,12 +579,10 @@
     const deleteModal = document.getElementById('deleteModal');
     const deleteModalContent = document.getElementById('deleteModalContent');
 
-    function showModal(mode, id = null, category = '', type = '', name = '', parentId = '', vram = '', base_score = '') {
+    function showModal(mode, id = null, category = '', type = '', name = '', parentId = '') {
         const modalTitle = document.getElementById('modalTitle');
         const modalMethod = document.getElementById('modalMethod');
         const modalName = document.getElementById('modalName');
-        const modalBaseScore = document.getElementById('modalBaseScore');
-        const modalVram = document.getElementById('modalVram');
         const modalParentId = document.getElementById('modalParentId');
         const form = document.getElementById('hardwareForm');
 
@@ -622,9 +596,7 @@
             modalMethod.value = 'PUT';
             form.action = '/hardware/' + id;
             modalName.value = name;
-            modalBaseScore.value = base_score;
             modalParentId.value = parentId;
-            modalVram.value = vram;
             
             const categoryLabel = category === 'cpu' ? 'CPU' : 'VGA';
             document.getElementById('categoryDisplayText').textContent = categoryLabel;
@@ -637,20 +609,12 @@
             document.getElementById('modalType').value = type;
             typeDisplay.classList.remove('hidden');
             typeDropdown.classList.add('hidden');
-            document.getElementById('vramField').classList.add('hidden');
-            
-            if (type === 'brand') {
-                document.getElementById('baseScoreField').classList.add('hidden');
-            } else {
-                document.getElementById('baseScoreField').classList.remove('hidden');
-            }
         } else {
             modalTitle.textContent = 'Tambah Hardware';
             modalMethod.value = 'POST';
             form.action = '/hardware';
             modalName.value = name;
             modalParentId.value = parentId;
-            modalVram.value = vram;
             
             if (category && type) {
                 // If both category and type are provided, display as text
@@ -676,17 +640,7 @@
                 const typeSelectInput = document.getElementById('val_modalTypeSelect');
                 if (typeSelectInput) typeSelectInput.removeAttribute('name');
                 
-                if (type === 'series' && category === 'vga') {
-                    document.getElementById('vramField').classList.remove('hidden');
-                } else {
-                    document.getElementById('vramField').classList.add('hidden');
-                }
-                
-                if (type === 'brand') {
-                    document.getElementById('baseScoreField').classList.add('hidden');
-                } else {
-                    document.getElementById('baseScoreField').classList.remove('hidden');
-                }
+                // VRAM field removed
             } else {
                 // Show dropdowns for selection
                 categoryDisplay.classList.add('hidden');
@@ -704,8 +658,6 @@
                 // Reset selects
                 setCustomSelect('modalCategorySelect', '', 'Pilih Kategori');
                 setCustomSelect('modalTypeSelect', '', 'Pilih Tipe');
-                document.getElementById('vramField').classList.add('hidden');
-                document.getElementById('baseScoreField').classList.remove('hidden');
             }
         }
 

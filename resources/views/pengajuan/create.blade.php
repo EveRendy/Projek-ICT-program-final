@@ -54,7 +54,7 @@
                 </label>
             </div>
 
-            <label class="block">
+            <div class="block">
                 <span class="mb-1.5 block text-sm font-bold text-slate-700">Pilih Laboratorium Tujuan</span>
                 <x-custom-select
                     id="laboratorium_id"
@@ -69,7 +69,7 @@
                             'label' => $lab->no_lab . ($lab->nama_lab ? ' : ' . $lab->nama_lab : '') . ' (Spesifikasi Level ' . $lab->level . ')',
                         ])->toArray()
                     )" />
-            </label>
+            </div>
 
             <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
                 <div class="mb-4 flex items-center gap-2">
@@ -79,7 +79,7 @@
                 
                 <div class="grid gap-5 md:grid-cols-2">
                     <div class="flex flex-col gap-4">
-                        <label class="block">
+                        <div class="block">
                             <span class="mb-1.5 block text-sm font-bold text-slate-700">Software</span>
                             <x-custom-select
                                 id="software_id"
@@ -95,7 +95,7 @@
                                     ])->toArray(),
                                     [['value' => 'lainnya', 'label' => 'Lainnya (Tidak ada di daftar)']]
                                 )" />
-                        </label>
+                        </div>
 
                         <div id="container_software_lain" class="hidden transition-all duration-300">
                             <label class="block">
@@ -108,7 +108,7 @@
                     </div>
 
                     <div class="flex flex-col gap-4">
-                        <label class="block">
+                        <div class="block">
                             <span class="mb-1.5 block text-sm font-bold text-slate-700">Versi Software</span>
                             <x-custom-select
                                 id="versi_requested"
@@ -117,7 +117,7 @@
                                 :selected="old('versi_requested', '')"
                                 :required="true"
                                 :options="[['value' => '', 'label' => '-- Pilih Versi --']]" />
-                        </label>
+                        </div>
 
                         <div id="container_versi_lain" class="hidden transition-all duration-300">
                             <label class="block">
@@ -188,7 +188,7 @@
                 ? '<svg class="h-3.5 w-3.5 shrink-0 text-blue-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
                 : '<span class="h-3.5 w-3.5 shrink-0"></span>';
 
-            return '<div onclick="pickCustomSelect(\'' + uid + '\', \'' + value + '\', \'' + text + '\', false)"'
+            return '<div onclick="event.stopPropagation(); pickCustomSelect(\'' + uid + '\', \'' + value + '\', \'' + text + '\', false, null, event)"'
                 + ' class="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2 text-sm transition ' + activeClass + '">'
                 + icon + opt.label + '</div>';
         }).join('');
@@ -314,8 +314,8 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         const origPick = window.pickCustomSelect;
-        window.pickCustomSelect = function (uid, value, label, autosubmit) {
-            origPick(uid, value, label, autosubmit);
+        window.pickCustomSelect = function (uid, value, label, autosubmit, customOnChange = null, event) {
+            origPick(uid, value, label, autosubmit, customOnChange, event);
 
             if (uid === 'laboratorium_id') {
                 cekKompatibilitas();

@@ -191,7 +191,23 @@
                                 ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
                                 ->implode(', ');
                             $labDisplay = $labNames ?: 'Belum Ditentukan';
-                            $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
+                            
+                            // Determine current status properly considering verification
+                            $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                            $statusProgress = strtolower($item->status_progress ?? '');
+                            $statusPersetujuan = strtolower($item->status_persetujuan ?? 'pending');
+                            
+                            if ($statusPersetujuan === 'pending') {
+                                $currentStatus = $statusPersetujuan;
+                            } elseif ($statusVerifikasi === 'menunggu') {
+                                $currentStatus = 'menunggu verifikasi';
+                            } elseif ($statusVerifikasi === 'disetujui') {
+                                $currentStatus = $statusProgress;
+                            } elseif ($statusPersetujuan === 'ditolak') {
+                                $currentStatus = $statusPersetujuan;
+                            } else {
+                                $currentStatus = $statusProgress ?: 'progress';
+                            }
                         @endphp
                         
                         <tr class="transition hover:bg-slate-50/50">
@@ -251,16 +267,32 @@
         {{-- Kartu untuk layar kecil --}}
         <div class="sm:hidden p-4 space-y-4">
             @forelse($pengajuans as $item)
-                @php
-                    $rawLabIds = $item->lab_ids;
-                    $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
-                    $labNames = collect($list_laboratorium ?? [])
-                        ->whereIn('id', $labIdsArray)
-                        ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
-                        ->implode(', ');
-                    $labDisplay = $labNames ?: 'Belum Ditentukan';
-                    $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
-                @endphp
+            @php
+                $rawLabIds = $item->lab_ids;
+                $labIdsArray = is_string($rawLabIds) ? json_decode($rawLabIds, true) : $rawLabIds;
+                $labNames = collect($list_laboratorium ?? [])
+                    ->whereIn('id', $labIdsArray)
+                    ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
+                    ->implode(', ');
+                $labDisplay = $labNames ?: 'Belum Ditentukan';
+                
+                // Determine current status properly considering verification
+                $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                $statusProgress = strtolower($item->status_progress ?? '');
+                $statusPersetujuan = strtolower($item->status_persetujuan ?? 'pending');
+                
+                if ($statusPersetujuan === 'pending') {
+                    $currentStatus = $statusPersetujuan;
+                } elseif ($statusVerifikasi === 'menunggu') {
+                    $currentStatus = 'menunggu verifikasi';
+                } elseif ($statusVerifikasi === 'disetujui') {
+                    $currentStatus = $statusProgress;
+                } elseif ($statusPersetujuan === 'ditolak') {
+                    $currentStatus = $statusPersetujuan;
+                } else {
+                    $currentStatus = $statusProgress ?: 'progress';
+                }
+            @endphp
                 
                 <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50/50 transition">
                     <div class="flex items-start justify-between gap-3 mb-3">
@@ -317,7 +349,23 @@
                     ->map(fn($l) => $l->no_lab ?? 'LAB ' . $l->id)
                     ->implode(', ');
                 $labDisplay = $labNames ?: 'Belum Ditentukan';
-                $currentStatus = $item->status_progress ?? $item->status_persetujuan ?? 'pending';
+                
+                // Determine current status properly considering verification
+                $statusVerifikasi = strtolower($item->status_verifikasi ?? '');
+                $statusProgress = strtolower($item->status_progress ?? '');
+                $statusPersetujuan = strtolower($item->status_persetujuan ?? 'pending');
+                
+                if ($statusPersetujuan === 'pending') {
+                    $currentStatus = $statusPersetujuan;
+                } elseif ($statusVerifikasi === 'menunggu') {
+                    $currentStatus = 'menunggu verifikasi';
+                } elseif ($statusVerifikasi === 'disetujui') {
+                    $currentStatus = $statusProgress;
+                } elseif ($statusPersetujuan === 'ditolak') {
+                    $currentStatus = $statusPersetujuan;
+                } else {
+                    $currentStatus = $statusProgress ?: 'progress';
+                }
             @endphp
             <div id="modalDetailHistory{{ $item->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
                 <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="toggleModal('modalDetailHistory{{ $item->id }}', false)"></div>

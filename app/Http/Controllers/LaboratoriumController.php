@@ -11,51 +11,70 @@ class LaboratoriumController extends Controller
 {
     private function hitungLevel($cpuGen, $ramSize, $hasVga, $vgaSeries, $vgaVram): int
     {
-        // 1. Get CPU Base Score
-        $cpuScore = 0;
-        $cpuNode = \App\Models\Hardware::where('category', 'cpu')
-            ->where('type', 'generation')
-            ->where('name', $cpuGen)
-            ->first();
-        if ($cpuNode && $cpuNode->base_score) {
-            $cpuScore = $cpuNode->base_score;
-        }
-
-        // 2. Get VGA Base Score
-        $vgaScore = 0;
-        if ($hasVga && !empty($vgaSeries)) {
-            $vgaNode = \App\Models\Hardware::where('category', 'vga')
-                ->where('type', 'series')
-                ->where('name', $vgaSeries)
-                ->first();
-            
-            if ($vgaNode && $vgaNode->base_score) {
-                $vgaScore = $vgaNode->base_score;
-                
-                // Add minor multiplier for VRAM (e.g., +1 point per GB)
-                $vram = (int)$vgaVram;
-                $vgaScore += ($vram * 1);
-            }
-        }
-
-        // 3. Get RAM Score (e.g. 1 point per GB)
+        // 1. First check RAM: if less than 8GB → ALWAYS Level 1
         $ramNum = (int)filter_var($ramSize, FILTER_SANITIZE_NUMBER_INT);
-        $ramScore = $ramNum;
-
-        // Total
-        $totalScore = $cpuScore + $vgaScore + $ramScore;
-
-        // Thresholds:
-        // < 40 = Level 1
-        // 40 - 80 = Level 2
-        // > 80 = Level 3
-        if ($totalScore < 40) {
+        if ($ramNum < 8) {
             return 1;
-        } elseif ($totalScore <= 80) {
-            return 2;
-        } else {
-            return 3;
         }
+
+        // 2. Determine CPU level
+        $cpuLevel = 1;
+
+        // Parse Intel generation: "4th Gen", "1st Gen", etc.
+        if (preg_match('/(\d+)(st|nd|rd|th) Gen/i', $cpuGen, $matches)) {
+            $gen = (int)$matches[1];
+            $cpuLevel = $gen <= 5 ? 1 : 2;
+        } elseif (strpos($cpuGen, 'Ryzen') !== false) {
+            // For AMD Ryzen: check series
+            if (preg_match('/Ryzen (1000|2000) Series/i', $cpuGen)) {
+                // Ryzen 1000 & 2000 Series → Level 1
+                $cpuLevel = 1;
+            } else {
+                // Ryzen 3000+ → Level 2
+                $cpuLevel = 2;
+            }
+        } else {
+            // For other CPU types: default to level 1 (Core 2 Duo, Athlon, Phenom, FX, A-Series)
+            $cpuLevel = 1;
+        }
+
+        // If no VGA → use CPU level (max 2)
+        if (!$hasVga) {
+            return min($cpuLevel, 2);
+        }
+
+        // 3. Determine VGA level based on VRAM
+        $vgaLevel = 1;
+        $useCpuOnly = false;
+        
+        if (!empty($vgaVram)) {
+            $vram = (int)$vgaVram;
+            if ($vram <= 2) {
+                // VRAM ≤ 2GB: follow CPU level only
+                $useCpuOnly = true;
+            } elseif ($vram <= 4) {
+                $vgaLevel = 2;
+            } elseif ($vram >= 6) {
+                $vgaLevel = 3;
+            } else {
+                // 5GB VRAM: default to level 2
+                $vgaLevel = 2;
+            }
+        } else {
+            // If no VRAM specified: default to level 2
+            $vgaLevel = 2;
+        }
+
+        // 4. Final level
+        if ($useCpuOnly) {
+            $finalLevel = $cpuLevel;
+        } else {
+            $finalLevel = max($cpuLevel, $vgaLevel);
+        }
+        
+        // 5. If CPU level is 1, max overall level is 2
+        $maxLevel = $cpuLevel === 1 ? 2 : 3;
+        return min($finalLevel, $maxLevel);
     }
 
     // 1. Tampilkan daftar laboratorium
@@ -109,6 +128,7 @@ class LaboratoriumController extends Controller
             'ram_size' => 'required|string',
             'vga_brand' => 'nullable|string',
             'vga_series' => 'nullable|string',
+            'vga_model' => 'nullable|string',
             'vga_suffix' => 'nullable|string',
             'vga_vram' => 'nullable|numeric',
         ]);
@@ -128,7 +148,7 @@ class LaboratoriumController extends Controller
         ];
 
         if ($hasVga) {
-            $vgaSeriesFull = $request->vga_series;
+            $vgaSeriesFull = $request->vga_model; // Use vga_model instead of vga_series as the main identifier
             if ($request->vga_suffix && $request->vga_suffix !== 'Polos') {
                 $vgaSeriesFull .= ' ' . $request->vga_suffix;
             }
@@ -229,6 +249,7 @@ class LaboratoriumController extends Controller
             'ram_size' => 'required|string',
             'vga_brand' => 'nullable|string',
             'vga_series' => 'nullable|string',
+            'vga_model' => 'nullable|string',
             'vga_suffix' => 'nullable|string',
             'vga_vram' => 'nullable|numeric',
         ]);
@@ -248,7 +269,7 @@ class LaboratoriumController extends Controller
         ];
 
         if ($hasVga) {
-            $vgaSeriesFull = $request->vga_series;
+            $vgaSeriesFull = $request->vga_model; // Use vga_model instead of vga_series as the main identifier
             if ($request->vga_suffix && $request->vga_suffix !== 'Polos') {
                 $vgaSeriesFull .= ' ' . $request->vga_suffix;
             }

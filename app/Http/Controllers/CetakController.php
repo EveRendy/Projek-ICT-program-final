@@ -2,33 +2,66 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Instalasi;
+use App\Models\LicenseTracking;
+use App\Models\Laboratorium;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class CetakController extends Controller
 {
-    public function cetakLaporanLab($no_lab)
+    /**
+     * Tampilkan halaman preview laporan di browser (dengan tombol Print & Download)
+     */
+    public function previewLaporanLab($no_lab)
     {
-        //Ambil data instalasi
-        $dataInstalasi = Instalasi::with('software')
-                            ->where('no_lab', $no_lab)
-                            ->get();
-
-        if ($dataInstalasi->isEmpty()) {
-            return redirect()->back()->with('error', 'Data untuk ' . $no_lab . ' tidak ditemukan.');
+        $lab = Laboratorium::where('no_lab', $no_lab)->first();
+        $dataInstalasi = [];
+        
+        if ($lab) {
+            $dataInstalasi = LicenseTracking::with('software')
+                                ->where('laboratorium_id', $lab->id)
+                                ->get();
         }
 
         $data = [
-            'no_lab' => $no_lab,
-            'tanggal_cetak' => date('d-m-Y H:i'),
-            'daftar_instalasi' => $dataInstalasi
+            'no_lab'           => $no_lab,
+            'lab'              => $lab,
+            'tanggal_cetak'    => now(),
+            'daftar_instalasi' => $dataInstalasi,
         ];
 
-        $pdf = Pdf::loadView('laporan_lab', $data);
+        return view('laporan_preview', $data);
+    }
 
-        $pdf->setPaper('a4', 'portrait');
+    /**
+     * Hasilkan file PDF untuk di-download
+     */
+    public function cetakLaporanLab($no_lab)
+    {
+        $lab = Laboratorium::where('no_lab', $no_lab)->first();
+        
+        if (!$lab) {
+            return redirect()->back()->with('error', 'Laboratorium tidak ditemukan.');
+        }
 
-        return $pdf->stream('Laporan_Software_' . $no_lab . '.pdf');
+        $dataInstalasi = LicenseTracking::with('software')
+                            ->where('laboratorium_id', $lab->id)
+                            ->get();
+
+        if ($dataInstalasi->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada riwayat instalasi atau lisensi untuk lab ini.');
+        }
+
+        $data = [
+            'no_lab'           => $no_lab,
+            'lab'              => $lab,
+            'tanggal_cetak'    => now(),
+            'daftar_instalasi' => $dataInstalasi,
+        ];
+
+        $pdf = Pdf::loadView('laporan_lab', $data)
+                  ->setPaper('a4', 'landscape'); 
+
+        return $pdf->download('Laporan_Instalasi_Lab_' . $no_lab . '.pdf');
     }
 }

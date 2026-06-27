@@ -1,55 +1,75 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <h2 class="text-2xl font-black tracking-tight text-slate-950 mb-6">Edit Data Lab</h2>
-
-        {{-- Menampilkan Alert Error Validasi --}}
-        @if ($errors->any())
-            <div class="mb-6 flex gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
-                <svg class="h-5 w-5 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-                <div>
-                    <span class="font-semibold block mb-1">Terdapat kesalahan:</span>
-                    <ul class="list-inside list-disc">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+<div class="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-black tracking-tight text-slate-950 uppercase">Form Edit Ruang Lab</h2>
+                <p class="text-sm font-medium text-slate-500 mt-1">Ubah spesifikasi teknis ruang laboratorium.</p>
             </div>
-        @endif
+        </div>
+    </div>
 
-        <form action="{{ route('labs.update', $lab->id) }}" method="POST" class="flex flex-col gap-5">
+    <div class="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 shadow-sm flex gap-3 items-start">
+        <svg class="h-5 w-5 text-blue-600 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+        <div>
+            <span class="font-bold">Informasi Alur Pengajuan:</span> Perubahan data lab akan dikirim kembali ke Supervisor untuk ditinjau sebelum diperbarui.
+            <br>
+            <span class="font-semibold text-blue-700">💡 Tips: Jika Anda mengubah Admin Penanggung Jawab, semua pengajuan yang sudah disetujui tapi belum memiliki admin akan otomatis ditugaskan ke admin baru.</span>
+        </div>
+    </div>
+
+    @if ($errors->any())
+        <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 shadow-sm">
+            <div class="mb-2 font-bold">Terdapat beberapa masalah:</div>
+            <ul class="list-disc space-y-1 pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form action="{{ route('labs.update', $lab->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
-            
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Nomor / Nama Lab</label>
-                <input type="text" name="no_lab" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition" value="{{ $lab->no_lab }}" required>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="no_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nomor Lab</label>
+                    <input type="text" id="no_lab" name="no_lab" value="{{ old('no_lab', $lab->no_lab) }}" readonly
+                        class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-500 cursor-not-allowed opacity-75 focus:outline-none"
+                        style="text-transform: uppercase; letter-spacing: 0.5px;">
+                    <p class="mt-1 text-xs text-slate-400">Nomor lab tidak dapat diubah.</p>
+                </div>
+                <div>
+                    <label for="nama_lab" class="mb-2 block text-sm font-semibold text-slate-700">Nama Lab <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama_lab" name="nama_lab" value="{{ old('nama_lab', $lab->nama_lab) }}" required
+                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                        placeholder="Contoh: Laboratorium Teknik Informatika">
+                </div>
+                <div>
+                    <label for="jumlah_pc" class="mb-2 block text-sm font-semibold text-slate-700">Jumlah PC</label>
+                    <input type="number" id="jumlah_pc" name="jumlah_pc" value="{{ old('jumlah_pc', $lab->jumlah_pc) }}" required min="1"
+                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
+                </div>
             </div>
-            
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Level Spesifikasi Komputer</label>
-                <select name="level" class="block w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 pr-10 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20viewBox=%220%200%2024%2024%22%20stroke-width=%222%22%20stroke=%22%2364748b%22%3E%3Cpath%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%20d=%22M19.5%208.25l-7.5%207.5-7.5-7.5%22/%3E%3C/svg%3E')] bg-[position:right_1rem_center] bg-no-repeat bg-[length:1em_1em]" required>
-                    <option value="1" {{ $lab->level == 1 ? 'selected' : '' }}>Level 1 (Spesifikasi Rendah)</option>
-                    <option value="2" {{ $lab->level == 2 ? 'selected' : '' }}>Level 2 (Spesifikasi Menengah)</option>
-                    <option value="3" {{ $lab->level == 3 ? 'selected' : '' }}>Level 3 (Spesifikasi Tinggi)</option>
-                </select>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Jumlah PC</label>
-                <input type="number" name="jumlah_pc" class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition" value="{{ $lab->jumlah_pc }}" required>
-            </div>
-            
-            <div class="mt-2 flex items-center gap-3">
-                <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                    Simpan Perubahan
+
+            @include('labs.partials.hardware-form', ['lab' => $lab, 'hardware' => $hardware, 'selectedSpecs' => $selectedSpecs, 'labLevel' => $lab->level])
+
+            <hr class="border-slate-100">
+
+            <div class="flex flex-col gap-3 pt-2 sm:flex-row">
+                <button type="submit" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-950 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-950/20">
+                    Simpan Perubahan Lab
                 </button>
-                <a href="{{ route('labs.index') }}" class="inline-flex items-center justify-center rounded-xl bg-slate-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500/20">
+                <a href="{{ route('labs.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
                     Batal
                 </a>
             </div>

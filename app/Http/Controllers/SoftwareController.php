@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Software;
 use App\Models\Laboratorium; // Tambahan Model Laboratorium
-use App\Models\Instalasi;
+
 use Illuminate\Http\Request;
 
 class SoftwareController extends Controller
@@ -12,16 +12,12 @@ class SoftwareController extends Controller
     // 1. DAFTAR SOFTWARE (Read) dengan Search, Filter, dan Paginasi
     public function index(Request $request)
     {
-        // Ambil data laboratorium untuk dropdown filter (Sesuai kode asli Anda)
-        $laboratoriums = Laboratorium::all();
+        // Ambil data laboratorium untuk dropdown filter (hanya yang aktif)
+        $laboratoriums = Laboratorium::where('is_active', true)->get();
 
         // Menggunakan eager loading agar query pengambilan relasi instalasi di blade lebih efisien
         $labSelected = $request->laboratorium;
-        $query = Software::with(['instalasis' => function($q) use ($request, $labSelected) {
-            if ($request->filled('laboratorium')) {
-                $q->where('no_lab', $labSelected);
-            }
-        }]);
+        $query = Software::with('licenseTrackings'); // Load semua instalasi untuk cek status
 
         // Logika Pencarian berdasarkan Nama atau ID Software (Sesuai kode asli Anda)
         if ($request->filled('search')) {
@@ -37,12 +33,15 @@ class SoftwareController extends Controller
             $query->where('keterangan', $request->kategori);
         }
 
-        // Logika Filter Laboratorium (Mengikuti variabel nama asli Anda: 'laboratorium')
-        // Disesuaikan agar memfilter nomor laboratorium melalui relasi instalasiasRelation
+        // Logika Filter Laboratorium
+        // Jika lab dipilih → hanya tampil software yang sudah terinstal di lab tersebut
+        // Jika tidak dipilih → tampil semua software
         if ($request->filled('laboratorium')) {
             $labSelected = $request->laboratorium;
-            $query->whereHas('instalasis', function($q) use ($labSelected) {
-                $q->where('no_lab', $labSelected);
+            $query->whereHas('licenseTrackings', function($q) use ($labSelected) {
+                $q->whereHas('laboratorium', function($q2) use ($labSelected) {
+                    $q2->where('no_lab', $labSelected);
+                });
             });
         }
 
@@ -63,17 +62,21 @@ class SoftwareController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_software' => 'required|string|unique:software,id_software|max:50',
             'nama_software' => 'required|string|max:255',
             'versi_raw' => 'required|string', // Menerima teks input yang dipisah koma
             'keterangan' => 'required|integer|in:1,2,3',
         ]);
 
+        // Generate ID Software otomatis dengan format SOFT001, SOFT002, dst
+        $lastSoftware = Software::orderBy('id', 'desc')->first();
+        $lastIdNum = $lastSoftware ? intval(substr($lastSoftware->id_software ?? 'SOFT000', -3)) : 0;
+        $newIdSoftware = 'SOFT' . str_pad($lastIdNum + 1, 3, '0', STR_PAD_LEFT);
+
         // Memecah teks koma menjadi array, lalu membersihkan spasi yang tidak rapi
         $versiArray = array_map('trim', explode(',', $request->versi_raw));
 
         Software::create([
-            'id_software' => strtoupper($request->id_software),
+            'id_software' => $newIdSoftware, // Auto-generate, tidak diinput manual
             'nama_software' => $request->nama_software,
             'versi' => $versiArray, // Otomatis dicast jadi JSON oleh Model
             'keterangan' => $request->keterangan,
@@ -104,7 +107,6 @@ class SoftwareController extends Controller
         $software = Software::findOrFail($id);
 
         $request->validate([
-            'id_software' => 'required|string|max:50|unique:software,id_software,' . $software->id,
             'nama_software' => 'required|string|max:255',
             'versi_raw' => 'required|string',
             'keterangan' => 'required|integer|in:1,2,3',
@@ -112,8 +114,8 @@ class SoftwareController extends Controller
 
         $versiArray = array_map('trim', explode(',', $request->versi_raw));
 
+        // ID Software tidak bisa diubah, hanya nama, versi, dan keterangan
         $software->update([
-            'id_software' => strtoupper($request->id_software),
             'nama_software' => $request->nama_software,
             'versi' => $versiArray,
             'keterangan' => $request->keterangan,

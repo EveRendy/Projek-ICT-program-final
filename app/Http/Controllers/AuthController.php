@@ -35,6 +35,17 @@ class AuthController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
+            // Cek apakah akun aktif
+            if (!$user->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'loginError' => 'Akun Anda telah dinonaktifkan oleh administrator.',
+                ])->onlyInput('email');
+            }
+
             // Cek apakah dosen ini login pertama kali dan perlu lengkapi profil
             if ($user->role === 'dosen' && $user->is_first_login) {
                 return redirect()->route('dosen.complete-profile')

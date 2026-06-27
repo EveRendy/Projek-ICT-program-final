@@ -58,18 +58,18 @@
 
     @if($role === 'supervisor')
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-950">Menunggu Tinjauan Pengajuan</p>
+            <article class="rounded-2xl border border-slate-200 bg-transparent p-5 shadow-sm">
+                <p class="text-sm font-black text-slate-950">Menunggu Tinjauan Pengajuan</p>
                 <p class="mt-3 text-3xl font-black text-slate-950">{{ $menungguTinjauanPengajuan ?? 0 }}</p>
                 <p class="mt-3 text-sm font-bold text-slate-700">Pengajuan baru yang perlu disetujui</p>
             </article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-950">Menunggu Tinjauan Instalasi</p>
+            <article class="rounded-2xl border border-slate-200 bg-transparent p-5 shadow-sm">
+                <p class="text-sm font-black text-slate-950">Menunggu Tinjauan Instalasi</p>
                 <p class="mt-3 text-3xl font-black text-slate-950">{{ $menungguTinjauanInstalasi ?? 0 }}</p>
                 <p class="mt-3 text-sm font-bold text-slate-700">Foto bukti instalasi yang perlu diverifikasi</p>
             </article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-950">Sedang Diinstal</p>
+            <article class="rounded-2xl border border-slate-200 bg-transparent p-5 shadow-sm">
+                <p class="text-sm font-black text-slate-950">Sedang Diinstal</p>
                 <p class="mt-3 text-3xl font-black text-slate-950">{{ $sedangDiinstal ?? 0 }}</p>
                 <p class="mt-3 text-sm font-bold text-slate-700">Instalasi sedang berlangsung</p>
             </article>
@@ -139,19 +139,19 @@
                 </div>
             </div>
 
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="rounded-3xl border border-slate-200 bg-transparent p-6 shadow-sm">
                 <h3 class="text-lg font-black text-slate-950">Ringkasan Sistem</h3>
                 <div class="mt-5 grid gap-3">
-                    <div class="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
-                        <span class="text-sm font-semibold text-slate-600">Master software</span>
+                    <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-transparent p-4">
+                        <span class="text-sm font-black text-slate-600">Master software</span>
                         <span class="text-sm font-black text-slate-950">{{ $totalSoftware ?? 0 }}</span>
                     </div>
-                    <div class="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
-                        <span class="text-sm font-semibold text-slate-600">Total lab</span>
+                    <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-transparent p-4">
+                        <span class="text-sm font-black text-slate-600">Total lab</span>
                         <span class="text-sm font-black text-slate-950">{{ $totalLaboratorium ?? 0 }}</span>
                     </div>
-                    <div class="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
-                        <span class="text-sm font-semibold text-slate-600">Catatan lisensi</span>
+                    <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-transparent p-4">
+                        <span class="text-sm font-black text-slate-600">Catatan lisensi</span>
                         <span class="text-sm font-black text-slate-950">{{ $totalInstalasi ?? 0 }}</span>
                     </div>
                 </div>

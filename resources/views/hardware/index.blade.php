@@ -474,7 +474,60 @@
         document.querySelectorAll('.vga-series-filter').forEach(checkbox => {
             checkbox.addEventListener('change', applyVgaFilters);
         });
+        document.querySelectorAll('.cpu-brand-filter').forEach(checkbox => {
+            checkbox.addEventListener('change', applyCpuFilters);
+        });
     });
+
+    function toggleCpuFilter() {
+        const content = document.getElementById('cpuFilterContent');
+        const arrow = document.getElementById('cpuFilterArrow');
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            arrow.classList.remove('rotate-180');
+        } else {
+            content.classList.add('hidden');
+            arrow.classList.add('rotate-180');
+        }
+    }
+
+    function toggleVgaFilter() {
+        const content = document.getElementById('vgaFilterContent');
+        const arrow = document.getElementById('vgaFilterArrow');
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            arrow.classList.remove('rotate-180');
+        } else {
+            content.classList.add('hidden');
+            arrow.classList.add('rotate-180');
+        }
+    }
+
+    function resetCpuFilters() {
+        document.querySelectorAll('.cpu-brand-filter').forEach(cb => cb.checked = true);
+        applyCpuFilters();
+    }
+
+    function resetVgaFilters() {
+        document.querySelectorAll('.vga-series-filter').forEach(cb => cb.checked = true);
+        applyVgaFilters();
+    }
+
+    function applyCpuFilters() {
+        let selectedBrandIds = [];
+        document.querySelectorAll('.cpu-brand-filter:checked').forEach(cb => {
+            selectedBrandIds.push(cb.dataset.brandId);
+        });
+
+        document.querySelectorAll('.cpu-brand-card').forEach(card => {
+            const brandId = card.dataset.brandId;
+            if (selectedBrandIds.includes(brandId)) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
 
     function applyVgaFilters() {
         let selectedSeriesIds = [];

@@ -37,6 +37,7 @@ class User extends Authenticatable
         'no_hp',
         'role',
         'is_first_login',
+        'is_active',
     ];
 
     /**

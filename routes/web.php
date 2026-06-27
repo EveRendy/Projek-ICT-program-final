@@ -57,6 +57,7 @@ Route::middleware(['auth', 'check.first.login'])->group(function () {
     
     // Route CRUD Master Data (Resource)
     Route::resource('users', UserController::class);
+    Route::patch('/users/{no_induk}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggleActive');
 
     // Route Hardware
     Route::resource('hardware', HardwareController::class)->only(['index', 'store', 'update', 'destroy']);

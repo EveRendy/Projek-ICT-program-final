@@ -13,6 +13,17 @@
                 </div>
             </div>
         @endif
+
+        @if(session('error'))
+            <div class="flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm font-medium text-rose-800 shadow-sm">
+                <svg class="h-5 w-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    {{ session('error') }}
+                </div>
+            </div>
+        @endif
         
         <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -141,12 +152,17 @@
                         @forelse($users as $item)
                             <tr class="hover:bg-slate-50/70 transition">
                                 <td class="px-6 py-4 font-mono text-xs font-bold text-slate-700">
-                                    <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 border border-slate-200">
-                                        {{ $item->no_induk ?? $item->username ?? '-' }}
-                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 border border-slate-200 {{ $item->is_active ? '' : 'opacity-50' }}">
+                                            {{ $item->no_induk ?? $item->username ?? '-' }}
+                                        </span>
+                                        @if(!$item->is_active)
+                                            <span class="inline-flex items-center rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Tidak Aktif</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 
-                                <td class="px-6 py-4 font-semibold text-slate-950">
+                                <td class="px-6 py-4 font-semibold {{ $item->is_active ? 'text-slate-950' : 'text-slate-400' }}">
                                     @if($item->nama)
                                         {{ $item->nama }}
                                     @else
@@ -200,6 +216,21 @@
                                 
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-2">
+                                        {{-- Button Toggle Aktif (Hanya Supervisor, tidak untuk dirinya sendiri) --}}
+                                        @if(auth()->user()->role === 'supervisor' && auth()->user()->no_induk !== $item->no_induk)
+                                            <form action="{{ route('users.toggleActive', $item->no_induk) }}" method="POST" class="inline-block">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500/20" title="{{ $item->is_active ? 'Nonaktifkan Akun' : 'Aktifkan Akun' }}">
+                                                    @if($item->is_active)
+                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                                    @else
+                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    @endif
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         {{-- Button Edit --}}
                                         <a href="{{ route('users.edit', $item->no_induk) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit User">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -240,15 +271,20 @@
                         <div class="flex items-start justify-between gap-3 mb-3">
                             <div class="flex-1">
                                 <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No Induk</div>
-                                <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 border border-slate-200 font-mono text-xs font-bold text-slate-700">
-                                    {{ $item->no_induk ?? $item->username ?? '-' }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 border border-slate-200 font-mono text-xs font-bold text-slate-700 {{ $item->is_active ? '' : 'opacity-50' }}">
+                                        {{ $item->no_induk ?? $item->username ?? '-' }}
+                                    </span>
+                                    @if(!$item->is_active)
+                                        <span class="inline-flex items-center rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Tidak Aktif</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Nama Lengkap</div>
-                            <div class="font-semibold text-slate-950">
+                            <div class="font-semibold {{ $item->is_active ? 'text-slate-950' : 'text-slate-400' }}">
                                 @if($item->nama)
                                     {{ $item->nama }}
                                 @else
@@ -304,14 +340,25 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            {{-- Button Toggle Aktif --}}
+                            @if(auth()->user()->role === 'supervisor' && auth()->user()->no_induk !== $item->no_induk)
+                                <form action="{{ route('users.toggleActive', $item->no_induk) }}" method="POST" class="flex-1 min-w-[30%]">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="w-full inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500/20" title="{{ $item->is_active ? 'Nonaktifkan Akun' : 'Aktifkan Akun' }}">
+                                        {{ $item->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </form>
+                            @endif
+
                             {{-- Button Edit --}}
-                            <a href="{{ route('users.edit', $item->no_induk) }}" class="flex-1 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit User">
+                            <a href="{{ route('users.edit', $item->no_induk) }}" class="flex-1 min-w-[30%] inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit User">
                                 Edit
                             </a>
                             
                             {{-- Button Hapus --}}
-                            <form id="delete-form-sm-{{ $item->no_induk }}" action="{{ route('users.destroy', $item->no_induk) }}" method="POST" class="flex-1">
+                            <form id="delete-form-sm-{{ $item->no_induk }}" action="{{ route('users.destroy', $item->no_induk) }}" method="POST" class="flex-1 min-w-[30%]">
                                 @csrf
                                 @method('DELETE')
                                 <button type="button" onclick="openDeleteModal('delete-form-sm-{{ $item->no_induk }}')" class="w-full inline-flex items-center justify-center rounded-lg border border-red-200 bg-white py-2 text-sm font-bold text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20" title="Hapus User">

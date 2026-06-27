@@ -247,4 +247,22 @@ class UserController extends Controller
 
         return redirect()->route('users.index')->with('success', 'User berhasil deleted!');
     }
+
+    public function toggleActive($no_induk)
+    {
+        if (auth()->user()->role !== 'supervisor') {
+            abort(403, 'Anda tidak memiliki izin!');
+        }
+
+        // Jangan izinkan supervisor menonaktifkan dirinya sendiri
+        if (auth()->user()->no_induk === $no_induk) {
+            return redirect()->route('users.index')->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri!');
+        }
+
+        $user = User::where('no_induk', $no_induk)->firstOrFail();
+        $user->update(['is_active' => !$user->is_active]);
+
+        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->route('users.index')->with('success', "Akun user berhasil {$status}!");
+    }
 }
